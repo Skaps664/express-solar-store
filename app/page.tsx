@@ -1,0 +1,77 @@
+import { Button } from "@/components/ui/button"
+import CategoryGrid from "@/components/category-grid"
+import PromotionalGrid from "@/components/promotional-grid"
+import FlashDeals from "@/components/flash-deals"
+import TopBrands from "@/components/top-brands"
+import CustomerReviews from "@/components/customer-reviews"
+import SolarCalculator from "@/components/solar-calculator"
+import SolarBenefits from "@/components/solar-benefits"
+import RecentlyViewed from "@/components/recently-viewed"
+import InstallationServices from "@/components/installation-services"
+import BlogPreview from "@/components/blog-preview"
+import FinancingOptions from "@/components/financing-options"
+import FeaturedBrandProducts from "@/components/featured-brand-products"
+import HomePromoGrid from "@/components/home-promo-grid"
+import FeaturedPromoCards from "@/components/featured-promo-cards"
+
+export default function Home() {
+  return (
+    <div className="container mx-auto px-4 pb-12">
+      {/* New Banner Grid with Solar Images */}
+      <HomePromoGrid />
+
+      <CategoryGrid />
+
+      {/* Featured Promo Cards */}
+      <FeaturedPromoCards />
+
+      {/* Rest of the content */}
+      <FeaturedBrandProducts />
+
+      {/* Secondary Promotional Grid */}
+      {/* <PromotionalGrid /> */}
+      <FeaturedPromoCards />
+
+      {/* Flash Deals Section */}
+      <FlashDeals />
+
+      {/* Solar Benefits Section */}
+      <SolarBenefits />
+
+      {/* Top Brands Section */}
+      <TopBrands />
+
+      {/* Installation Services Section */}
+      <InstallationServices />  
+      
+      {/* Flash Deals Section */}
+      <FlashDeals />
+      
+      {/* Solar Calculator Section */}
+      {/* <SolarCalculator /> */}
+
+      {/* Customer Reviews Section */}
+      <CustomerReviews />
+
+      {/* Financing Options Section */}
+      <FinancingOptions />
+
+      {/* Blog Preview Section */}
+      <BlogPreview />
+
+      {/* Recently Viewed Products */}
+      <RecentlyViewed />
+
+      {/* Bottom Banner */}
+      <div className="bg-[#1a5ca4] rounded-lg p-6 md:p-8 my-8 text-white">
+        <div className="flex flex-col md:flex-row items-center justify-between">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">Ready to Go Solar?</h2>
+            <p className="mb-4 md:mb-0">Schedule a free consultation with our solar experts today</p>
+          </div>
+          <Button className="bg-white text-[#1a5ca4] hover:bg-gray-100">Book Consultation</Button>
+        </div>
+      </div>
+    </div>
+  )
+}

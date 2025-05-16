@@ -2,12 +2,15 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ChevronRight } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 // Sample brand data - in a real app, this would come from a database or API
 const brandsData = {
   "jinko-solar": {
     name: "Jinko Solar",
-    logo: "jinko-logo",
+    logo: "/jinko-logo.webp",
+    banner: "/jinko-banner.webp", // Add this line
+
     description:
       "JinkoSolar is one of the largest and most innovative solar module manufacturers in the world. With a strong global presence, Jinko Solar is known for its high-efficiency panels and commitment to quality and innovation.",
     established: 2006,
@@ -247,17 +250,31 @@ export default function BrandPage({ params }) {
 
       {/* Brand Cover Photo/Banner */}
       <div className="relative w-full h-64 md:h-80 mb-8 overflow-hidden rounded-lg shadow-md">
-        {/* Cover image */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1a5ca4]/90 to-[#0e4a8a]/80 flex items-center justify-center">
-          <div className="text-white text-lg">[Brand Cover Image]</div>
-        </div>
+        {/* Cover image - using a generic brand banner image */}
+        <div className="absolute inset-0">
+          <Image 
+              src={brand.banner} 
+              alt={`${brand.name} Banner`} 
+              layout="fill"
+              objectFit="cover"
+              priority
+          />
+       </div>
+        {/* Semi-transparent overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1a5ca4]/60 to-[#0e4a8a]/50"></div>
 
         {/* Overlay content */}
         <div className="absolute inset-0 flex flex-col justify-center px-8 md:px-12">
           <div className="max-w-2xl">
             <div className="flex items-center gap-4 mb-4">
-              <div className="h-8 md:h-10 w-24 bg-white/20 rounded flex items-center justify-center text-white text-xs">
-                [Logo]
+              <div className="h-8 md:h-10 w-24 relative bg-white rounded">
+                <Image 
+                  src={brand.logo.startsWith('/') ? brand.logo : `/${brand.logo}.webp`}
+                  alt={`${brand.name} Logo`}
+                  layout="fill"
+                  objectFit="contain"
+                  className="p-1"
+                />
               </div>
               <span className="text-white font-medium">×</span>
               <span className="text-white font-medium">{brand.name}</span>
@@ -276,8 +293,14 @@ export default function BrandPage({ params }) {
 
       {/* Brand Header */}
       <div className="flex flex-col md:flex-row gap-6 items-center mb-8 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-        <div className="w-40 h-40 bg-gray-100 rounded-lg flex items-center justify-center">
-          <div className="text-gray-400">[{brand.logo}]</div>
+        <div className="w-40 h-40 bg-gray-100 rounded-lg relative">
+          <Image 
+            src={brand.logo.startsWith('/') ? brand.logo : `/${brand.logo}.webp`}
+            alt={`${brand.name} Logo`}
+            layout="fill"
+            objectFit="contain"
+            className="p-4"
+          />
         </div>
         <div className="flex-1">
           <h1 className="text-3xl font-bold mb-3 text-[#1a5ca4]">{brand.name}</h1>
@@ -312,8 +335,13 @@ export default function BrandPage({ params }) {
             {brand.featuredProducts.map((product) => (
               <Link key={product.id} href={`/product/${product.id}`}>
                 <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors">
-                  <div className="h-48 bg-gray-100 flex items-center justify-center">
-                    <div className="text-gray-400">[{product.image}]</div>
+                  <div className="h-48 bg-gray-100 relative">
+                    <Image 
+                      src={product.image.startsWith('/') ? product.image : `/products/${product.image}.jpg`}
+                      alt={product.name}
+                      layout="fill"
+                      objectFit="contain"
+                    />
                   </div>
                   <div className="p-4">
                     <h3 className="font-medium mb-2 line-clamp-2 h-12">{product.name}</h3>
@@ -398,8 +426,13 @@ export default function BrandPage({ params }) {
                 {[...brand.featuredProducts, ...brand.featuredProducts].slice(0, 6).map((product, index) => (
                   <Link key={`all-${index}`} href={`/product/${product.id}`}>
                     <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors">
-                      <div className="h-48 bg-gray-100 flex items-center justify-center">
-                        <div className="text-gray-400">[{product.image}]</div>
+                      <div className="h-48 bg-gray-100 relative">
+                        <Image 
+                          src={product.image.startsWith('/') ? product.image : `/products/${product.image}.jpg`}
+                          alt={product.name}
+                          layout="fill"
+                          objectFit="contain"
+                        />
                       </div>
                       <div className="p-4">
                         <h3 className="font-medium mb-2 line-clamp-2 h-12">{product.name}</h3>
@@ -459,8 +492,14 @@ export default function BrandPage({ params }) {
                 efficiency, and excellent warranty terms, including {brand.warranty}.
               </p>
             </div>
-            <div className="border border-gray-200 rounded-lg h-64 flex items-center justify-center">
-              <div className="text-gray-400">[Brand Story Image]</div>
+            <div className="border border-gray-200 rounded-lg h-64 relative">
+              <Image 
+                src={`/brands/${brandSlug}-story.jpg`}
+                alt={`${brand.name} Story`}
+                layout="fill"
+                objectFit="cover"
+                className="rounded-lg"
+              />
             </div>
           </div>
 

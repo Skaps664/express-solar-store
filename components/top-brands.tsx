@@ -29,9 +29,9 @@ export default function TopBrands() {
       logo: "/1on-logo.png" // Add your image path
     },
     {
-      name: "SMA",
-      slug: "sma",
-      logo: "/brand-logos/sma-logo.png" // Add your image path
+      name: "FOX",
+      slug: "FOX",
+      logo: "/fox-logo.webp" // Add your image path
     },
   ]
 

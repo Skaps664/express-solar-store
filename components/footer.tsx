@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button"
 
 export default function Footer() {
   return (
-    <footer className="bg-[#1a5ca4] text-white pt-10 md:pt-12 pb-6">
+    <footer className="bg-[#1a5ca4] text-white pt-10 md:pt-12 pb-6 ">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8 mx-4 md:px-10 lg:px-12">
           {/* Contact Info */}
           <div>
             <div className="mb-6">
-              <img src="/solar-express-logo-07.png" alt="Solar Express Logo" className="h-12 md:h-16" />
+              <img src="/logo-crop.PNG" alt="Solar Express Logo" className="h-12 md:h-12" />
             </div>
             <h3 className="text-lg md:text-xl font-bold mb-4">Contact Us</h3>
             <ul className="space-y-3">
@@ -113,7 +113,7 @@ export default function Footer() {
         <hr className="border-white/20 mb-6" />
 
         <div className="text-center text-white/70 text-xs md:text-sm">
-          &copy; {new Date().getFullYear()} Solar Express. All rights reserved.
+          &copy; {new Date().getFullYear()} Solar Express. All rights reserved. |  Designed & Developed by Team <a href="https://skordl.com" className="text-[#f26522] hover:text-[#e55511]">skordl</a>
         </div>
       </div>
     </footer>

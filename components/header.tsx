@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Search, ShoppingCart, User, Menu, X, ChevronDown, ChevronRight, MapPin } from "lucide-react"
+import { Sun, Battery, Zap, Home, Wrench, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import PriceTicker from "./price-ticker"
@@ -11,6 +12,9 @@ import Link from "next/link"
 const categoryData = [
   {
     name: "Solar Panels",
+    icon: Sun,
+    color: "bg-blue-100",
+    iconColor: "text-[#1a5ca4]",
     brands: [
       {
         name: "Jinko Solar",
@@ -42,6 +46,9 @@ const categoryData = [
   },
   {
     name: "Inverters",
+    icon: Zap,
+    color: "bg-amber-100",
+    iconColor: "text-amber-600",
     brands: [
       {
         name: "Fronius",
@@ -82,6 +89,9 @@ const categoryData = [
   },
   {
     name: "Batteries",
+    icon: Battery,
+    color: "bg-green-100",
+    iconColor: "text-green-600",
     brands: [
       {
         name: "Tesla",
@@ -111,7 +121,10 @@ const categoryData = [
     ],
   },
   {
-    name: "Mounting Systems",
+    name: "Tools",
+    icon: Wrench,
+    color: "bg-red-100",
+    iconColor: "text-red-600",
     brands: [
       {
         name: "K2 Systems",
@@ -137,6 +150,9 @@ const categoryData = [
   },
   {
     name: "Complete Systems",
+    icon: Home,
+    color: "bg-purple-100",
+    iconColor: "text-purple-600",
     brands: [
       {
         name: "Solar Packages",
@@ -157,6 +173,9 @@ const categoryData = [
   },
   {
     name: "Accessories",
+    icon: ShieldCheck,
+    color: "bg-teal-100",
+    iconColor: "text-teal-600",
     brands: [
       {
         name: "Victron Energy",
@@ -482,7 +501,7 @@ export default function Header() {
                   activeMobileCategory === index ? "border-[#f26522]" : "border-gray-200"
                 }`}>
                   <div className="h-12 w-12 rounded-full bg-[#1a5ca4]/10 flex items-center justify-center mb-1">
-                    <img src={`/icons/${category.name.toLowerCase().replace(/\s+/g, '-')}.png`} alt={category.name} className="h-8 w-8" />
+                    <category.icon className={`h-8 w-8 ${category.iconColor}`}/>
                   </div>
                   <span className="text-xs text-center font-medium">{category.name}</span>
                 </div>

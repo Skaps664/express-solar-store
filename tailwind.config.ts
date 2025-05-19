@@ -66,6 +66,7 @@ const config = {
           900: "#78350f",
           950: "#451a03",
         },
+        deepblue: "#153c64",
       },
       borderRadius: {
         lg: "var(--radius)",

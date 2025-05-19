@@ -34,7 +34,7 @@ export default function PriceTicker() {
   }, [])
 
   return (
-    <div className="overflow-hidden whitespace-nowrap bg-[#0e4a8a] text-white py-1">
+    <div className="overflow-hidden whitespace-nowrap bg-[#ff6900] text-white py-1">
       <div className="inline-block" style={{ transform: `translateX(${position}px)` }}>
         {tickerText} • {tickerText}
       </div>

@@ -134,9 +134,12 @@ export default function HomePromoGrid() {
       {/* For mobile view - visible only on small screens */}
       <div className="md:hidden">
         
+        
+
 
         {/* Second row - Jinko Solar and Solar Options */}
         <div className="grid grid-cols-2 gap-4 mb-4">
+          
           {/* Jinko Solar */}
           <Link
             href="/brand/jinko-solar"
@@ -178,7 +181,33 @@ export default function HomePromoGrid() {
         </div>
 
         {/* Third row - Flash Deals (wider) and Premium Solar Solutions */}
-        <div className="grid grid-cols-5 gap-4 mb-4">
+        {/* moved one row below */}
+
+        {/* Fourth row - Summer Energy and SolarExpress+ */}
+        <div className="grid grid-cols-1 gap-4">
+          {/* Summer Energy Savings */}
+          <Link
+            href="/summer-deals"
+            className="bg-blue-100 rounded-lg overflow-hidden p-4 h-[120px] relative shadow"
+          >
+            <div className="relative z-10">
+              <h2 className="text-lg font-bold text-white mb-1">Summer energy</h2>
+              <h2 className="text-lg font-bold text-white mb-2">savings from PKR 25,000</h2>
+              <span className="text-white font-semibold text-sm hover:underline">Shop now</span>
+            </div>
+            <Image
+              src="two.webp"
+              alt="Solar Panels in Summer"
+              fill
+              className="object-cover"
+            />
+          </Link>
+
+          {/* SolarExpress+ */}
+          
+        </div>
+
+        <div className="grid grid-cols-5 gap-4 mt-4 mb-4">
           {/* Flash Deals - Wide card */}
           <Link
             href="/flash-deals"
@@ -216,49 +245,10 @@ export default function HomePromoGrid() {
             />
           </Link>
         </div>
-
-        {/* Fourth row - Summer Energy and SolarExpress+ */}
-        <div className="grid grid-cols-1 gap-4">
-          {/* Summer Energy Savings */}
-          <Link
-            href="/summer-deals"
-            className="bg-blue-100 rounded-lg overflow-hidden p-4 h-[120px] relative shadow"
-          >
-            <div className="relative z-10">
-              <h2 className="text-lg font-bold text-white mb-1">Summer energy</h2>
-              <h2 className="text-lg font-bold text-white mb-2">savings from PKR 25,000</h2>
-              <span className="text-white font-semibold text-sm hover:underline">Shop now</span>
-            </div>
-            <Image
-              src="two.webp"
-              alt="Solar Panels in Summer"
-              fill
-              className="object-cover"
-            />
-          </Link>
-
-          {/* SolarExpress+ */}
-          <Link
-            href="/services/installation"
-            className="rounded-lg overflow-hidden p-4 h-[130px] relative shadow"
-          >
-            {/* <div className="relative z-10">
-              <h2 className="text-lg font-bold text-[#1a5ca4] mb-1">Free installation with SolarExpress+</h2>
-              <p className="text-gray-700 text-sm mb-2">One free consultation per customer. T&C apply.</p>
-              <span className="text-[#1a5ca4] font-semibold text-sm hover:underline">Try SolarExpress+ for free</span>
-            </div> */}
-            <Image
-              src="three.jpeg"
-              alt="Solar Panel Installation"
-              fill
-              className="object-cover"
-            />
-          </Link>
-        </div>
       </div>
 
       {/* Additional promotional banner - responsive for both desktop and mobile */}
-      <div className="mt-6 bg-[#1a5ca4] rounded-lg overflow-hidden relative h-auto py-4 md:h-[150px] group hover:shadow-lg transition-all">
+      {/* <div className="mt-6 bg-[#1a5ca4] rounded-lg overflow-hidden relative h-auto py-4 md:h-[150px] group hover:shadow-lg transition-all">
         <div className="flex flex-col md:flex-row h-full justify-between items-center p-4 md:p-6 relative z-10">
           <div className="text-white">
             <h2 className="text-xl md:text-2xl font-bold mb-2">Free shipping on orders over PKR 50,000</h2>
@@ -272,7 +262,7 @@ export default function HomePromoGrid() {
           fill
           className="object-cover opacity-10 group-hover:scale-105 transition-transform duration-300"
         />
-      </div>
+      </div> */}
     </div>
   )
 }

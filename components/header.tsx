@@ -257,13 +257,13 @@ export default function Header() {
       </div>
 
       {/* Main header */}
-      <div className="bg-[#1a5ca4] py-3 px-4">
+      <div className="bg-[#1a5ca4] py-3 md:px-14 lg:px-24">
         <div className="container mx-auto flex items-center justify-between">
           {/* Logo and location */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 ">
             <Link href="/" className="flex items-center">
-              <div className="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center">
-                <img src="/solar-express-logo-09.png" alt="Solar Express Logo" className="w-full h-full object-cover" />
+              <div className="w-16 h-8 md:w-22 md:h-11 rounded-full flex items-center justify-center">
+                <img src="/logo-crop.PNG" alt="Solar Express Logo" className="w-auto h-auto object-cover" />
               </div>
             </Link>
 
@@ -282,7 +282,7 @@ export default function Header() {
             <div className="relative">
               <Input
                 type="text"
-                placeholder="Search solar panels, inverters, batteries and more..."
+                placeholder="Search here"
                 className="w-full py-2 pl-4 pr-10 rounded-full border-0 shadow-sm"
               />
               <Button
@@ -317,11 +317,11 @@ export default function Header() {
             {/* Mobile menu toggle */}
             <Button
               variant="ghost"
-              size="icon"
+              size="mobileMenu"  // Use the new mobileMenu size variant
               className="md:hidden text-white"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMobileMenuOpen ? <X /> : <Menu />}
             </Button>
           </div>
         </div>
@@ -337,7 +337,7 @@ export default function Header() {
               className="flex items-center gap-2 font-medium text-white"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-8 w-8" />
               <span>Departments</span>
               <ChevronDown className="h-4 w-4" />
             </Button>
@@ -438,12 +438,12 @@ export default function Header() {
         style={{ maxWidth: "320px" }}
       >
         {/* Mobile header */}
-        <div className="flex items-center justify-between p-4 bg-[#1a5ca4] text-white">
+        <div className="flex items-center justify-between p-4 bg-[#1a5ca4] text-white ">
           <div className="flex items-center gap-2">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center">
-              <img src="/solar-express-logo-09.png" alt="Solar Express Logo" className="w-full h-full object-cover" />
+            <div className="w-12 h-6 rounded-full flex items-center justify-center">
+              <img src="/logo-crop.PNG" alt="Solar Express Logo" className="w-full h-full object-cover" />
             </div>
-            <span className="text-lg font-bold">Solar Express</span>
+            <span className="text-xl font-bold ml-6"></span>
           </div>
           <Button
             variant="ghost"

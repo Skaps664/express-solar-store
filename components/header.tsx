@@ -329,7 +329,7 @@ export default function Header() {
 
       {/* Navigation bar */}
       <div className="bg-[#0e4a8a] text-white py-1 px-4 hidden md:block border-t border-[#1a5ca4]/30">
-        <div className="container mx-16 flex items-center">
+        <div className="container md:px-14 lg:px-14 flex items-center">
           {/* Departments dropdown */}
           <div className="relative" ref={menuRef}>
             <Button

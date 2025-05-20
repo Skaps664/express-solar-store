@@ -449,15 +449,15 @@ export default function Header() {
       </div>
 
       {/* Mobile menu - animated sidebar */}
-      <div 
-        ref={mobileSidebarRef}
-        className={`md:hidden fixed top-0 right-0 h-full bg-white shadow-xl z-50 transition-all duration-300 ease-in-out overflow-y-auto w-4/5 ${
-          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
-        }`}
-        style={{ maxWidth: "320px" }}
-      >
+        <div 
+          ref={mobileSidebarRef}
+          className={`md:hidden fixed top-0 left-0 h-full bg-white shadow-xl z-50 transition-all duration-300 ease-in-out overflow-y-auto w-4/5 ${
+            isMobileMenuOpen ? "transform translate-x-0" : "transform -translate-x-full"
+          }`}
+          style={{ maxWidth: "320px" }}
+        >
         {/* Mobile header */}
-        <div className="flex items-center justify-between p-4 bg-[#1a5ca4] text-white ">
+        <div className="flex items-center justify-between p-4 bg-[#1a5ca4] text-white">
           <div className="flex items-center gap-2">
             <div className="w-12 h-6 rounded-full flex items-center justify-center">
               <img src="/logo-crop.PNG" alt="Solar Express Logo" className="w-full h-full object-cover" />

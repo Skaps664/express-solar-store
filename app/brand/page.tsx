@@ -16,7 +16,7 @@ export default function BrandsPage() {
     {
       category: "Inverters",
       brands: [
-        { name: "Growatt", slug: "growatt", logo: "growatt-logo" },
+        { name: "Sorotec", slug: "sorotec", logo: "growatt-logo" },
         { name: "SMA", slug: "sma", logo: "sma-logo" },
         { name: "Fronius", slug: "fronius", logo: "fronius-logo" },
         { name: "Huawei", slug: "huawei", logo: "huawei-logo" },

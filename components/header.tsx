@@ -17,7 +17,7 @@ const categoryData = [
     iconColor: "text-[#1a5ca4]",
     brands: [
       {
-        name: "Jinko Solar",
+        name: "Jinko Solar", //{ name: "Sorotec", slug: "sorotec", logo: "growatt-logo" },
         subcategories: ["Mono PERC Panels", "Bifacial Panels", "N-Type Panels", "Tiger Neo Series"],
         url: "/brand/jinko-solar",
       },
@@ -51,9 +51,9 @@ const categoryData = [
     iconColor: "text-amber-600",
     brands: [
       {
-        name: "Fronius",
-        subcategories: ["Primo Series", "Symo Series", "Hybrid Solutions", "Commercial Solutions"],
-        url: "/brand/fronius",
+        name: "Sorotec",
+        subcategories: ["Primo Series", "Symo Series", "Hybrid Solutions"],
+        url: "/brand/sorotec",
       },
       {
         name: "Luxpower",

@@ -14,13 +14,13 @@ export default function HomePromoGrid() {
           href="/brand/jinko-solar"
           className="col-span-1 bg-gray-100 rounded-lg overflow-hidden h-[300px] flex items-center justify-center relative group hover:shadow-lg transition-all"
         >
-          {/* <div className="absolute bottom-8 left-8 z-10">
+          <div className="absolute bottom-8 left-8 z-10">
             <div className="bg-white rounded-full w-24 h-24 flex items-center justify-center shadow-md">
-              <span className="text-[#1a5ca4] font-bold text-sm">JINKO SOLAR</span>
+              <span className="text-[#1a5ca4] font-bold text-sm">BUY NOW</span>
             </div>
-          </div> */}
+          </div>
           <Image
-            src="/seventeen.jpg"
+            src="/c1-size.png" //seventeen.jpg
             alt="Solar Panel Close-up"
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -33,20 +33,20 @@ export default function HomePromoGrid() {
         >
           <div className="flex flex-col h-full justify-between relative z-10">
             <div>
-              {/* <h2 className="text-2xl font-bold text-white mb-2">1,000s of solar options,</h2>
-              <h2 className="text-2xl font-bold text-white mb-4">for way less</h2> */}
-              {/* <span className="text-white font-semibold hover:underline">Shop now</span> */}
+              <h2 className="text-2xl font-bold text-white mb-2">1,000s of solar options,</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">for way less</h2>
+              <span className="text-white font-semibold hover:underline">Shop now</span>
             </div>
-            {/* <div className="flex justify-end">
+            <div className="flex justify-end">
               <div className="w-40 h-40 relative">
-                <div className="absolute top-0 left-0 bg-blue-400 rounded-full w-16 h-16 flex items-center justify-center text-white text-xs font-bold p-2 z-10">
+                {/* <div className="absolute top-0 left-0 bg-blue-400 rounded-full w-16 h-16 flex items-center justify-center text-white text-xs font-bold p-2 z-10">
                   solar event
-                </div>
+                </div> */}
               </div>
-            </div> */}
+            </div>
           </div>
           <Image
-            src="sixteen.jpg"
+            src="/c1-size.png" //sixteen 335x335
             alt="Solar Panel Installation"
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -59,15 +59,15 @@ export default function HomePromoGrid() {
         >
           <div className="flex flex-col h-full justify-between relative z-10">
             <div>
-              {/* <h2 className="text-2xl font-bold text-[#1a5ca4] mb-4">Up to 50% off</h2>
-              <span className="text-white font-semibold hover:underline">Shop now</span> */}
+              <h2 className="text-2xl font-bold text-white mb-4">Up to 50% off</h2>
+              <span className="text-white font-semibold hover:underline">Shop now</span>
             </div>
             <div className="flex flex-col items-center">
-              {/* <h2 className="text-3xl font-bold text-white">Flash Deals</h2> */}
+              <h2 className="text-3xl font-bold text-white">Flash Deals</h2>
             </div>
           </div>
           <Image
-            src="fourteen.jpg"
+            src="/c1-size.png"
             alt="Solar Inverter"
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -84,7 +84,7 @@ export default function HomePromoGrid() {
             <span className="text-white font-semibold hover:underline">Shop now</span>
           </div>
           <Image
-            src="/eighteen.jpg"
+            src="/r1-size.png"
             alt="Premium Solar Home Installation"
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -98,13 +98,13 @@ export default function HomePromoGrid() {
         >
           <div className="flex flex-col h-full justify-between relative z-10">
             <div>
-              {/* <h2 className="text-2xl font-bold text-white mb-2">Summer energy</h2>
+              <h2 className="text-2xl font-bold text-white mb-2">Summer energy</h2>
               <h2 className="text-2xl font-bold text-white mb-4">savings from PKR 25,000</h2>
-              <span className="text-white font-semibold hover:underline">Shop now</span> */}
+              <span className="text-white font-semibold hover:underline">Shop now</span>
             </div>
           </div>
           <Image
-            src="/fifteen.jpg"
+            src="/c1-size.png"
             alt="Solar Panels in Summer"
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -116,14 +116,14 @@ export default function HomePromoGrid() {
           className="col-span-2 rounded-lg overflow-hidden p-6 h-[300px] group hover:shadow-lg transition-all relative"
         >
           <div className="flex flex-col md:flex-row h-full justify-between items-center relative z-10">
-            {/* <div className="md:w-2/3">
-              <h2 className="text-2xl font-bold text-[#1a5ca4] mb-2">Free installation with SolarExpress+</h2>
-              <p className="text-gray-700 mb-4">One free consultation per customer. T&C apply.</p>
-              <span className="text-[#1a5ca4] font-semibold hover:underline">Try SolarExpress+ for free</span>
-            </div> */}
+            <div className="md:w-2/3">
+              <h2 className="text-2xl font-bold text-white mb-2">Free installation with SolarExpress+</h2>
+              <p className="text-white mb-4">One free consultation per customer. T&C apply.</p>
+              <span className="text-white font-semibold hover:underline">Try SolarExpress+ for free</span>
+            </div>
           </div>
           <Image
-            src="/six.jpg"
+            src="/c9-test.png"
             alt="Solar Panel Installation"
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -149,7 +149,7 @@ export default function HomePromoGrid() {
               <span className="text-[#1a5ca4] font-bold text-xs">JINKO SOLAR</span>
             </div> */}
             <Image
-              src="/sixteen.jpg"
+              src="/c7-test.png" //sixteen
               alt="Solar Panel Close-up"
               fill
               className="object-cover"

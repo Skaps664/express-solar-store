@@ -12,7 +12,7 @@ const brandsData = {
     banner: "/jinko-banner.webp", // Add this line
 
     description:
-      "JinkoSolar is one of the largest and most innovative solar module manufacturers in the world. With a strong global presence, Jinko Solar is known for its high-efficiency panels and commitment to quality and innovation.",
+      "Jinko is one of the largest and most innovative solar module manufacturers in the world. With a strong global presence, Jinko Solar is known for its high-efficiency panels and commitment to quality and innovation.",
     established: 2006,
     headquarters: "Shanghai, China",
     warranty: "12-year product warranty, 25-year performance warranty",
@@ -168,43 +168,37 @@ const brandsData = {
       },
     ],
   },
-  growatt: {
-    name: "Growatt",
-    logo: "growatt-logo",
+  sorotec: {
+    name: "sorotec",
+    logo: "/sorotec-logo.png",
+    banner: "/bann-3.png", // Add this line
     description:
-      "Growatt is a global leader in smart energy solutions, specializing in residential and commercial solar inverters, storage systems, and smart energy management solutions. The company is known for its reliable and cost-effective products.",
+      "Sorotec is a global leader in smart energy solutions, specializing in residential and commercial solar inverters, storage systems, and smart energy management solutions. The company is known for its reliable and cost-effective products.",
     established: 2010,
     headquarters: "Shenzhen, China",
     warranty: "5-10 year standard warranty, extendable to 20 years",
     categories: ["String Inverters", "Hybrid Inverters", "Microinverters", "Commercial Inverters"],
     featuredProducts: [
       {
-        id: "growatt-hybrid",
-        name: "Growatt 5kW SPF 5000ES Hybrid Inverter",
+        id: "sorotec-hybrid",
+        name: "Sorotec 5kW SPF 5000ES Hybrid Inverter",
         price: 185000,
         discountPrice: 175000,
-        image: "growatt-inverter-1",
+        image: "/prod-1.jpg",
       },
       {
-        id: "growatt-string",
-        name: "Growatt 8kW MIN 8000TL-X String Inverter",
+        id: "sorotec-string",
+        name: "Sorotec 8kW MIN 8000TL-X String Inverter",
         price: 150000,
         discountPrice: null,
-        image: "growatt-inverter-2",
+        image: "/prod-2.jpg",
       },
       {
-        id: "growatt-lvm",
-        name: "Growatt 3kW SPF 3000TL LVM-ES Inverter",
+        id: "sorotec-lvm",
+        name: "Sorotec 3kW SPF 3000TL LVM-ES Inverter",
         price: 120000,
         discountPrice: 110000,
-        image: "growatt-inverter-3",
-      },
-      {
-        id: "growatt-commercial",
-        name: "Growatt 50kW MAX 50KTL3 LV Commercial Inverter",
-        price: 550000,
-        discountPrice: null,
-        image: "growatt-inverter-4",
+        image: "/prod-3.jpg",
       },
     ],
   },
@@ -261,11 +255,11 @@ export default function BrandPage({ params }) {
           />
        </div>
         {/* Semi-transparent overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1a5ca4]/60 to-[#0e4a8a]/50"></div>
+        <div className="absolute inset-0 "></div>
 
         {/* Overlay content */}
         <div className="absolute inset-0 flex flex-col justify-center px-8 md:px-12">
-          <div className="max-w-2xl">
+          {/* <div className="max-w-2xl">
             <div className="flex items-center gap-4 mb-4">
               <div className="h-8 md:h-10 w-24 relative bg-white rounded">
                 <Image 
@@ -287,7 +281,7 @@ export default function BrandPage({ params }) {
               energy technology.
             </p>
             <Button className="bg-[#f26522] hover:bg-[#e55511] text-white">Explore Special Offers</Button>
-          </div>
+          </div> */}
         </div>
       </div>
 

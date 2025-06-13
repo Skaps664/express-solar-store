@@ -170,8 +170,8 @@ const brandsData = {
   },
   sorotec: {
     name: "sorotec",
-    logo: "sorotec-logo",
-    banner: "/bann-3.PNG", // Add this line
+    logo: "/sorotec-logo.png",
+    banner: "/bann-3.png", // Add this line
     description:
       "Sorotec is a global leader in smart energy solutions, specializing in residential and commercial solar inverters, storage systems, and smart energy management solutions. The company is known for its reliable and cost-effective products.",
     established: 2010,

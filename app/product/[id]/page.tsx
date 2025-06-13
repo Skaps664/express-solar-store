@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button"
 import { Heart, ShoppingCart, ChevronRight, Star, Share2 } from "lucide-react"
 import ProductSpecifications from "@/components/product-specifications"
 import ProductReviews from "@/components/product-reviews"
-import ProductFAQ from "@/components/product-faq"
+import ProductResources from "@/components/product-faq"
 import RelatedProducts from "@/components/related-products"
+import { useRef } from "react"
 
 // Sample product data - in a real app, this would come from a database or API
 const productsData = {
@@ -29,7 +30,7 @@ const productsData = {
       "Better performance in high temperatures",
       "30-year performance warranty",
     ],
-    images: ["jinko-tiger-neo-front", "jinko-tiger-neo-angle", "jinko-tiger-neo-back", "jinko-tiger-neo-detail"],
+    images: ["/prod1-1.jpg", "jinko-tiger-neo-angle", "jinko-tiger-neo-back", "jinko-tiger-neo-detail"],
     variants: [
       { id: "550w", name: "550W", price: 39999 },
       { id: "535w", name: "535W", price: 38500 },
@@ -467,6 +468,82 @@ const productsData = {
     },
     relatedProducts: ["mounting-systems", "charge-controllers", "solar-water-heaters"],
   },
+  "sorotec-hybrid": {
+    name: "Sorosolar 5kW Hybrid Inverter",
+    brand: "Sorotec",
+    brandSlug: "sorotec",
+    price: 42500,
+    discountPrice: 39999,
+    rating: 4.8,
+    reviewCount: 124,
+    inStock: true,
+    description:
+      "The Tiger Neo is Sorosolar Solar's premium N-type TOPCon solar panel, offering higher efficiency, better performance in low light, and superior temperature coefficient compared to conventional P-type panels.",
+    features: [
+      "550W maximum power output",
+      "21.5% module efficiency",
+      "N-type TOPCon technology",
+      "Lower degradation rate",
+      "Better performance in high temperatures",
+      "30-year performance warranty",
+    ],
+    images: ["/prod-1.jpg", "/prod-2.jpg", "/prod-3.jpg", "/prod-1.jpg"],
+    variants: [
+      { id: "550w", name: "550W", price: 39999 },
+      { id: "535w", name: "535W", price: 38500 },
+      { id: "520w", name: "520W", price: 37000 },
+    ],
+    specifications: {
+      "Electrical Data": {
+        "Maximum Power (Pmax)": "550W",
+        "Open Circuit Voltage (Voc)": "49.5V",
+        "Short Circuit Current (Isc)": "14.02A",
+        "Maximum Power Voltage (Vmp)": "41.65V",
+        "Maximum Power Current (Imp)": "13.21A",
+        "Module Efficiency": "21.5%",
+      },
+      "Mechanical Data": {
+        Dimensions: "2278 × 1134 × 35mm",
+        Weight: "32.3kg",
+        "Front Glass": "3.2mm tempered glass with AR coating",
+        "Frame Material": "Anodized aluminum alloy",
+        "Junction Box": "IP68 rated",
+        "Cable Length": "1200mm",
+      },
+      "Temperature Ratings": {
+        "Operating Temperature": "-40°C to +85°C",
+        "Temperature Coefficient (Pmax)": "-0.30%/°C",
+        "Temperature Coefficient (Voc)": "-0.24%/°C",
+        "Temperature Coefficient (Isc)": "0.04%/°C",
+      },
+      Warranty: {
+        "Product Warranty": "12 years",
+        "Performance Warranty": "30 years linear warranty",
+        "First Year Degradation": "≤1%",
+        "Annual Degradation": "≤0.4%",
+      },
+    },
+    relatedProducts: ["jinko-eagle-bifacial", "longi-himo5", "canadian-bihiku"],
+    blogs: [
+              {
+                id: 1,
+                title: "Blog title",
+                excerpt: "Short description",
+                author: "Author name",
+                date: "YYYY-MM-DD",
+                readTime: "X min read",
+                url: "/blog/blog-slug",
+                image: "/blog-image.jpg"
+              }
+          ],
+    youtubeVideo: {
+      videoId: "YouTube_Video_ID", // Extract from YouTube URL
+      title: "Video title",
+      description: "Video description",
+      duration: "MM:SS",
+      views: "X.XK views"
+    }
+  },
   // Add more products as needed
 }
 
@@ -476,8 +553,10 @@ const formatPrice = (price) => {
 }
 
 export default function ProductPage({ params }) {
-  const { id } = params
-  const product = productsData[id]
+  const { id } = params;
+  const product = productsData[id];
+
+  const resourcesRef = useRef(null);
 
   // Handle case where product doesn't exist
   if (!product) {
@@ -491,6 +570,41 @@ export default function ProductPage({ params }) {
       </div>
     )
   }
+  const scrollToResources = () => {
+    if (resourcesRef.current) {
+      resourcesRef.current.scrollIntoView({ behavior: "smooth" })
+    }
+  }
+
+const yourResourceArray = [];
+
+if (product.youtubeVideo) {
+  yourResourceArray.push({
+    type: "youtube",
+    title: product.youtubeVideo.title,
+    videoId: product.youtubeVideo.videoId,
+    description: product.youtubeVideo.description,
+    duration: product.youtubeVideo.duration,
+    views: product.youtubeVideo.views,
+  });
+}
+
+if (product.blogs && product.blogs.length > 0) {
+  product.blogs.forEach((blog) => {
+    yourResourceArray.push({
+      type: "blog",
+      id: blog.id,
+      title: blog.title,
+      excerpt: blog.excerpt,
+      author: blog.author,
+      date: blog.date,
+      readTime: blog.readTime,
+      url: blog.url,
+      image: blog.image,
+    });
+  });
+}
+
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -518,23 +632,43 @@ export default function ProductPage({ params }) {
       {/* Product Overview */}
       <div className="flex flex-col lg:flex-row gap-8 mb-12">
         {/* Product Images */}
-        <div className="w-full lg:w-1/2">
-          <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
-            <div className="h-96 bg-gray-100 flex items-center justify-center">
-              <div className="text-gray-400">[{product.images[0]}]</div>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            {product.images.slice(0, 3).map((image, index) => (
-              <div
-                key={index}
-                className="border border-gray-200 rounded-lg overflow-hidden h-24 bg-gray-100 flex items-center justify-center"
-              >
-                <div className="text-gray-400 text-sm">[{image}]</div>
-              </div>
-            ))}
-          </div>
-        </div>
+<div className="w-full lg:w-1/2">
+  <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
+    <div className="bg-gray-100 flex items-center justify-center" style={{ height: '24rem' }}>
+      <img 
+        src={product.images[0]} 
+        alt={product.name}
+        className="max-h-full object-contain"
+        onError={(e) => {
+          e.target.style.display = 'none';
+          e.target.nextSibling.style.display = 'flex';
+        }}
+      />
+      <div className="text-gray-400 hidden w-full h-full items-center justify-center text-center p-4">[{product.images[0]}]</div>
+    </div>
+  </div>
+
+  <div className="grid grid-cols-3 gap-4">
+    {product.images.slice(0, 3).map((image, index) => (
+      <div
+        key={index}
+        className="border border-gray-200 rounded-lg overflow-hidden h-34 bg-gray-100 flex items-center justify-center"
+      >
+        <img 
+          src={image} 
+          alt={`${product.name} ${index + 1}`}
+          className="max-h-full max-w-full object-contain"
+          onError={(e) => {
+            e.target.style.display = 'none';
+            e.target.nextSibling.style.display = 'flex';
+          }}
+        />
+        <div className="text-gray-400 hidden w-full h-full items-center justify-center text-center p-2 text-xs">[{image}]</div>
+      </div>
+    ))}
+  </div>
+</div>
+
 
         {/* Product Details */}
         <div className="w-full lg:w-1/2">
@@ -651,12 +785,25 @@ export default function ProductPage({ params }) {
         </div>
       </div>
 
+      <div className="mb-6 bg-blue-50 border border-blue-200 p-4 rounded-lg">
+        <p className="text-sm text-[#1a5ca4] font-medium">
+          Looking for manuals, blogs, or video reviews?{" "}
+          <button
+            onClick={scrollToResources}
+            className="underline hover:text-[#0e4a8a] transition-colors"
+          >
+            Click here to jump to Resources
+          </button>{" "}
+          or explore the tab below.
+        </p>
+      </div>
+
       {/* Product Details Tabs */}
       <Tabs defaultValue="specifications" className="mb-12">
         <TabsList className="w-full justify-start border-b">
           <TabsTrigger value="specifications">Specifications</TabsTrigger>
           <TabsTrigger value="reviews">Reviews</TabsTrigger>
-          <TabsTrigger value="faq">FAQ</TabsTrigger>
+          <TabsTrigger value="faq">Resources</TabsTrigger>
         </TabsList>
 
         {/* Specifications Tab */}
@@ -670,8 +817,8 @@ export default function ProductPage({ params }) {
         </TabsContent>
 
         {/* FAQ Tab */}
-        <TabsContent value="faq" className="pt-6">
-          <ProductFAQ productName={product.name} />
+        <TabsContent value="faq" className="pt-6" ref={resourcesRef}>
+          <ProductResources resources={yourResourceArray} />
         </TabsContent>
       </Tabs>
 

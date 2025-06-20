@@ -7,7 +7,7 @@ import Image from "next/image"
 export default function SolarAd() {
   return (
     <div className="my-8">
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-lg">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-2xl">
         <div className="flex flex-col lg:flex-row">
           {/* Left Content */}
           <div className="w-full lg:w-2/3 p-8">
@@ -52,7 +52,7 @@ export default function SolarAd() {
           <div className="w-full lg:w-1/3 relative min-h-[250px] bg-gradient-to-br from-[#1a5ca4]/5 to-[#1a5ca4]/10">
             <div className="absolute inset-4 rounded-xl overflow-hidden">
               <Image
-                src="/placeholder.svg?height=300&width=300"
+                src="/q10.jpeg"
                 alt="Solar Installation"
                 fill
                 className="object-cover"

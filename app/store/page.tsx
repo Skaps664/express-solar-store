@@ -1,68 +1,230 @@
+"use client"
+import { useState, useEffect } from "react"
+import { useSearchParams, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Grid, List, SlidersHorizontal } from "lucide-react"
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE
+
 export default function StorePage() {
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const key = pathname + "?" + searchParams.toString()
+
+  const category = searchParams.get("category") || ""
+  const search = searchParams.get("search") || ""
+  const [products, setProducts] = useState([])
+  const [filters, setFilters] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 20 })
+  const [filterState, setFilterState] = useState({})
+  const [sort, setSort] = useState("newest")
+  const [limit, setLimit] = useState(20)
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
+
+  // Fetch filters for the selected category
+  useEffect(() => {
+    if (category) {
+      fetch(`${API_BASE}/api/products/filters/${category}`)
+        .then((res) => res.json())
+        .then((data) => setFilters(data.filters || []))
+    } else {
+      setFilters([])
+    }
+  }, [category])
+
+  // Fetch products when category, filters, sort, or pagination changes
+  useEffect(() => {
+    setLoading(true)
+    const params = new URLSearchParams()
+    if (category) params.append("category", category)
+    if (search) params.append("search", search)
+    Object.entries(filterState).forEach(([key, value]) => {
+      if (value !== undefined && value !== "" && value !== false) params.append(key, value)
+    })
+    params.append("sort", sort)
+    params.append("page", String(pagination.page))
+    params.append("limit", String(limit))
+
+    console.log("Fetching:", `/api/products?${params.toString()}`)
+
+    fetch(`${API_BASE}/api/products?${params.toString()}`)
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("API response:", data)
+        setProducts(data.products || [])
+        setPagination(data.pagination || { page: 1, pages: 1, total: 0, limit: 20 })
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [category, filterState, sort, pagination.page, limit])
+
+  // Reset pagination on category, filter, or sort change
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, page: 1 }))
+  }, [category, filterState, sort])
+
+  // Handle filter changes
+  const handleFilterChange = (field, value) => {
+    setFilterState((prev) => ({ ...prev, [field]: value }))
+    setPagination((prev) => ({ ...prev, page: 1 })) // Reset to first page on filter change
+  }
+
+  // Handle sort and limit changes
+  const handleSortChange = (value) => setSort(value)
+  const handleLimitChange = (value) => setLimit(Number(value))
+
+  // Handle pagination
+  const goToPage = (page) => setPagination((prev) => ({ ...prev, page }))
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div key={key} className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row gap-8">
-        {/* Filters Sidebar */}
-        <div className="w-full md:w-1/4">
+        {/* Mobile Filter Button */}
+        <div className="md:hidden mb-4">
+          <Button
+            onClick={() => setShowMobileFilters(true)}
+            className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-white flex items-center justify-center gap-2"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filters {Object.keys(filterState).length > 0 && `(${Object.keys(filterState).length})`}
+          </Button>
+        </div>
+
+        {/* Mobile Filter Modal/Overlay */}
+        {showMobileFilters && (
+          <div className="md:hidden fixed inset-0 z-50 bg-black bg-opacity-50">
+            <div className="fixed inset-x-0 bottom-0 bg-white rounded-t-2xl max-h-[80vh] overflow-hidden">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h2 className="text-xl font-bold">Filter Products</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowMobileFilters(false)} className="text-gray-500">
+                  ✕
+                </Button>
+              </div>
+              <div className="overflow-y-auto max-h-[60vh] p-4">
+                {/* Render dynamic filters */}
+                {filters.map((filter) => (
+                  <div className="mb-6" key={filter.field}>
+                    <h3 className="font-medium mb-2">{filter.label || filter.field}</h3>
+                    {filter.type === "select" && (
+                      <Select onValueChange={(v) => handleFilterChange(filter.field, v)}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={`Select ${filter.label || filter.field}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Brand1">Brand1</SelectItem>
+                          <SelectItem value="Brand2">Brand2</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                    {filter.type === "range" && (
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          placeholder="Min"
+                          className="flex-1"
+                          onBlur={(e) => handleFilterChange(`${filter.field}_min`, e.target.value)}
+                        />
+                        <Input
+                          type="number"
+                          placeholder="Max"
+                          className="flex-1"
+                          onBlur={(e) => handleFilterChange(`${filter.field}_max`, e.target.value)}
+                        />
+                      </div>
+                    )}
+                    {filter.type === "boolean" && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id={filter.field}
+                          onChange={(e) => handleFilterChange(filter.field, e.target.checked)}
+                        />
+                        <label htmlFor={filter.field}>{filter.label || filter.field}</label>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="p-4 border-t bg-white">
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setFilterState({})
+                      goToPage(1)
+                    }}
+                  >
+                    Clear All
+                  </Button>
+                  <Button
+                    className="flex-1 bg-[#f26522] hover:bg-[#e55511]"
+                    onClick={() => {
+                      setShowMobileFilters(false)
+                      goToPage(1)
+                    }}
+                  >
+                    Apply Filters
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Desktop Filters Sidebar */}
+        <div className="hidden md:block w-full md:w-1/4">
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
             <h2 className="text-xl font-bold mb-4">Filter Products</h2>
-
-            {/* Categories */}
-            <div className="mb-6">
-              <h3 className="font-medium mb-2">Categories</h3>
-              <div className="space-y-2">
-                {["Solar Panels", "Inverters", "Batteries", "Mounting Systems", "Accessories"].map((category) => (
-                  <div key={category} className="flex items-center">
-                    <input type="checkbox" id={category} className="mr-2" />
-                    <label htmlFor={category}>{category}</label>
+            {/* Render dynamic filters */}
+            {filters.map((filter) => (
+              <div className="mb-6" key={filter.field}>
+                <h3 className="font-medium mb-2">{filter.label || filter.field}</h3>
+                {filter.type === "select" && (
+                  <Select onValueChange={(v) => handleFilterChange(filter.field, v)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={`Select ${filter.label || filter.field}`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Brand1">Brand1</SelectItem>
+                      <SelectItem value="Brand2">Brand2</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                {filter.type === "range" && (
+                  <div>
+                    <Input
+                      type="number"
+                      placeholder="Min"
+                      className="w-1/2 mb-2"
+                      onBlur={(e) => handleFilterChange(`${filter.field}_min`, e.target.value)}
+                    />
+                    <Input
+                      type="number"
+                      placeholder="Max"
+                      className="w-1/2"
+                      onBlur={(e) => handleFilterChange(`${filter.field}_max`, e.target.value)}
+                    />
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Brands */}
-            <div className="mb-6">
-              <h3 className="font-medium mb-2">Brands</h3>
-              <div className="space-y-2">
-                {["SunPower", "Tesla", "LG Solar", "Canadian Solar", "JinkoSolar"].map((brand) => (
-                  <div key={brand} className="flex items-center">
-                    <input type="checkbox" id={brand} className="mr-2" />
-                    <label htmlFor={brand}>{brand}</label>
+                )}
+                {filter.type === "boolean" && (
+                  <div>
+                    <input
+                      type="checkbox"
+                      id={filter.field}
+                      onChange={(e) => handleFilterChange(filter.field, e.target.checked)}
+                    />
+                    <label htmlFor={filter.field}> {filter.label || filter.field}</label>
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-
-            {/* Price Range */}
-            <div className="mb-6">
-              <h3 className="font-medium mb-2">Price Range</h3>
-              <Slider defaultValue={[0, 1000]} min={0} max={5000} step={100} className="mb-4" />
-              <div className="flex gap-2">
-                <Input type="number" placeholder="Min" className="w-1/2" />
-                <Input type="number" placeholder="Max" className="w-1/2" />
-              </div>
-            </div>
-
-            {/* Power Output */}
-            <div className="mb-6">
-              <h3 className="font-medium mb-2">Power Output (W)</h3>
-              <div className="space-y-2">
-                {["100-200", "200-300", "300-400", "400-500", "500+"].map((range) => (
-                  <div key={range} className="flex items-center">
-                    <input type="checkbox" id={range} className="mr-2" />
-                    <label htmlFor={range}>{range}</label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <Button className="w-full bg-amber-500 hover:bg-amber-600">Apply Filters</Button>
+            ))}
+            <Button className="w-full bg-amber-500 hover:bg-amber-600" onClick={() => goToPage(1)}>
+              Apply Filters
+            </Button>
           </div>
         </div>
 
@@ -72,24 +234,25 @@ export default function StorePage() {
           <div className="flex flex-wrap justify-between items-center mb-6 p-4 border-2 border-dashed border-gray-300 rounded-lg">
             <div className="flex items-center gap-2 mb-2 md:mb-0">
               <span>Sort By:</span>
-              <Select>
+              <Select onValueChange={handleSortChange}>
                 <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Featured" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="featured">Featured</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
                   <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                  <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                  <SelectItem value="popularity">Popularity</SelectItem>
+                  <SelectItem value="top_selling">Top Selling</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <span>Show:</span>
-                <Select>
+                <Select onValueChange={handleLimitChange}>
                   <SelectTrigger className="w-[80px]">
-                    <SelectValue placeholder="20" />
+                    <SelectValue placeholder={String(limit)} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="10">10</SelectItem>
@@ -114,47 +277,71 @@ export default function StorePage() {
 
           {/* Products */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array.from({ length: 9 }).map((_, index) => (
-              <div key={index} className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
-                <div className="h-48 bg-gray-200 flex items-center justify-center">
-                  <div className="text-gray-400">[Product Image]</div>
-                </div>
-                <div className="p-4">
-                  <div className="text-xs text-gray-500 mb-1">Brand Name</div>
-                  <h3 className="font-medium mb-2">Solar Panel {index + 1}</h3>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-amber-600 font-bold">$499.99</span>
-                    <span className="text-gray-400 line-through text-sm">$599.99</span>
+            {loading ? (
+              <div>Loading...</div>
+            ) : products.length === 0 ? (
+              <div>No products found.</div>
+            ) : (
+              products.map((product, index) => (
+                <div
+                  key={product._id || index}
+                  className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden"
+                >
+                  <div className="h-48 bg-gray-200 flex items-center justify-center">
+                    <img
+                      src={product.images?.[0] || "/placeholder.png"}
+                      alt={product.name}
+                      className="object-contain h-full"
+                    />
                   </div>
-                  <div className="flex justify-between">
-                    <Button variant="outline" size="sm">
-                      Add to Cart
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      Compare
-                    </Button>
+                  <div className="p-4">
+                    <div className="text-xs text-gray-500 mb-1">{product.brand?.name}</div>
+                    <h3 className="font-medium mb-2">{product.name}</h3>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-amber-600 font-bold">PKR {product.price}</span>
+                      {product.originalPrice && (
+                        <span className="text-gray-400 line-through text-sm">PKR {product.originalPrice}</span>
+                      )}
+                    </div>
+                    <div className="flex justify-end">
+                      <Button variant="outline" size="sm">
+                        Add to Cart
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           {/* Pagination */}
           <div className="flex justify-center mt-8">
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.page === 1}
+                onClick={() => goToPage(pagination.page - 1)}
+              >
                 Previous
               </Button>
-              <Button variant="outline" size="sm" className="bg-amber-500 text-white">
-                1
-              </Button>
-              <Button variant="outline" size="sm">
-                2
-              </Button>
-              <Button variant="outline" size="sm">
-                3
-              </Button>
-              <Button variant="outline" size="sm">
+              {Array.from({ length: pagination.pages }, (_, i) => (
+                <Button
+                  key={i}
+                  variant="outline"
+                  size="sm"
+                  className={pagination.page === i + 1 ? "bg-amber-500 text-white" : ""}
+                  onClick={() => goToPage(i + 1)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={pagination.page === pagination.pages}
+                onClick={() => goToPage(pagination.page + 1)}
+              >
                 Next
               </Button>
             </div>

@@ -52,9 +52,9 @@ export default function FeaturedBrandProducts() {
     className="rounded-lg overflow-hidden relative group hover:shadow-lg transition-all block h-full"
   >
     {/* Background image covering entire card */}
-    <div className="absolute inset-0 z-0">
+    <div className="absolute inset-0 z-0 ">
       <Image
-        src="/seven.PNG"
+        src="/eighteen.jpg"
         alt="JinkoSolar Panel"
         fill
         className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -65,8 +65,8 @@ export default function FeaturedBrandProducts() {
 
     {/* Content */}
     <div className="p-6 h-full flex flex-col relative z-10">
-      <div className="mb-2 text-sm font-semibold text-[#1a5ca4]">Get it fast</div>
-      <h2 className="text-3xl font-bold text-[#1a5ca4] mb-4">
+      <div className="mb-2 text-sm font-semibold text-white">Get it fast</div>
+      <h2 className="text-3xl font-bold text-white mb-4">
         Solar <br />
         Panels
       </h2>
@@ -176,18 +176,18 @@ export default function FeaturedBrandProducts() {
         {/* Right side - Brand promotion (35% width) */}
         <Link
   href="/brand/jinko"
-  className="lg:w-[35%] rounded-lg overflow-hidden relative group hover:shadow-lg transition-all"
+  className="h-[400px] w-[400px] rounded-lg overflow-hidden relative group hover:shadow-lg transition-all"
 >
   {/* Background image covering entire card */}
   <div className="absolute inset-0 z-0">
     <Image
-      src="/seven.PNG"
+      src="/q9.jpeg"
       alt="JinkoSolar Panel"
       fill
       className="object-cover group-hover:scale-105 transition-transform duration-300"
     />
     {/* Semi-transparent overlay for better text visibility */}
-    <div className="absolute inset-0  from-white/30 via-white/10 to-white/30"></div>
+    {/* <div className="absolute inset-0  from-white/30 via-white/10 to-white/30"></div> */}
   </div>
 
   {/* Content */}

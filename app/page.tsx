@@ -13,13 +13,18 @@ import FinancingOptions from "@/components/financing-options"
 import FeaturedBrandProducts from "@/components/featured-brand-products"
 import HomePromoGrid from "@/components/home-promo-grid"
 import FeaturedPromoCards from "@/components/featured-promo-cards"
+import BestSellers from "@/components/best-sellers"
+import NewArrivals from "@/components/new-arrivals"
+import FeaturedBrands from "@/components/featured-brands-card"
+import SolarAd from "@/components/installation-services"
+import HomePromoGridV2 from "@/components/HomePromoGridNew"
 
 export default function Home() {
   return (
 <div className="container mx-auto px-4 md:px-14 lg:px-16 pb-12">
       {/* New Banner Grid with Solar Images */}
       <HomePromoGrid />
-
+{/* <HomePromoGridV2/> */}
       <CategoryGrid />
 
 {/* Bottom Banner */}
@@ -33,18 +38,22 @@ export default function Home() {
         </div>
       </div>
 
+<BestSellers/>
+
       {/* Featured Promo Cards */}
       <FeaturedPromoCards />
+
+      
 
       {/* Rest of the content */}
       <FeaturedBrandProducts />
 
       {/* Secondary Promotional Grid */}
       {/* <PromotionalGrid /> */}
-      <FeaturedPromoCards />
+      <FeaturedBrands />
 
       {/* Flash Deals Section */}
-      <FlashDeals />
+      <NewArrivals />
 
       {/* Solar Benefits Section */}
       <SolarBenefits />
@@ -53,7 +62,7 @@ export default function Home() {
       <TopBrands />
 
       {/* Installation Services Section */}
-      <InstallationServices />  
+      <SolarAd />  
       
       {/* Flash Deals Section */}
       <FlashDeals />
@@ -62,13 +71,15 @@ export default function Home() {
       {/* <SolarCalculator /> */}
 
       {/* Customer Reviews Section */}
-      <CustomerReviews />
+      {/* <CustomerReviews /> */}
+
+{/* Blog Preview Section */}
+      <BlogPreview />
 
       {/* Financing Options Section */}
       <FinancingOptions />
 
-      {/* Blog Preview Section */}
-      <BlogPreview />
+      
 
       {/* Recently Viewed Products */}
       <RecentlyViewed />

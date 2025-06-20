@@ -19,7 +19,7 @@ const brandsData = {
     description:
       "Jinko is one of the largest and most innovative solar module manufacturers in the world. With a strong global presence, Jinko Solar is known for its high-efficiency panels and commitment to quality and innovation.",
     established: 2006,
-    headquarters: "Shanghai, China",
+    headquarters: "Shanghai",
     warranty: "12-year product warranty, 25-year performance warranty",
     categories: ["Mono PERC Panels", "Bifacial Panels", "N-Type Panels", "Tiger Neo Series"],
     featuredProducts: [

@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useSearchParams, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,7 +8,15 @@ import { Grid, List, SlidersHorizontal } from "lucide-react"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE
 
-export default function StorePage() {
+export default function StorePageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <StorePage />
+    </Suspense>
+  )
+}
+
+function StorePage() {
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const key = pathname + "?" + searchParams.toString()

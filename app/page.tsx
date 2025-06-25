@@ -17,7 +17,9 @@ import BestSellers from "@/components/best-sellers"
 import NewArrivals from "@/components/new-arrivals"
 import FeaturedBrands from "@/components/featured-brands-card"
 import SolarAd from "@/components/installation-services"
-import HomePromoGridV2 from "@/components/HomePromoGridNew"
+
+// sanity 
+import { client } from "@/lib/sanity"
 
 export default function Home() {
   return (

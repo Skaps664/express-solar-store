@@ -140,7 +140,7 @@ export default function InsurancePage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-white text-white hover:bg-white hover:text-[#1a5ca4] px-8 py-3"
+                  className="border-white text-[#1a5ca4] hover:bg-[#1a5ca4] hover:text-white px-8 py-3"
                 >
                   Learn More
                 </Button>

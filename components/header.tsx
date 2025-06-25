@@ -5,7 +5,7 @@ import type React from "react"
 import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
 import { Search, ShoppingCart, User, Menu, X, ChevronDown, ChevronRight, MapPin } from "lucide-react"
-import { Sun, Battery, Zap, Home, Wrench, ShieldCheck } from "lucide-react"
+import { Sun, Battery, Zap, Home, Wrench, ShieldCheck, House } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import PriceTicker from "./price-ticker"
@@ -14,6 +14,7 @@ import { useAuth } from "@/context/AuthContext"
 
 // Updated category structure with Pakistani brands
 const categoryData = [
+	
 	{
 		name: "Solar Panels",
 		icon: Sun,
@@ -212,6 +213,7 @@ const categoryData = [
 
 // Main navigation items
 const navItems = [
+	{ name: "Home", href: "/" },
 	{ name: "Solar Panels", href: "/store?category=solar-panels" },
 	{ name: "Inverters", href: "/store?category=inverters" },
 	{ name: "Batteries", href: "/store?category=batteries" },
@@ -364,8 +366,8 @@ export default function Header() {
 						<div className="hidden md:flex items-center gap-2 bg-[#0e4a8a] hover:bg-[#0a3d7a] rounded-full px-4 py-2 cursor-pointer">
 							<MapPin className="h-5 w-5 text-white" />
 							<div className="flex flex-col">
-								<span className="text-xs text-white/80">Delivery to</span>
-								<span className="text-sm font-medium text-white">Lahore, Pakistan</span>
+								<span className="text-xs text-white/80">I'm here</span>
+								<span className="text-sm font-medium text-white">Islamabad</span>
 							</div>
 							<ChevronDown className="h-4 w-4 text-white/80" />
 						</div>
@@ -473,7 +475,7 @@ export default function Header() {
 							onClick={() => setIsMenuOpen(!isMenuOpen)}
 						>
 							<Menu className="h-8 w-8" />
-							<span>Departments</span>
+							<span>Categories</span>
 							<ChevronDown className="h-4 w-4" />
 						</Button>
 

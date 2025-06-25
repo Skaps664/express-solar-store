@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import {
   CreditCard,
@@ -17,6 +16,9 @@ import {
   DollarSign,
   TrendingUp,
   Shield,
+  Banknote,
+  Home,
+  Building,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -67,14 +69,14 @@ export default function InstallmentPlansPage() {
 
   const financingFeatures = [
     {
-      icon: CreditCard,
-      title: "Flexible Payment Plans",
-      description: "Choose from 12, 24, 36, or 48-month payment options that fit your budget",
+      icon: Banknote,
+      title: "Sharia-Compliant Financing",
+      description: "Halal installment plans through Meezan Bank's Islamic financing solutions",
     },
     {
       icon: DollarSign,
-      title: "Low Interest Rates",
-      description: "Competitive rates starting from 8% annually with no hidden charges",
+      title: "Low Profit Rates",
+      description: "Competitive rates starting from 12% annually with no hidden charges",
     },
     {
       icon: Clock,
@@ -82,44 +84,49 @@ export default function InstallmentPlansPage() {
       description: "Get approved in 24-48 hours with minimal documentation required",
     },
     {
-      icon: Award,
-      title: "Zero Processing Fee",
-      description: "No processing fees or hidden charges - transparent pricing always",
+      icon: Home,
+      title: "Retail Partnerships",
+      description: "Special offers through Ays Electronics, Mian Brothers & Azal Electronics",
     },
   ]
 
   const installmentPlans = [
     {
-      title: "Basic Plan",
-      term: "12 Months",
-      interestRate: "8%",
-      downPayment: "30%",
-      features: ["Quick payoff period", "Lower total interest", "Higher monthly payments", "Ideal for small systems"],
-      popular: false,
-    },
-    {
-      title: "Standard Plan",
-      term: "24 Months",
-      interestRate: "10%",
-      downPayment: "20%",
+      title: "Meezan Easy Home",
+      term: "3-5 Years",
+      interestRate: "12%",
+      downPayment: "25%",
       features: [
-        "Balanced payment structure",
-        "Moderate monthly payments",
-        "Good for medium systems",
-        "Most popular choice",
+        "Islamic financing solution",
+        "Longest payment period",
+        "Ideal for complete home systems",
+        "Property as collateral",
       ],
       popular: true,
     },
     {
-      title: "Extended Plan",
-      term: "36 Months",
-      interestRate: "12%",
-      downPayment: "15%",
+      title: "Third Party",
+      term: "1-3 Years",
+      interestRate: "14%",
+      downPayment: "30%",
       features: [
-        "Lower monthly payments",
-        "Extended payment period",
-        "Perfect for large systems",
-        "Maximum affordability",
+        "Vehicle financing structure",
+        "Medium-term solution",
+        "Good for medium systems",
+        "Popular choice",
+      ],
+      popular: false,
+    },
+    {
+      title: "Retail Partner Plans",
+      term: "6-12 Months",
+      interestRate: "40%",
+      downPayment: "0%",
+      features: [
+        "Interest-free through retailers",
+        "Short payment period",
+        "Perfect for small systems",
+        "Quick processing",
       ],
       popular: false,
     },
@@ -133,8 +140,8 @@ export default function InstallmentPlansPage() {
     },
     {
       icon: Shield,
-      title: "Protected Investment",
-      description: "Your solar system is covered by warranty throughout the payment period",
+      title: "Islamic Compliance",
+      description: "All financing options are Sharia-compliant with transparent terms",
     },
     {
       icon: Calculator,
@@ -142,34 +149,41 @@ export default function InstallmentPlansPage() {
       description: "Fixed monthly payments make budgeting easy and predictable",
     },
     {
-      icon: Users,
-      title: "Dedicated Support",
-      description: "Personal account manager to assist you throughout the payment journey",
+      icon: Building,
+      title: "Bank Partnerships",
+      description: "Direct processing through Meezan Bank's network of branches",
     },
   ]
 
   const testimonials = [
     {
-      name: "Sarah Ahmed",
+      name: "Ahmed Raza",
       location: "Karachi",
       rating: 5,
-      systemSize: "15kW",
-      comment: "The installment plan made solar affordable for us. We're saving money from month one!",
+      systemSize: "10kW",
+      comment: "Meezan's Islamic financing made solar affordable while keeping it halal. Highly recommended!",
     },
     {
-      name: "Hassan Ali",
+      name: "Fatima Khan",
       location: "Lahore",
       rating: 5,
-      systemSize: "10kW",
-      comment: "Transparent pricing and easy payments. Our electricity bill is now almost zero.",
+      systemSize: "8kW",
+      comment: "Got my system through Ays Electronics with 6-month interest-free installments. Great deal!",
     },
     {
-      name: "Ayesha Khan",
+      name: "Bilal Ahmed",
       location: "Islamabad",
       rating: 5,
-      systemSize: "20kW",
-      comment: "Professional service and flexible payment options. Highly recommend Solar Express!",
+      systemSize: "15kW",
+      comment: "Meezan's 5-year plan made our solar dream possible. Now our bills are almost zero.",
     },
+  ]
+
+  const partnerLogos = [
+    { name: "Meezan Bank", logo: "/meezan-logo.webp" },
+    { name: "Ays Electronics", logo: "/ays-logo.jpg.webp" },
+    { name: "Mian Brothers", logo: "/mian-logo.png" },
+    { name: "Afzal Electronics", logo: "/afzal-logo.webp" },
   ]
 
   return (
@@ -180,10 +194,10 @@ export default function InstallmentPlansPage() {
         <div className="container mx-auto px-4 md:px-14 lg:px-16 py-16 md:py-24 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">Affordable Solar Financing</h1>
+              <h1 className="text-4xl md:text-5xl font-bold mb-6">Islamic Solar Financing Solutions</h1>
               <p className="text-xl mb-8 text-blue-100">
-                Make solar energy accessible with our flexible installment plans. Start saving on electricity bills
-                today with zero upfront cost options.
+                Halal installment plans through Meezan Bank and interest-free options from leading electronics retailers. 
+                Start your solar journey today with Sharia-compliant financing.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
@@ -196,7 +210,7 @@ export default function InstallmentPlansPage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-white text-white hover:bg-white hover:text-[#1a5ca4] px-8 py-3"
+                  className="border-white text-[#1a5ca4] hover:bg-[#1a5ca4] hover:text-white px-8 py-3"
                   onClick={() => document.getElementById("apply-form")?.scrollIntoView({ behavior: "smooth" })}
                 >
                   Apply Now
@@ -207,12 +221,12 @@ export default function InstallmentPlansPage() {
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
                 <div className="grid grid-cols-2 gap-6">
                   <div className="text-center">
-                    <div className="text-3xl font-bold mb-2">8%</div>
-                    <div className="text-sm text-blue-100">Starting Interest Rate</div>
+                    <div className="text-3xl font-bold mb-2">12%</div>
+                    <div className="text-sm text-blue-100">Starting Profit Rate</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold mb-2">48</div>
-                    <div className="text-sm text-blue-100">Max Months</div>
+                    <div className="text-3xl font-bold mb-2">5</div>
+                    <div className="text-sm text-blue-100">Max Years</div>
                   </div>
                   <div className="text-center">
                     <div className="text-3xl font-bold mb-2">0%</div>
@@ -229,13 +243,27 @@ export default function InstallmentPlansPage() {
         </div>
       </div>
 
+      {/* Partners Section */}
+      <div className="container mx-auto px-4 md:px-14 lg:px-16 py-8 bg-white">
+        <div className="text-center mb-8">
+          <h3 className="text-lg font-medium text-gray-600">In partnership with</h3>
+        </div>
+        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+          {partnerLogos.map((partner, index) => (
+            <div key={index} className="w-32 h-16 flex items-center justify-center">
+              {/* Replace with actual logo components or images */}
+              <div className="text-lg font-semibold text-gray-800">{partner.name}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Features Section */}
       <div className="container mx-auto px-4 md:px-14 lg:px-16 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose Our Financing?</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Choose Our Islamic Financing?</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            We make solar energy accessible to everyone with flexible payment options and transparent terms designed
-            around your needs.
+            Sharia-compliant solar financing solutions designed for Pakistani homeowners and businesses.
           </p>
         </div>
 
@@ -258,8 +286,8 @@ export default function InstallmentPlansPage() {
       <div id="calculator" className="bg-white py-16">
         <div className="container mx-auto px-4 md:px-14 lg:px-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Payment Calculator</h2>
-            <p className="text-xl text-gray-600">Calculate your monthly payments and see how affordable solar can be</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Islamic Payment Calculator</h2>
+            <p className="text-xl text-gray-600">Calculate your monthly payments under Diminishing Musharakah</p>
           </div>
 
           <div className="max-w-4xl mx-auto">
@@ -310,14 +338,14 @@ export default function InstallmentPlansPage() {
                       <Slider
                         value={calculatorData.term}
                         onValueChange={(value) => setCalculatorData((prev) => ({ ...prev, term: value }))}
-                        max={48}
-                        min={12}
+                        max={60}
+                        min={6}
                         step={6}
                         className="w-full"
                       />
                       <div className="flex justify-between text-sm text-gray-500 mt-2">
-                        <span>12 Months</span>
-                        <span>48 Months</span>
+                        <span>6 Months</span>
+                        <span>60 Months</span>
                       </div>
                     </div>
                   </div>
@@ -345,12 +373,15 @@ export default function InstallmentPlansPage() {
                       </div>
                       <Separator />
                       <div className="flex justify-between text-lg">
-                        <span className="font-semibold text-gray-900">Monthly Payment:</span>
+                        <span className="font-semibold text-gray-900">Estimated Monthly Payment:</span>
                         <span className="font-bold text-[#1a5ca4] text-xl">PKR {monthlyPayment.toLocaleString()}</span>
                       </div>
                     </div>
+                    <div className="mt-4 text-sm text-gray-500">
+                      * This is an estimate. Final payment plan will be provided by Meezan Bank after approval.
+                    </div>
                     <Button className="w-full mt-6 bg-[#f26522] hover:bg-[#e55511] text-white">
-                      Apply for This Plan
+                      Apply for Islamic Financing
                     </Button>
                   </div>
                 </div>
@@ -363,9 +394,9 @@ export default function InstallmentPlansPage() {
       {/* Installment Plans */}
       <div className="container mx-auto px-4 md:px-14 lg:px-16 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Choose Your Payment Plan</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Choose Your Islamic Payment Plan</h2>
           <p className="text-xl text-gray-600">
-            Select the installment plan that best fits your budget and requirements
+            Sharia-compliant options through Meezan Bank and retail partners
           </p>
         </div>
 
@@ -387,7 +418,7 @@ export default function InstallmentPlansPage() {
               <CardHeader className="text-center pb-4">
                 <CardTitle className="text-2xl font-bold text-gray-900 mb-2">{plan.title}</CardTitle>
                 <div className="text-3xl font-bold text-[#1a5ca4] mb-2">{plan.term}</div>
-                <div className="text-lg text-gray-600">{plan.interestRate} Interest Rate</div>
+                <div className="text-lg text-gray-600">{plan.interestRate} Profit Rate</div>
                 <div className="text-sm text-gray-500">{plan.downPayment} Down Payment</div>
               </CardHeader>
               <CardContent className="pt-0">
@@ -416,8 +447,8 @@ export default function InstallmentPlansPage() {
       <div className="bg-gray-100 py-16">
         <div className="container mx-auto px-4 md:px-14 lg:px-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Benefits of Solar Financing</h2>
-            <p className="text-xl text-gray-600">Why financing your solar system is a smart financial decision</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Benefits of Islamic Solar Financing</h2>
+            <p className="text-xl text-gray-600">Why financing your solar system through Islamic banking is the right choice</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -439,9 +470,9 @@ export default function InstallmentPlansPage() {
       {/* Testimonials */}
       <div className="container mx-auto px-4 md:px-14 lg:px-16 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Success Stories</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Customer Experiences</h2>
           <p className="text-xl text-gray-600">
-            Real customers who chose our financing options and are now saving money
+            Real customers who chose our Islamic financing options
           </p>
         </div>
 
@@ -481,7 +512,7 @@ export default function InstallmentPlansPage() {
         <div className="container mx-auto px-4 md:px-14 lg:px-16">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Apply for Solar Financing</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Apply for Islamic Solar Financing</h2>
               <p className="text-xl text-gray-600">Fill out the application form and get approved in 24-48 hours</p>
             </div>
 
@@ -548,10 +579,11 @@ export default function InstallmentPlansPage() {
                         className="w-full border border-gray-300 rounded-md px-3 py-2 focus:border-[#1a5ca4] focus:ring-[#1a5ca4]"
                       >
                         <option value="">Select Term</option>
-                        <option value="12">12 Months</option>
-                        <option value="24">24 Months</option>
-                        <option value="36">36 Months</option>
-                        <option value="48">48 Months</option>
+                        <option value="6">6 Months (Retail Partner)</option>
+                        <option value="12">12 Months (Retail Partner)</option>
+                        <option value="24">24 Months (Meezan)</option>
+                        <option value="36">36 Months (Meezan)</option>
+                        <option value="60">60 Months (Meezan)</option>
                       </select>
                     </div>
                     <div className="md:col-span-2">
@@ -578,13 +610,17 @@ export default function InstallmentPlansPage() {
                   </div>
 
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-semibold text-blue-900 mb-2">Required Documents:</h4>
+                    <h4 className="font-semibold text-blue-900 mb-2">Required Documents for Meezan Financing:</h4>
                     <ul className="text-sm text-blue-800 space-y-1">
                       <li>• Copy of CNIC (front & back)</li>
                       <li>• Salary certificate or business proof</li>
-                      <li>• Bank statements (last 3 months)</li>
+                      <li>• Bank statements (last 6 months)</li>
                       <li>• Utility bills (electricity & gas)</li>
+                      <li>• Property documents (for Easy Home)</li>
                     </ul>
+                    <div className="mt-2 text-sm text-blue-800">
+                      For retail partner financing, only CNIC and initial deposit required.
+                    </div>
                   </div>
 
                   <Button
@@ -605,9 +641,9 @@ export default function InstallmentPlansPage() {
       <div className="bg-[#1a5ca4] text-white py-16">
         <div className="container mx-auto px-4 md:px-14 lg:px-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Need Help with Financing?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Need Help with Islamic Financing?</h2>
             <p className="text-xl text-blue-100">
-              Our financing experts are here to help you find the perfect payment solution
+              Our financing experts are here to help you find the perfect Sharia-compliant solution
             </p>
           </div>
 
@@ -617,21 +653,24 @@ export default function InstallmentPlansPage() {
                 <Phone className="h-8 w-8" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Call Us</h3>
-              <p className="text-blue-100">+92 300 123 4567</p>
+              <p className="text-blue-100">021-111-333-786</p>
+              <p className="text-sm text-blue-200">Meezan Solar Helpline</p>
             </div>
             <div className="text-center">
               <div className="bg-white/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <Mail className="h-8 w-8" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Email Us</h3>
-              <p className="text-blue-100">financing@solarexpress.pk</p>
+              <p className="text-blue-100">solar@meezanbank.com</p>
+              <p className="text-sm text-blue-200">For Meezan financing inquiries</p>
             </div>
             <div className="text-center">
               <div className="bg-white/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <MapPin className="h-8 w-8" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Visit Us</h3>
-              <p className="text-blue-100">Lahore, Pakistan</p>
+              <h3 className="text-xl font-semibold mb-2">Visit Partner Stores</h3>
+              <p className="text-blue-100">Ays, Mian Bros, Azal</p>
+              <p className="text-sm text-blue-200">For interest-free retail plans</p>
             </div>
           </div>
         </div>

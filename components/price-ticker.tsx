@@ -5,18 +5,15 @@ import { useEffect, useState } from "react"
 export default function PriceTicker() {
   const [position, setPosition] = useState(0)
 
-  const solarPrices = [
-    "Jinko 550W Mono PERC Solar Panel - PKR 42,500",
-    "Canadian Solar 540W Bifacial - PKR 45,000",
-    "Longi 500W Half-Cut Module - PKR 39,999",
-    "JA Solar 530W Mono Panel - PKR 41,200",
-    "Inverex 5kW Hybrid Inverter - PKR 185,000",
-    "Growatt 8kW Three Phase Inverter - PKR 275,000",
-    "Tesla Powerwall 13.5kWh - PKR 950,000",
-    "Pylontech 3.5kWh Lithium Battery - PKR 225,000",
-    "Mounting Structure (per kW) - PKR 15,000",
-    "Complete 5kW Solar System - PKR 750,000",
-  ]
+ const solarPrices = [
+  "Longi Hi‑Mo 6 575 W Mono/Bifacial – PKR 20,770–21,315",   // typical price range :contentReference[oaicite:1]{index=1}
+  "Longi 550 W Mono PERC – ~PKR 19,525",                        
+  "Jinko N‑Type 575 W A‑Grade – ~PKR 17,825",                  
+  "Jinko 550 W Single‑Glass A‑Grade – PKR 15,400",             
+  "Canadian N‑Type Bifacial 575–580 W – PKR 20,700–21,060",    
+  "JA N‑Type Bifacial 580–600 W – PKR 17,250–19,200",          
+  "Trina N‑Type Bifacial 590–620 W – PKR 19,840",              
+];
 
   const tickerText = solarPrices.join(" • ")
 

@@ -4,10 +4,11 @@ import Image from "next/image"
 export default function TopBrands() {
   const brands = [
     {
-      name: "Fronus",
-      slug: "Fronus",
-      logo: "/fronus-logo.png" // Add your image path
+      name: "FOX",
+      slug: "FOX",
+      logo: "/fox-logo.webp" // Add your image path
     },
+    
     {
       name: "Knox",
       slug: "Knox",
@@ -29,10 +30,11 @@ export default function TopBrands() {
       logo: "/1on-logo.png" // Add your image path
     },
     {
-      name: "FOX",
-      slug: "FOX",
-      logo: "/fox-logo.webp" // Add your image path
+      name: "Fronus",
+      slug: "Fronus",
+      logo: "/fronus-logo.png" // Add your image path
     },
+    
   ]
 
   return (

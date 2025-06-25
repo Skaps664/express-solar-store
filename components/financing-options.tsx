@@ -1,33 +1,38 @@
 import { Button } from "@/components/ui/button"
-import { DollarSign, CreditCard, Landmark, Calendar } from "lucide-react"
+import { Banknote, Handshake, Building2, Calendar } from "lucide-react"
+import Link from "next/link"
 
 export default function FinancingOptions() {
   const options = [
     {
-      icon: DollarSign,
-      title: "Solar Loans",
-      description: "Low-interest loans specifically designed for solar installations with flexible repayment terms",
+      icon: Banknote,
+      title: "Meezan Bank Solar Financing",
+      description:
+        "Avail Shariah-compliant solar financing through Meezan Bank with easy monthly installments and up to 5 years tenure.",
       color: "bg-green-100",
       iconColor: "text-green-600",
     },
     {
-      icon: CreditCard,
-      title: "Easy Installments",
-      description: "0% interest installment plans available on select solar products with major banks",
+      icon: Handshake,
+      title: "Ays Electronics Installment Plan",
+      description:
+        "Buy solar panels and inverters with 0% markup installment plans from Ays Electronics — available in major cities.",
       color: "bg-blue-100",
       iconColor: "text-blue-600",
     },
     {
-      icon: Landmark,
-      title: "Bank Financing",
-      description: "Special financing arrangements with our partner banks for residential and commercial systems",
+      icon: Building2,
+      title: "Afzal Electronics Solar Packages",
+      description:
+        "Flexible solar financing through Afzal Electronics for complete residential and commercial solar solutions.",
       color: "bg-purple-100",
       iconColor: "text-purple-600",
     },
     {
       icon: Calendar,
-      title: "Lease Options",
-      description: "Solar lease programs with no upfront cost and predictable monthly payments",
+      title: "Mian Brothers Monthly Plans",
+      description:
+        "Affordable monthly installment options through Mian Brothers with competitive pricing and warranty support.",
       color: "bg-amber-100",
       iconColor: "text-amber-600",
     },
@@ -37,10 +42,10 @@ export default function FinancingOptions() {
     <div className="my-8">
       <div className="bg-[#f26522]/5 rounded-lg p-6 md:p-8">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-[#1a5ca4] mb-2">Flexible Financing Options</h2>
+          <h2 className="text-2xl font-bold text-[#1a5ca4] mb-2">Solar Financing in Pakistan</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Make your transition to solar energy affordable with our range of financing solutions. We work with leading
-            financial institutions to provide options that fit your budget.
+            Go solar without the financial burden. We’ve partnered with trusted banks and electronics dealers across
+            Pakistan to bring you flexible and convenient financing options.
           </p>
         </div>
 
@@ -57,7 +62,11 @@ export default function FinancingOptions() {
         </div>
 
         <div className="text-center mt-8">
-          <Button className="bg-[#f26522] hover:bg-[#e55511]">Explore Financing Options</Button>
+          <Link href="/installments">
+  <Button className="bg-[#f26522] hover:bg-[#e55511]">
+    View Financing Partners
+  </Button>
+</Link>
         </div>
       </div>
     </div>

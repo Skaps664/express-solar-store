@@ -4,8 +4,48 @@ import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Star, Sparkles } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { useEffect, useState } from "react"
+import { client } from "../lib/sanity"
+
+
+
+
+type HeadingData = {
+  newArrivalsHeading: {
+    title: string
+    subtext: string
+  }
+}
+
 
 export default function NewArrivals() {
+
+
+  const [headingData, setHeadingData] = useState<HeadingData | null>(null)
+
+  useEffect(() => {
+    const fetchHeading = async () => {
+      try {
+        const data: HeadingData = await client.fetch(
+          `*[_type == "homePageContent"][0]{
+  newArrivalsHeading{
+    title,
+    subtext
+  }
+}`
+        );
+        setHeadingData(data);
+      } catch (error) {
+        console.error("Failed to fetch Sanity heading:", error);
+      }
+    };
+
+    fetchHeading();
+  }, [])
+
+
+  
+
   const newArrivals = [
     {
       id: "longi-hi-mo-6",
@@ -70,7 +110,7 @@ export default function NewArrivals() {
   ]
 
   // Format price in PKR with commas
-  const formatPrice = (price) => {
+  const formatPrice = (price : any) => {
     return `PKR ${price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
   }
 
@@ -80,12 +120,12 @@ export default function NewArrivals() {
         <div>
           <h2 className="text-2xl font-bold text-[#1a5ca4] flex items-center gap-3">
             <Sparkles className="h-6 w-6 text-[#f26522]" />
-            New Arrivals
+            {headingData?.newArrivalsHeading?.title || "New Arrivals"}
             <span className="bg-gradient-to-r from-[#10b981] to-[#34d399] text-white text-xs px-3 py-1 rounded-full">
               JUST IN
             </span>
           </h2>
-          <p className="text-gray-600 mt-1 text-sm">Latest products added to our collection</p>
+          <p className="text-gray-600 mt-1 text-sm">{headingData?.newArrivalsHeading?.subtext || "Latest products added to our collection"}</p>
         </div>
         <div className="flex gap-2 mt-3 md:mt-0">
           <Button
@@ -156,7 +196,7 @@ export default function NewArrivals() {
               </div>
 
               <Button
-                className="w-full bg-gradient-to-r from-[#1a5ca4] to-[#2563eb] hover:from-[#0e4a8a] hover:to-[#1d4ed8] text-white font-medium py-2.5 rounded-lg transition-all duration-300"
+                className="w-full bg-[#1a5ca4] text-white font-medium py-2.5 rounded-lg transition-all duration-300"
                 onClick={(e) => {
                   e.preventDefault()
                   // Add to cart logic

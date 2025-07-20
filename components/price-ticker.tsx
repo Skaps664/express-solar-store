@@ -1,5 +1,6 @@
 "use client"
 
+import { StepForward } from "lucide-react";
 import { useEffect, useState } from "react"
 
 export default function PriceTicker() {
@@ -7,15 +8,15 @@ export default function PriceTicker() {
 
  const solarPrices = [
   "Longi Hi‑Mo 6 575 W Mono/Bifacial – PKR 20,770–21,315",   // typical price range :contentReference[oaicite:1]{index=1}
-  "Longi 550 W Mono PERC – ~PKR 19,525",                        
-  "Jinko N‑Type 575 W A‑Grade – ~PKR 17,825",                  
+  "Longi 550 W Mono PERC – PKR 19,525",                        
+  "Jinko N‑Type 575 W A‑Grade – PKR 17,825",                  
   "Jinko 550 W Single‑Glass A‑Grade – PKR 15,400",             
   "Canadian N‑Type Bifacial 575–580 W – PKR 20,700–21,060",    
   "JA N‑Type Bifacial 580–600 W – PKR 17,250–19,200",          
   "Trina N‑Type Bifacial 590–620 W – PKR 19,840",              
 ];
 
-  const tickerText = solarPrices.join(" • ")
+  const tickerText = solarPrices.join(" | ")
 
   useEffect(() => {
     const tickerInterval = setInterval(() => {

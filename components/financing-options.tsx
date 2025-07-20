@@ -40,7 +40,7 @@ export default function FinancingOptions() {
 
   return (
     <div className="my-8">
-      <div className="bg-[#f26522]/5 rounded-lg p-6 md:p-8">
+      <div className="bg-gradient-to-r from-[#1a5ca4]/10 to-[#f26522]/10 rounded-lg p-6 md:p-8">
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-[#1a5ca4] mb-2">Solar Financing in Pakistan</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">

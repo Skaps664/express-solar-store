@@ -3,11 +3,35 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
+import { useEffect, useState } from "react"
+import { client } from "../lib/sanity" // Adjust path if needed
+
+type HeadingData = {
+  topRatedHeading: string
+} 
 
 export default function FeaturedPromoCards() {
+
+  const [headingData, setHeadingData] = useState<HeadingData | null>(null)
+
+  useEffect(() => {
+    const fetchHeading = async () => {
+      try {
+        const data: HeadingData = await client.fetch(
+          `*[_type == "homePageContent"][0]{ topRatedHeading }`
+        );
+        setHeadingData(data);
+      } catch (error) {
+        console.error("Failed to fetch Sanity heading:", error);
+      }
+    };
+
+    fetchHeading();
+  }, [])
+
   return (
     <div className="my-8">
-      <h2 className="text-2xl font-bold text-[#1a5ca4] mb-6">Browse Top Rated Products</h2>
+      <h2 className="text-2xl font-bold text-[#1a5ca4] mb-6">{headingData?.topRatedHeading || "Browse Top Rated Productsss"}</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Solar Panels Card */}

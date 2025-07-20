@@ -5,226 +5,71 @@ import type React from "react"
 import { useEffect, useState, useRef } from "react"
 import Link from "next/link"
 import { Search, ShoppingCart, User, Menu, X, ChevronDown, ChevronRight, MapPin } from "lucide-react"
-import { Sun, Battery, Zap, Home, Wrench, ShieldCheck, House } from "lucide-react"
+import { Sun, Battery, Zap, Home, Wrench, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import PriceTicker from "./price-ticker"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
+import { useCart } from "@/context/CartContext"
+import { MiniCart } from "./mini-cart"
 
-// Updated category structure with Pakistani brands
-const categoryData = [
-	
-	{
-		name: "Solar Panels",
-		icon: Sun,
-		color: "bg-blue-100",
-		iconColor: "text-[#1a5ca4]",
-		route: "/store?category=solar-panels",
-		brands: [
-			{
-				name: "Jinko Solar", //{ name: "Sorotec", slug: "sorotec", logo: "growatt-logo" },
-				subcategories: ["Mono PERC Panels", "Bifacial Panels", "N-Type Panels", "Tiger Neo Series"],
-				url: "/brand/jinko-solar",
-			},
-			{
-				name: "Canadian Solar",
-				subcategories: ["HiKu Panels", "BiHiKu Panels", "All Black Panels", "Commercial Panels"],
-				url: "/brand/canadian-solar",
-			},
-			{
-				name: "Longi Solar",
-				subcategories: ["Hi-MO 5 Series", "Hi-MO 6 Series", "Residential Panels", "Commercial Panels"],
-				url: "/brand/longi-solar",
-			},
-			{
-				name: "Orient Solar",
-				subcategories: ["Mono Panels", "Poly Panels", "Residential Series", "Commercial Series"],
-				url: "/brand/orient-solar",
-			},
-			{
-				name: "Waaree Solar",
-				subcategories: ["Bifacial Series", "Mono PERC", "Solar Rooftop", "Commercial Systems"],
-				url: "/brand/waaree-solar",
-			},
-		],
-	},
-	{
-		name: "Inverters",
-		icon: Zap,
-		color: "bg-amber-100",
-		iconColor: "text-amber-600",
-		route: "/store?category=inverters",
-		brands: [
-			{
-				name: "Sorotec",
-				subcategories: ["Primo Series", "Symo Series", "Hybrid Solutions"],
-				url: "/brand/sorotec",
-			},
-			{
-				name: "Luxpower",
-				subcategories: ["Hybrid Inverters", "Off-Grid Inverters", "Grid-Tie Inverters", "Commercial Solutions"],
-				url: "/brand/luxpower",
-			},
-			{
-				name: "Growatt",
-				subcategories: ["String Inverters", "Hybrid Inverters", "Microinverters", "Commercial Inverters"],
-				url: "/brand/growatt",
-			},
-			{
-				name: "1ON",
-				subcategories: ["Hybrid Inverters", "Off-Grid Inverters", "Low Voltage", "High Voltage"],
-				url: "/brand/1on",
-			},
-			{
-				name: "Fox ESS",
-				subcategories: ["Hybrid Inverters", "Battery Solutions", "Single Phase", "Three Phase"],
-				url: "/brand/fox-ess",
-			},
-			{
-				name: "Ziehl",
-				subcategories: ["Industrial Inverters", "High Power Solutions", "Commercial Systems", "Monitoring"],
-				url: "/brand/ziehl",
-			},
-			{
-				name: "Knox",
-				subcategories: ["Hybrid Inverters", "Off-Grid Solutions", "Residential", "Commercial"],
-				url: "/brand/knox",
-			},
-		],
-	},
-	{
-		name: "Batteries",
-		icon: Battery,
-		color: "bg-green-100",
-		iconColor: "text-green-600",
-		route: "/store?category=batteries",
-		brands: [
-			{
-				name: "Tesla",
-				subcategories: ["Powerwall", "Powerpack", "Accessories", "Gateway Systems"],
-				url: "/brand/tesla",
-			},
-			{
-				name: "Pylontech",
-				subcategories: ["US2000 Series", "US3000 Series", "Force L2 Series", "Commercial Solutions"],
-				url: "/brand/pylontech",
-			},
-			{
-				name: "AGS Batteries",
-				subcategories: ["Lithium Series", "Lead Acid", "Deep Cycle", "Solar Batteries"],
-				url: "/brand/ags-batteries",
-			},
-			{
-				name: "Phoenix Power",
-				subcategories: ["Lithium Iron", "Gel Batteries", "Solar Storage", "Backup Systems"],
-				url: "/brand/phoenix-power",
-			},
-			{
-				name: "Exide",
-				subcategories: ["Solar Specific", "Tubular Batteries", "Industrial Series", "Home Systems"],
-				url: "/brand/exide",
-			},
-		],
-	},
-	{
-		name: "Tools",
-		icon: Wrench,
-		color: "bg-red-100",
-		iconColor: "text-red-600",
-		route: "/store?category=tools",
-		brands: [
-			{
-				name: "K2 Systems",
-				subcategories: ["Flat Roof Systems", "Pitched Roof Systems", "Ground Mount Systems", "Accessories"],
-				url: "/brand/k2-systems",
-			},
-			{
-				name: "IronRidge",
-				subcategories: ["Roof Mount", "Ground Mount", "Components", "Accessories"],
-				url: "/brand/ironridge",
-			},
-			{
-				name: "Pak Solar",
-				subcategories: ["Rooftop Frames", "Ground Mounting", "Carport Systems", "Custom Solutions"],
-				url: "/brand/pak-solar",
-			},
-			{
-				name: "ATS Mounts",
-				subcategories: ["Residential Mounts", "Commercial Systems", "Tracking Systems", "Fixed Systems"],
-				url: "/brand/ats-mounts",
-			},
-		],
-	},
-	{
-		name: "Complete Systems",
-		icon: Home,
-		color: "bg-purple-100",
-		iconColor: "text-purple-600",
-		route: "/store?category=complete-systems",
-		brands: [
-			{
-				name: "Solar Packages",
-				subcategories: ["3kW Systems", "5kW Systems", "10kW Systems", "Commercial Systems"],
-				url: "/complete-systems",
-			},
-			{
-				name: "Off-Grid Solutions",
-				subcategories: ["Residential", "Commercial", "Industrial", "Agricultural"],
-				url: "/off-grid-solutions",
-			},
-			{
-				name: "Hybrid Systems",
-				subcategories: ["With Battery", "Without Battery", "Grid-Assisted", "Backup Solutions"],
-				url: "/hybrid-systems",
-			},
-		],
-	},
-	{
-		name: "Accessories",
-		icon: ShieldCheck,
-		color: "bg-teal-100",
-		iconColor: "text-teal-600",
-		route: "/store?category=accessories",
-		brands: [
-			{
-				name: "Victron Energy",
-				subcategories: ["Monitoring Systems", "Charge Controllers", "Inverter Chargers", "System Integration"],
-				url: "/brand/victron-energy",
-			},
-			{
-				name: "Enphase",
-				subcategories: ["Microinverters", "Batteries", "System Controllers", "Monitoring"],
-				url: "/brand/enphase",
-			},
-			{
-				name: "MTECH",
-				subcategories: ["Connectors", "Cables", "Junction Boxes", "Fuses & Breakers"],
-				url: "/brand/mtech",
-			},
-			{
-				name: "PEL Solar",
-				subcategories: ["Meters", "DC Disconnects", "Combiner Boxes", "AC/DC Cables"],
-				url: "/brand/pel-solar",
-			},
-		],
-	},
-]
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
-// Main navigation items
-const navItems = [
-	{ name: "Home", href: "/" },
-	{ name: "Solar Panels", href: "/store?category=solar-panels" },
-	{ name: "Inverters", href: "/store?category=inverters" },
-	{ name: "Batteries", href: "/store?category=batteries" },
-	{ name: "Complete Systems", href: "/store?category=complete-systems" },
-	{ name: "Insurance", href: "/insurance" },
-	{ name: "Installment Plans", href: "/installments" },
-	{ name: "Blogs", href: "/blogs" },
-	{ name: "Contact", href: "/contact" },
-]
+interface Product {
+	_id: string;
+	name: string;
+	slug: string;
+	images: { url: string }[];
+	price: number;
+}
 
-// Department navigation items (for mobile)
+interface Brand {
+    name: string;
+    slug: string;
+    logo: string;
+    url?: string; 
+	products?: Product[];
+}
+
+interface Category {
+  name: string;
+  slug: string;
+  icon: any;
+  color: string;
+  iconColor: string;
+  route: string;
+  brands: Brand[];
+}
+
+const iconMapping = {
+  "solar-panels": Sun,
+  "inverters": Zap,
+  "batteries": Battery,
+  "tools": Wrench,
+  "complete-systems": Home,
+  "accessories": ShieldCheck,
+}
+
+const getDefaultIcon = (categorySlug: string) => {
+  return iconMapping[categorySlug as keyof typeof iconMapping] || Sun
+}
+
+const generateNavItems = (categories: Category[]) => {
+	const baseItems = [{ name: "Home", href: "/" }]
+	const categoryItems = categories.slice(0, 5).map(cat => ({
+		name: cat.name,
+		href: cat.route
+	}))
+	const additionalItems = [
+		{ name: "Insurance", href: "/insurance" },
+		{ name: "Installment Plans", href: "/installments" },
+		{ name: "Blogs", href: "/blogs" },
+		{ name: "Contact", href: "/contact" },
+	]
+	return [...baseItems, ...categoryItems, ...additionalItems]
+}
+
 const departmentNavItems = [
 	{ name: "Insurance", href: "/insurance" },
 	{ name: "Installment Plans", href: "/installments" },
@@ -232,44 +77,143 @@ const departmentNavItems = [
 	{ name: "Contact", href: "/contact" },
 ]
 
-export default function Header() {
-	const { user, logout } = useAuth()
+interface HeaderProps {
+	user?: {
+		name?: string
+	}
+}
+
+export default function Header({ user }: HeaderProps) {
+	const { user: authUser, logout } = useAuth()
+	const { cart } = useCart()
 	const [isMenuOpen, setIsMenuOpen] = useState(false)
-	const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false)
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-	const [activeCategory, setActiveCategory] = useState(null)
-	const [activeBrand, setActiveBrand] = useState(null)
-	const [activeMobileCategory, setActiveMobileCategory] = useState(null)
-	const [expandedMobileCategory, setExpandedMobileCategory] = useState(null)
+	const [activeCategory, setActiveCategory] = useState<number | null>(null)
+	const [activeBrand, setActiveBrand] = useState<number | null>(null)
+	const [activeProducts, setActiveProducts] = useState<Product[]>([]);
+	const [expandedMobileCategory, setExpandedMobileCategory] = useState<number | null>(null)
 	const [searchTerm, setSearchTerm] = useState("")
-	const menuRef = useRef(null)
-	const mobileSidebarRef = useRef(null)
+	const [location, setLocation] = useState("Islamabad")
+	const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+	const [cities, setCities] = useState(["Islamabad", "Karachi", "Lahore", "Peshawar", "Quetta"])
+	const [categoryData, setCategoryData] = useState<Category[]>([])
+	const [loading, setLoading] = useState(true)
+	const menuRef = useRef<HTMLDivElement | null>(null)
+	const mobileSidebarRef = useRef<HTMLDivElement | null>(null)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const router = useRouter()
-
 	const [dropdownOpen, setDropdownOpen] = useState(false)
 
-	// Close menu when clicking outside
 	useEffect(() => {
-		function handleClickOutside(event) {
-			if (menuRef.current && !menuRef.current.contains(event.target)) {
+		async function fetchNavigationData() {
+			try {
+				// console.log("Fetching navigation data from API_BASE:", API_BASE);
+				const response = await fetch(`${API_BASE}/api/category`);
+
+				// console.log("Navigation API Response Status:", response.status);
+
+				if (response.ok) {
+					const categories = await response.json();
+					// console.log("Fetched Categories Data:", JSON.stringify(categories, null, 2));
+
+					if (!categories || !Array.isArray(categories) || categories.length === 0) {
+						console.error("Invalid categories data received");
+						setCategoryData([]);
+						setLoading(false);
+						return;
+					}
+
+					// Process categories sequentially to avoid race conditions
+					const categoriesWithBrands = [];
+					
+					for (const category of categories) {
+						// console.log(`Fetching brands for category: ${category.slug}`);
+						try {
+							const brandsResponse = await fetch(`${API_BASE}/api/category/${category.slug}/brands`);
+							// console.log(`Brands API Response Status for ${category.slug}:`, brandsResponse.status);
+							
+							if (brandsResponse.ok) {
+								const brandsData = await brandsResponse.json();
+								// console.log(`Fetched Brands for ${category.slug}:`, JSON.stringify(brandsData, null, 2));
+								
+								// Extract brands array from the response object
+								const brands = brandsData.brands || [];
+								
+								categoriesWithBrands.push({
+									name: category.name,
+									slug: category.slug,
+									icon: getDefaultIcon(category.slug),
+									color: "bg-blue-100",
+									iconColor: "text-[#1a5ca4]",
+									route: `/store?category=${category.slug}`,
+									brands: brands.map((brand: any) => ({
+										name: brand.name,
+										slug: brand.slug,
+										logo: brand.logo,
+										url: `/brand/${brand.slug}`,
+										products: [],
+									})),
+								});
+							} else {
+								console.error(`Failed to fetch brands for category ${category.slug}. Status:`, brandsResponse.status);
+								categoriesWithBrands.push({
+									name: category.name,
+									slug: category.slug,
+									icon: getDefaultIcon(category.slug),
+									color: "bg-blue-100",
+									iconColor: "text-[#1a5ca4]",
+									route: `/store?category=${category.slug}`,
+									brands: [],
+								});
+							}
+						} catch (error) {
+							console.error(`Error fetching brands for category ${category.slug}:`, error);
+							categoriesWithBrands.push({
+								name: category.name,
+								slug: category.slug,
+								icon: getDefaultIcon(category.slug),
+								color: "bg-blue-100",
+								iconColor: "text-[#1a5ca4]",
+								route: `/store?category=${category.slug}`,
+								brands: [],
+							});
+						}
+					}
+
+					// console.log("Final Processed Data:", JSON.stringify(categoriesWithBrands, null, 2));
+					setCategoryData(categoriesWithBrands);
+				} else {
+					console.error("Failed to fetch categories. Status:", response.status);
+					setCategoryData([]);
+				}
+			} catch (error) {
+				console.error("Error fetching navigation data:", error);
+				setCategoryData([]);
+			} finally {
+				setLoading(false);
+			}
+		}
+
+		fetchNavigationData();
+	}, [])
+
+	useEffect(() => {
+		function handleClickOutside(event: MouseEvent) {
+			if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
 				setIsMenuOpen(false)
 				setActiveCategory(null)
 				setActiveBrand(null)
 			}
-
-			if (mobileSidebarRef.current && !mobileSidebarRef.current.contains(event.target) && isMobileMenuOpen) {
+			if (mobileSidebarRef.current && !mobileSidebarRef.current.contains(event.target as Node) && isMobileMenuOpen) {
 				setIsMobileMenuOpen(false)
 			}
 		}
-
 		document.addEventListener("mousedown", handleClickOutside)
 		return () => {
 			document.removeEventListener("mousedown", handleClickOutside)
 		}
 	}, [isMobileMenuOpen])
 
-	// Close dropdown on outside click
 	useEffect(() => {
 		function handleClick(e: MouseEvent) {
 			if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -280,54 +224,86 @@ export default function Header() {
 		return () => document.removeEventListener("mousedown", handleClick)
 	}, [dropdownOpen])
 
-	// Handle category hover
-	const handleCategoryHover = (index) => {
+	const handleCategoryHover = (index: number) => {
 		setActiveCategory(index)
 		setActiveBrand(null)
+		setActiveProducts([])
 	}
 
-	// Handle brand hover
-	const handleBrandHover = (index) => {
-		setActiveBrand(index)
+	const handleBrandHover = async (brandIndex: number) => {
+		setActiveBrand(brandIndex);
+		if (activeCategory !== null) {
+			const category = categoryData[activeCategory];
+			const brand = category.brands[brandIndex];
+			console.log("Hovering over brand:", brand);
+			console.log("In category:", category);
+			
+			if (brand && category && brand.slug && category.slug) {
+				try {
+					// The order of parameters is important: brandSlug first, then categorySlug
+					const url = `${API_BASE}/api/brands/${brand.slug}/${category.slug}`;
+					console.log("Fetching products from:", url);
+					
+					const response = await fetch(url);
+					console.log("Products API response status:", response.status);
+					
+					if (response.ok) {
+						const products = await response.json();
+						console.log("Fetched products:", products);
+						
+						// Check if the response is an array or has a products property
+						if (Array.isArray(products)) {
+							setActiveProducts(products);
+							console.log(`Found ${products.length} products`);
+						} else if (products.products && Array.isArray(products.products)) {
+							setActiveProducts(products.products);
+							console.log(`Found ${products.products.length} products`);
+						} else {
+							console.error("Invalid products data structure:", products);
+							setActiveProducts([]);
+						}
+					} else {
+						console.error("Failed to fetch products. Status:", response.status);
+						setActiveProducts([]);
+					}
+				} catch (error) {
+					console.error("Failed to fetch products", error);
+					setActiveProducts([]);
+				}
+			} else {
+				console.error("Brand or category slug missing", { brand, category });
+				setActiveProducts([]);
+			}
+		}
 	}
 
-	// Toggle mobile category
-	const toggleMobileCategory = (index) => {
-		setActiveMobileCategory(activeMobileCategory === index ? null : index)
-	}
-
-	// Toggle expanded mobile category
-	const toggleExpandedMobileCategory = (index) => {
+	const toggleExpandedMobileCategory = (index: number) => {
 		setExpandedMobileCategory(expandedMobileCategory === index ? null : index)
 	}
 
-	// Navigate to brand page
-	const navigateToBrand = (url) => {
-		// In a real implementation, you would use router.push(url) or similar
-		console.log(`Navigating to: ${url}`)
-		setIsMenuOpen(false)
-		setActiveCategory(null)
-		setActiveBrand(null)
+	const navigateToBrand = (url: string | undefined) => {
+		if (url) {
+			router.push(url);
+		} else {
+			console.error("Brand URL is undefined.");
+		}
 	}
 
-	// Handle mobile navigation click - close sidebar after navigation
 	const handleMobileNavClick = () => {
-		// Add a small delay to allow page navigation to start
 		setTimeout(() => {
 			setIsMobileMenuOpen(false)
-			setActiveMobileCategory(null)
 			setExpandedMobileCategory(null)
 		}, 100)
 	}
 
-	const handleSearch = (e) => {
+	const handleSearch = (e: React.FormEvent) => {
 		e.preventDefault()
 		if (searchTerm.trim()) {
 			router.push(`/store?search=${encodeURIComponent(searchTerm.trim())}`)
 			setIsMobileMenuOpen(false)
 			setActiveCategory(null)
 			setActiveBrand(null)
-			setSearchTerm("") // Clear input after search
+			setSearchTerm("")
 		}
 	}
 
@@ -341,17 +317,19 @@ export default function Header() {
 		router.push("/auth")
 	}
 
+	const handleLocationChange = (city: string) => {
+		setLocation(city)
+		setIsDropdownOpen(false)
+	}
+	
 	return (
 		<header className="sticky top-0 z-50 bg-white">
-			{/* Top bar with ticker */}
 			<div className="overflow-hidden">
 				<PriceTicker />
 			</div>
 
-			{/* Main header */}
 			<div className="bg-[#1a5ca4] py-3 md:px-14 lg:px-24">
 				<div className="container mx-auto flex items-center justify-between">
-					{/* Logo and location */}
 					<div className="flex items-center gap-4 ">
 						<Link href="/" className="flex items-center">
 							<div className="w-16 h-8 md:w-22 md:h-11 rounded-full flex items-center justify-center">
@@ -363,18 +341,35 @@ export default function Header() {
 							</div>
 						</Link>
 
-						<div className="hidden md:flex items-center gap-2 bg-[#0e4a8a] hover:bg-[#0a3d7a] rounded-full px-4 py-2 cursor-pointer">
+						<div
+							className="hidden md:flex items-center gap-2 bg-[#0e4a8a] hover:bg-[#0a3d7a] rounded-full px-4 py-1 cursor-pointer relative"
+							onClick={() => setIsDropdownOpen((prev) => !prev)}
+						>
 							<MapPin className="h-5 w-5 text-white" />
 							<div className="flex flex-col">
 								<span className="text-xs text-white/80">I'm here</span>
-								<span className="text-sm font-medium text-white">Islamabad</span>
+								<span className="text-sm font-medium text-white">{location}</span>
 							</div>
 							<ChevronDown className="h-4 w-4 text-white/80" />
+
+							{isDropdownOpen && (
+								<div className="absolute top-full left-0 bg-white shadow-lg rounded-lg mt-2 w-40">
+									{cities.map((city, index) => (
+										<Button
+											key={index}
+											variant="ghost"
+											className="w-full text-left px-4 py-2 hover:bg-gray-100"
+											onClick={() => handleLocationChange(city)}
+										>
+											{city}
+										</Button>
+									))}
+								</div>
+							)}
 						</div>
 					</div>
 
-					{/* Search bar */}
-					<div className="flex-1 max-w-2xl mx-4">
+					<div className="flex-1 max-w-lg mx-4">
 						<form onSubmit={handleSearch}>
 							<div className="relative">
 								<Input
@@ -395,17 +390,15 @@ export default function Header() {
 						</form>
 					</div>
 
-					{/* Account and cart */}
-
 					<div className="flex items-center gap-1 md:gap-4">
 						<div className="relative" ref={dropdownRef}>
-							{user ? (
+							{authUser ? (
 								<button
 									type="button"
 									className="hidden md:flex flex-col items-end cursor-pointer bg-transparent border-none outline-none"
 									onClick={() => setDropdownOpen((v) => !v)}
 								>
-									<span className="text-xs text-white/80">Hi, {user.name?.split(" ")[0]}</span>
+									<span className="text-xs text-white/80">Hi, {(authUser as any)?.name?.split(" ")[0]}</span>
 									<div className="flex items-center">
 										<span className="text-sm font-medium text-white">Account</span>
 										<ChevronDown className="h-4 w-4 text-white/80 ml-1" />
@@ -421,8 +414,7 @@ export default function Header() {
 								</Link>
 							)}
 
-							{/* Dropdown Menu */}
-							{dropdownOpen && user && (
+							{dropdownOpen && authUser && (
 								<div className="absolute right-0 mt-2 w-40 bg-white rounded shadow-lg z-50">
 									<Link
 										href="/account"
@@ -441,20 +433,13 @@ export default function Header() {
 							)}
 						</div>
 
-						<Link href="/cart" className="relative">
-							<div className="bg-[#f26522] rounded-full w-10 h-10 flex items-center justify-center">
-								<ShoppingCart className="h-5 w-5 text-white" />
-								<span className="absolute -top-1 -right-1 bg-[#0e4a8a] text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-									0
-								</span>
-							</div>
-							<span className="hidden md:block text-xs text-white mt-1">PKR 0.00</span>
-						</Link>
+						<div className="relative">
+							<MiniCart />
+						</div>
 
-						{/* Mobile menu toggle */}
 						<Button
 							variant="ghost"
-							size="mobileMenu" // Use the new mobileMenu size variant
+							size="mobileMenu"
 							className="md:hidden text-white"
 							onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
 						>
@@ -464,10 +449,8 @@ export default function Header() {
 				</div>
 			</div>
 
-			{/* Navigation bar */}
 			<div className="bg-[#0e4a8a] text-white py-1 px-4 hidden md:block border-t border-[#1a5ca4]/30">
 				<div className="container md:px-14 lg:px-14 flex items-center">
-					{/* Departments dropdown */}
 					<div className="relative" ref={menuRef}>
 						<Button
 							variant="ghost"
@@ -479,85 +462,103 @@ export default function Header() {
 							<ChevronDown className="h-4 w-4" />
 						</Button>
 
-						{/* Departments dropdown menu */}
 						{isMenuOpen && (
 							<div
 								className="absolute left-0 top-full z-50 flex bg-white shadow-xl rounded-b-lg overflow-hidden"
 								style={{ width: "800px", maxWidth: "calc(100vw - 40px)" }}
 							>
-								{/* Main categories column */}
-								<div className="w-1/4 bg-gray-50 border-r border-gray-200">
-									{categoryData.map((category, index) => (
-										<div
-											key={index}
-											className={`px-4 py-3 cursor-pointer hover:bg-gray-100 ${
-												activeCategory === index ? "bg-gray-100 font-medium text-[#1a5ca4]" : "text-gray-800"
-											}`}
-											onMouseEnter={() => handleCategoryHover(index)}
-										>
-											<div className="flex items-center justify-between">
-												<span>{category.name}</span>
-												<ChevronRight className="h-4 w-4" />
-											</div>
-										</div>
-									))}
-								</div>
-
-								{/* Brands column */}
-								{activeCategory !== null && (
-									<div className="w-1/4 bg-white border-r border-gray-200">
-										{categoryData[activeCategory].brands.map((brand, index) => (
-											<div
-												key={index}
-												className={`px-4 py-3 cursor-pointer hover:bg-gray-50 ${
-													activeBrand === index ? "bg-gray-50 font-medium text-[#1a5ca4]" : "text-gray-800"
-												}`}
-												onMouseEnter={() => handleBrandHover(index)}
-												onClick={() => navigateToBrand(brand.url)}
-											>
-												<div className="flex items-center justify-between">
-													<span>{brand.name}</span>
-													<ChevronRight className="h-4 w-4" />
-												</div>
-											</div>
-										))}
+								{loading ? (
+									<div className="w-full p-8 text-center text-gray-500">
+										Loading categories...
 									</div>
-								)}
-
-								{/* Subcategories column */}
-								{activeCategory !== null && activeBrand !== null && (
-									<div className="w-2/4 bg-white p-4">
-										<h3 className="font-bold text-[#1a5ca4] mb-3">
-											{categoryData[activeCategory].brands[activeBrand].name}
-										</h3>
-										<div className="grid grid-cols-2 gap-2">
-											{categoryData[activeCategory].brands[activeBrand].subcategories.map((subcat, index) => (
-												<a
+								) : categoryData.length === 0 ? (
+									<div className="w-full p-8 text-center text-gray-500">
+										<div className="mb-2">Categories temporarily unavailable</div>
+										<div className="text-sm">Check that your backend server is running on {API_BASE}</div>
+									</div>
+								) : (
+									<>
+										<div className="w-1/4 bg-gray-50 border-r border-gray-200">
+											{categoryData.map((category, index) => (
+												<div
 													key={index}
-													href="#"
-													className="px-3 py-2 rounded hover:bg-gray-50 text-gray-700 hover:text-[#1a5ca4]"
+													className={`px-4 py-3 cursor-pointer hover:bg-gray-100 ${
+														activeCategory === index ? "bg-gray-100 font-medium text-[#1a5ca4]" : "text-gray-800"
+													}`}
+													onMouseEnter={() => handleCategoryHover(index)}
 												>
-													{subcat}
-												</a>
+													<div className="flex items-center justify-between">
+														<span>{category.name}</span>
+														<ChevronRight className="h-4 w-4" />
+													</div>
+												</div>
 											))}
 										</div>
-										<div className="mt-4 pt-3 border-t border-gray-200">
-											<a
-												href={categoryData[activeCategory].brands[activeBrand].url}
-												className="text-[#f26522] font-medium hover:underline"
-											>
-												View all {categoryData[activeCategory].brands[activeBrand].name} products
-											</a>
-										</div>
-									</div>
+
+										{activeCategory !== null && categoryData[activeCategory] && (
+											<div className="w-1/4 bg-white border-r border-gray-200">
+												{categoryData[activeCategory].brands.length === 0 ? (
+													<div className="px-4 py-3 text-gray-500 text-sm">No brands available</div>
+												) : (
+													categoryData[activeCategory].brands.map((brand: Brand, index: number) => (
+														<div
+															key={index}
+															className={`px-4 py-3 cursor-pointer hover:bg-gray-50 ${
+																activeBrand === index ? "bg-gray-50 font-medium text-[#1a5ca4]" : "text-gray-800"
+															}`}
+															onMouseEnter={() => handleBrandHover(index)}
+															onClick={() => navigateToBrand(brand.url)}
+														>
+															<div className="flex items-center justify-between">
+																<span>{brand.name}</span>
+																<ChevronRight className="h-4 w-4" />
+															</div>
+														</div>
+													))
+												)}
+											</div>
+										)}
+
+										{activeCategory !== null && activeBrand !== null && (
+											<div className="w-2/4 bg-white p-4">
+												<h3 className="font-bold text-[#1a5ca4] mb-3">
+													{categoryData[activeCategory]?.brands[activeBrand]?.name} Products
+												</h3>
+												<div className="grid grid-cols-2 gap-2">
+													{activeProducts.length > 0 ? (
+														activeProducts.map((product, index) => (
+															<Link
+																key={index}
+																href={`/product/${product.slug}`}
+																className="px-3 py-2 rounded hover:bg-gray-50 text-gray-700 hover:text-[#1a5ca4]"
+															>
+																{product.name}
+															</Link>
+														))
+													) : (
+														<div className="text-gray-500 text-sm">No products found.</div>
+													)}
+												</div>
+												{categoryData[activeCategory]?.brands[activeBrand]?.url && (
+													<div className="mt-4 pt-3 border-t border-gray-200">
+														<a
+															href={categoryData[activeCategory].brands[activeBrand].url}
+															className="text-[#f26522] font-medium hover:underline"
+														>
+															View all {categoryData[activeCategory].brands[activeBrand].name} products
+														</a>
+													</div>
+												)}
+											</div>
+										)}
+									</>
 								)}
 							</div>
 						)}
 					</div>
 
-					{/* Main navigation - scrollable */}
 					<nav className="flex ml-4 overflow-x-auto hide-scrollbar">
-						{navItems.map((item, index) => (
+						{generateNavItems(categoryData).map((item, index) => (
 							<Link key={index} href={item.href} className="px-3 py-2 text-sm hover:text-[#f26522] whitespace-nowrap">
 								{item.name}
 							</Link>
@@ -566,7 +567,6 @@ export default function Header() {
 				</div>
 			</div>
 
-			{/* Mobile menu - animated sidebar */}
 			<div
 				ref={mobileSidebarRef}
 				className={`md:hidden fixed top-0 left-0 h-full bg-white shadow-xl z-50 transition-all duration-300 ease-in-out overflow-y-auto w-4/5 ${
@@ -574,12 +574,11 @@ export default function Header() {
 				}`}
 				style={{ maxWidth: "320px" }}
 			>
-				{/* Mobile header */}
 				<div className="flex items-center justify-between p-4 bg-[#1a5ca4] text-white">
 					<div className="flex items-center gap-2">
 						<div className="w-12 h-6 rounded-full flex items-center justify-center">
 							<img
-								src="/logo-crop.PNG"
+							src="/logo-crop.PNG"
 								alt="Solar Express Logo"
 								className="w-full h-full object-cover"
 							/>
@@ -591,16 +590,15 @@ export default function Header() {
 					</Button>
 				</div>
 
-				{/* User section */}
 				<div className="p-4 border-b border-gray-200 bg-[#0e4a8a] text-white">
 					<div className="flex items-center gap-3">
 						<div className="bg-[#f26522] rounded-full w-10 h-10 flex items-center justify-center">
 							<User className="h-5 w-5 text-white" />
 						</div>
 						<div className="flex-1">
-							{user ? (
+							{authUser ? (
 								<div>
-									<span className="text-sm font-medium block">Hello, {user.name?.split(" ")[0] || "User"}</span>
+									<span className="text-sm font-medium block">Hello, {(authUser as any)?.name?.split(" ")[0] || "User"}</span>
 									<span className="text-xs text-white/80 block">Manage your account</span>
 									<button
 										className="text-xs text-red-300 hover:text-red-200 mt-1 underline"
@@ -622,7 +620,6 @@ export default function Header() {
 					</div>
 				</div>
 
-				{/* Departments section - scrollable horizontally */}
 				<div className="py-3 px-2 border-b border-gray-200 bg-gray-50">
 					<h3 className="text-lg font-medium px-2 mb-2 text-[#1a5ca4]">Departments</h3>
 					<div className="flex overflow-x-auto pb-2 hide-scrollbar">
@@ -644,7 +641,7 @@ export default function Header() {
 					</div>
 				</div>
 
-				{/* Category navigation (replaced navItems) */}
+				{/* --- Fixing Brands Mobile Navigation JSX --- */}
 				<nav className="p-4">
 					<h3 className="text-lg font-medium mb-3 text-[#1a5ca4]">Brands</h3>
 					{categoryData.map((category, index) => (
@@ -664,10 +661,8 @@ export default function Header() {
 								/>
 							</div>
 
-							{/* Expanded category content */}
 							{expandedMobileCategory === index && (
 								<div className="pl-11 py-2 space-y-2">
-									{/* Category main link */}
 									<Link
 										href={category.route}
 										className="block p-2 text-sm text-[#f26522] font-medium hover:bg-gray-50 rounded"
@@ -676,11 +671,10 @@ export default function Header() {
 										View All {category.name}
 									</Link>
 
-									{/* Brand links */}
-									{category.brands.map((brand, brandIndex) => (
+									{category.brands && category.brands.map((brand: Brand, brandIndex: number) => (
 										<Link
 											key={brandIndex}
-											href={brand.url}
+											href={brand.url || '#'}
 											className="block p-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-[#1a5ca4] rounded"
 											onClick={handleMobileNavClick}
 										>
@@ -693,7 +687,6 @@ export default function Header() {
 					))}
 				</nav>
 
-				{/* Department navigation links (Insurance, Installments, etc.) */}
 				<div className="p-4 border-t border-gray-200">
 					<h3 className="text-lg font-medium mb-3 text-[#1a5ca4]">Services</h3>
 					{departmentNavItems.map((item, index) => (
@@ -710,19 +703,17 @@ export default function Header() {
 				</div>
 			</div>
 
-			{/* Overlay when mobile menu is open */}
 			{isMobileMenuOpen && (
 				<div className="md:hidden fixed inset-0 bg-black/50 z-40" onClick={() => setIsMobileMenuOpen(false)} />
 			)}
 
-			{/* Add custom styles for hiding scrollbars but allowing scroll */}
 			<style jsx global>{`
 				.hide-scrollbar {
-					-ms-overflow-style: none; /* IE and Edge */
-					scrollbar-width: none; /* Firefox */
+					-ms-overflow-style: none;
+					scrollbar-width: none;
 				}
 				.hide-scrollbar::-webkit-scrollbar {
-					display: none; /* Chrome, Safari and Opera */
+					display: none;
 				}
 			`}</style>
 		</header>

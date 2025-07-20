@@ -1,9 +1,36 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Calendar, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { useEffect, useState } from "react"
+import { client } from "@/lib/sanity"
+
+type HeadingData = {
+  topBlogsHeading: string
+}
+
 
 export default function BlogPreview() {
+
+  const [headingData, setHeadingData] = useState<HeadingData | null>(null)
+  useEffect(() => {
+    const fetchHeading = async () => {
+      try {
+        const data: HeadingData = await client.fetch(
+          `*[_type == "homePageContent"][0]{ topBlogsHeading }`
+        );
+        setHeadingData(data);
+        
+      } catch (error) {
+        console.error("Failed to fetch Sanity heading:", error);
+      }
+    };
+
+    fetchHeading();
+  }, [])
+
   const blogPosts = [
     {
       title: "How to Choose the Right Solar Panels for Your Home",
@@ -38,7 +65,7 @@ export default function BlogPreview() {
   return (
     <div className="my-8">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-[#1a5ca4]">Latest from Our Blog</h2>
+        <h2 className="text-2xl font-bold text-[#1a5ca4]">{ headingData?.topBlogsHeading || "Latesst from Our Blog"}</h2>
         <Link href="/blogs" className="text-[#f26522] font-medium flex items-center gap-1 hover:underline">
           View All <ArrowRight className="h-4 w-4" />
         </Link>

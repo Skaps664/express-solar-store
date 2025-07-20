@@ -17,9 +17,12 @@ import BestSellers from "@/components/best-sellers"
 import NewArrivals from "@/components/new-arrivals"
 import FeaturedBrands from "@/components/featured-brands-card"
 import SolarAd from "@/components/installation-services"
+import FeaturedQuickShop from "@/components/featured-quick-shop"
 
 // sanity 
 import { client } from "@/lib/sanity"
+import MiniTopSolarAd from "@/components/miniTopSolarAd"
+import MiniBottomSolarAd from "@/components/miniBottomSolarAd"
 
 export default function Home() {
   return (
@@ -29,18 +32,13 @@ export default function Home() {
 {/* <HomePromoGridV2/> */}
       <CategoryGrid />
 
-{/* Bottom Banner */}
-      <div className="bg-[#1a5ca4] rounded-lg p-6 md:p-8 my-8 text-white">
-        <div className="flex flex-col md:flex-row items-center justify-between">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">Ready to Go Solar?</h2>
-            <p className="mb-4 md:mb-0">Schedule a free consultation with our solar experts today</p>
-          </div>
-          <Button className="bg-white text-[#1a5ca4] hover:bg-gray-100">Book Consultation</Button>
-        </div>
-      </div>
 
 <BestSellers/>
+
+
+{/* Bottom Banner */}
+      <MiniTopSolarAd />
+
 
       {/* Featured Promo Cards */}
       <FeaturedPromoCards />
@@ -50,6 +48,9 @@ export default function Home() {
       {/* Rest of the content */}
       <FeaturedBrandProducts />
 
+      {/* Quick Shop Section */}
+      <FeaturedQuickShop />
+      
       {/* Secondary Promotional Grid */}
       {/* <PromotionalGrid /> */}
       <FeaturedBrands />
@@ -87,15 +88,7 @@ export default function Home() {
       <RecentlyViewed />
 
       {/* Bottom Banner */}
-      <div className="bg-[#1a5ca4] rounded-lg p-6 md:p-8 my-8 text-white">
-        <div className="flex flex-col md:flex-row items-center justify-between">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold mb-2">Ready to Go Solar?</h2>
-            <p className="mb-4 md:mb-0">Schedule a free consultation with our solar experts today</p>
-          </div>
-          <Button className="bg-white text-[#1a5ca4] hover:bg-gray-100">Book Consultation</Button>
-        </div>
-      </div>
+      <MiniBottomSolarAd />
     </div>
   )
 }

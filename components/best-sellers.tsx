@@ -4,6 +4,16 @@ import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Star, TrendingUp } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { useEffect, useState } from "react"
+import { client } from "../lib/sanity" // Adjust path if needed
+
+
+type HeadingData = {
+  bestSellersHeading: {
+    title: string
+    subtext: string
+  }
+}
 
 export default function BestSellers() {
   const bestSellers = [
@@ -70,9 +80,31 @@ export default function BestSellers() {
   ]
 
   // Format price in PKR with commas
-  const formatPrice = (price) => {
+  const formatPrice = (price : any) => {
     return `PKR ${price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
   }
+  
+  const [headingData, setHeadingData] = useState<HeadingData | null>(null)
+
+  useEffect(() => {
+    const fetchHeading = async () => {
+      try {
+        const data: HeadingData = await client.fetch(
+          `*[_type == "homePageContent"]{
+  bestSellersHeading{
+    title,
+    subtext
+  }
+}`
+        );
+        setHeadingData(data);
+      } catch (error) {
+        console.error("Failed to fetch Sanity heading:", error);
+      }
+    };
+
+    fetchHeading();
+  }, [])
 
   return (
     <div className="my-8">
@@ -80,12 +112,12 @@ export default function BestSellers() {
         <div>
           <h2 className="text-2xl font-bold text-[#1a5ca4] flex items-center gap-3">
             <TrendingUp className="h-6 w-6 text-[#f26522]" />
-            Best Sellers
+            {headingData?.bestSellersHeading?.title || "Best Sellers"}
             <span className="bg-gradient-to-r from-[#f26522] to-[#ff8c42] text-white text-xs px-3 py-1 rounded-full">
               TOP PICKS
             </span>
           </h2>
-          <p className="text-gray-600 mt-1 text-sm">Most popular products chosen by our customers</p>
+          <p className="text-gray-600 mt-1 text-sm">{headingData?.bestSellersHeading?.subtext || "Most popular products chosen by our customers"}</p>
         </div>
         <div className="flex gap-2 mt-3 md:mt-0">
           <Button
@@ -156,7 +188,7 @@ export default function BestSellers() {
               </div>
 
               <Button
-                className="w-full bg-gradient-to-r from-[#1a5ca4] to-[#2563eb] hover:from-[#0e4a8a] hover:to-[#1d4ed8] text-white font-medium py-2.5 rounded-lg transition-all duration-300"
+                className="w-full bg-[#1a5ca4] text-white font-medium py-2.5 rounded-lg transition-all duration-300"
                 onClick={(e) => {
                   e.preventDefault()
                   // Add to cart logic

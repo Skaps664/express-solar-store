@@ -1,0 +1,1072 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import axios from "axios"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
+import { Calendar } from "@/components/ui/calendar"
+import { Plus, Trash2, Upload, Save, Edit } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { format } from "date-fns"
+import { Checkbox } from "@/components/ui/checkbox"
+import { useToast } from "@/components/ui/use-toast"
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE
+
+export default function BrandPageSettingsPage() {
+  const { toast } = useToast()
+  const [brands, setBrands] = useState([])
+  const [selectedBrand, setSelectedBrand] = useState("")
+  const [brandSettings, setBrandSettings] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [savingSettings, setSavingSettings] = useState(false)
+
+  // Form state
+  const [aboutContent, setAboutContent] = useState("")
+  const [whyChooseReasons, setWhyChooseReasons] = useState([{ title: "", description: "" }])
+  const [warrantyInfo, setWarrantyInfo] = useState("")
+  const [technicalSupportInfo, setTechnicalSupportInfo] = useState("")
+  const [faqs, setFaqs] = useState([{ question: "", answer: "" }])
+  
+  // Promotion state
+  const [showAddPromotion, setShowAddPromotion] = useState(false)
+  const [promotionTitle, setPromotionTitle] = useState("")
+  const [promotionDescription, setPromotionDescription] = useState("")
+  const [promotionTab, setPromotionTab] = useState("all")
+  const [promotionImage, setPromotionImage] = useState(null)
+  const [promotionStartDate, setPromotionStartDate] = useState(new Date())
+  const [promotionEndDate, setPromotionEndDate] = useState(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
+  
+  // Document state
+  const [showAddDocument, setShowAddDocument] = useState(false)
+  const [documentTitle, setDocumentTitle] = useState("")
+  const [documentFile, setDocumentFile] = useState(null)
+  
+  // Products state
+  const [brandProducts, setBrandProducts] = useState([])
+  const [selectedProducts, setSelectedProducts] = useState([])
+  const [showProductSelector, setShowProductSelector] = useState(false)
+  
+  // Fetch brands on component mount
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const response = await axios.get(`${API_BASE}/api/brands`, { withCredentials: true })
+        setBrands(response.data)
+      } catch (error) {
+        console.error("Error fetching brands:", error)
+        toast({
+          title: "Error",
+          description: "Failed to fetch brands",
+          variant: "destructive",
+        })
+      }
+    }
+    
+    fetchBrands()
+  }, [])
+
+  // Fetch brand settings when a brand is selected
+  useEffect(() => {
+    const fetchBrandSettings = async () => {
+      if (!selectedBrand) return
+      
+      setLoading(true)
+      try {
+        const response = await axios.get(
+          `${API_BASE}/api/brand-page-settings/${selectedBrand}`, 
+          { withCredentials: true }
+        )
+        
+        if (response.data.success) {
+          const settings = response.data.settings
+          
+          if (settings) {
+            setBrandSettings(settings)
+            setAboutContent(settings.aboutContent || "")
+            setWhyChooseReasons(settings.whyChooseReasons?.length > 0 ? 
+              settings.whyChooseReasons : 
+              [{ title: "", description: "" }]
+            )
+            setWarrantyInfo(settings.warrantyInformation || "")
+            setTechnicalSupportInfo(settings.technicalSupportInfo || "")
+            setFaqs(settings.faqs?.length > 0 ? 
+              settings.faqs : 
+              [{ question: "", answer: "" }]
+            )
+            
+            // Handle featured products
+            if (settings.featuredProducts?.length > 0) {
+              setSelectedProducts(settings.featuredProducts.map(p => p._id))
+            } else {
+              setSelectedProducts([])
+            }
+          } else {
+            // Initialize with empty values if no settings found
+            setBrandSettings(null)
+            resetForm()
+          }
+        }
+        
+        // Also fetch brand products for selection
+        const productsResponse = await axios.get(
+          `${API_BASE}/api/brand-page-settings/${selectedBrand}/products`, 
+          { withCredentials: true }
+        )
+        
+        if (productsResponse.data.success) {
+          setBrandProducts(productsResponse.data.products || [])
+        }
+      } catch (error) {
+        console.error("Error fetching brand settings:", error)
+        toast({
+          title: "Error",
+          description: "Failed to fetch brand settings",
+          variant: "destructive",
+        })
+        resetForm()
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchBrandSettings()
+  }, [selectedBrand])
+
+  const resetForm = () => {
+    setAboutContent("")
+    setWhyChooseReasons([{ title: "", description: "" }])
+    setWarrantyInfo("")
+    setTechnicalSupportInfo("")
+    setFaqs([{ question: "", answer: "" }])
+    setSelectedProducts([])
+  }
+
+  const handleSaveSettings = async () => {
+    if (!selectedBrand) return
+    
+    console.log("Saving brand settings", {
+      brandId: selectedBrand,
+      aboutContent: aboutContent?.substring(0, 20) + "...",
+      whyChooseReasons: whyChooseReasons.length,
+      selectedProducts: selectedProducts.length,
+      faqs: faqs.length
+    });
+    
+    setSavingSettings(true)
+    try {
+      const formData = new FormData()
+      
+      // Add text fields
+      formData.append("aboutContent", aboutContent)
+      formData.append("warrantyInformation", warrantyInfo)
+      formData.append("technicalSupportInfo", technicalSupportInfo)
+      
+      // Add JSON fields
+      formData.append("whyChooseReasons", JSON.stringify(whyChooseReasons.filter(r => r.title.trim() !== "")))
+      formData.append("featuredProducts", JSON.stringify(selectedProducts))
+      formData.append("faqs", JSON.stringify(faqs.filter(faq => faq.question.trim() !== "")))
+      
+      const response = await axios.put(
+        `${API_BASE}/api/brand-page-settings/${selectedBrand}`, 
+        formData,
+        { withCredentials: true }
+      )
+      
+      if (response.data.success) {
+        toast({
+          title: "Success",
+          description: "Brand page settings saved successfully",
+        })
+      }
+    } catch (error) {
+      console.error("Error saving brand settings:", error)
+      toast({
+        title: "Error",
+        description: "Failed to save brand settings",
+        variant: "destructive",
+      })
+    } finally {
+      setSavingSettings(false)
+    }
+  }
+
+  const handleAddPromotion = async () => {
+    if (!selectedBrand || !promotionImage || !promotionTitle) return
+    
+    try {
+      console.log("Adding promotion with data:", { 
+        title: promotionTitle,
+        description: promotionDescription,
+        displayTab: promotionTab,
+        startDate: promotionStartDate,
+        endDate: promotionEndDate,
+        imageFile: promotionImage?.name
+      });
+      
+      const formData = new FormData()
+      formData.append("title", promotionTitle)
+      formData.append("description", promotionDescription)
+      formData.append("displayTab", promotionTab)
+      formData.append("startDate", promotionStartDate.toISOString())
+      formData.append("endDate", promotionEndDate.toISOString())
+      formData.append("isActive", "true")
+      formData.append("image", promotionImage)
+      
+      const response = await axios.post(
+        `${API_BASE}/api/brand-page-settings/${selectedBrand}/promotion`, 
+        formData,
+        { 
+          withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" }
+        }
+      )
+      
+      if (response.data.success) {
+        toast({
+          title: "Success",
+          description: "Promotion added successfully",
+        })
+        
+        // Update the settings with the new promotion
+        const updatedSettings = await axios.get(
+          `${API_BASE}/api/brand-page-settings/${selectedBrand}`, 
+          { withCredentials: true }
+        )
+        
+        setBrandSettings(updatedSettings.data.settings)
+        
+        // Reset promotion form
+        setPromotionTitle("")
+        setPromotionDescription("")
+        setPromotionTab("all")
+        setPromotionImage(null)
+        setPromotionStartDate(new Date())
+        setPromotionEndDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))
+        setShowAddPromotion(false)
+      }
+    } catch (error) {
+      console.error("Error adding promotion:", error)
+      toast({
+        title: "Error",
+        description: "Failed to add promotion",
+        variant: "destructive",
+      })
+    }
+      
+  const handleDeletePromotion = async (promotionId) => {
+    if (!selectedBrand || !promotionId) return
+    
+    if (!window.confirm("Are you sure you want to delete this promotion?")) return
+    
+    try {
+      const response = await axios.delete(
+        `${API_BASE}/api/brand-page-settings/${selectedBrand}/promotion/${promotionId}`, 
+        { withCredentials: true }
+      )
+      
+      if (response.data.success) {
+        toast({
+          title: "Success",
+          description: "Promotion deleted successfully",
+        })
+        
+        // Update the settings without the deleted promotion
+        const updatedSettings = await axios.get(
+          `${API_BASE}/api/brand-page-settings/${selectedBrand}`, 
+          { withCredentials: true }
+        )
+        
+        setBrandSettings(updatedSettings.data.settings)
+      }
+    } catch (error) {
+      console.error("Error deleting promotion:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete promotion",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleAddDocument = async () => {
+    if (!selectedBrand || !documentFile || !documentTitle) return
+    
+    try {
+      const formData = new FormData()
+      formData.append("title", documentTitle)
+      formData.append("document", documentFile)
+      
+      const response = await axios.post(
+        `${API_BASE}/api/brand-page-settings/${selectedBrand}/warranty-document`, 
+        formData,
+        { 
+          withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" }
+        }
+      )
+      
+      if (response.data.success) {
+        toast({
+          title: "Success",
+          description: "Document added successfully",
+        })
+        
+        // Update the settings with the new document
+        const updatedSettings = await axios.get(
+          `${API_BASE}/api/brand-page-settings/${selectedBrand}`, 
+          { withCredentials: true }
+        )
+        
+        setBrandSettings(updatedSettings.data.settings)
+        
+        // Reset document form
+        setDocumentTitle("")
+        setDocumentFile(null)
+        setShowAddDocument(false)
+      }
+    } catch (error) {
+      console.error("Error adding document:", error)
+      toast({
+        title: "Error",
+        description: "Failed to add document",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDeleteDocument = async (documentId) => {
+    if (!selectedBrand || !documentId) return
+    
+    if (!window.confirm("Are you sure you want to delete this document?")) return
+    
+    try {
+      const response = await axios.delete(
+        `${API_BASE}/api/brand-page-settings/${selectedBrand}/warranty-document/${documentId}`, 
+        { withCredentials: true }
+      )
+      
+      if (response.data.success) {
+        toast({
+          title: "Success",
+          description: "Document deleted successfully",
+        })
+        
+        // Update the settings without the deleted document
+        const updatedSettings = await axios.get(
+          `${API_BASE}/api/brand-page-settings/${selectedBrand}`, 
+          { withCredentials: true }
+        )
+        
+        setBrandSettings(updatedSettings.data.settings)
+      }
+    } catch (error) {
+      console.error("Error deleting document:", error)
+      toast({
+        title: "Error",
+        description: "Failed to delete document",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Handle why choose reasons changes
+  const handleWhyChooseChange = (index, field, value) => {
+    const newReasons = [...whyChooseReasons]
+    newReasons[index][field] = value
+    setWhyChooseReasons(newReasons)
+  }
+
+  // Handle FAQ changes
+  const handleFaqChange = (index, field, value) => {
+    const newFaqs = [...faqs]
+    newFaqs[index][field] = value
+    setFaqs(newFaqs)
+  }
+
+  // Add new FAQ
+  const addFaq = () => {
+    setFaqs([...faqs, { question: "", answer: "" }])
+  }
+
+  // Remove FAQ
+  const removeFaq = (index) => {
+    if (faqs.length === 1) return
+    const newFaqs = faqs.filter((_, i) => i !== index)
+    setFaqs(newFaqs)
+  }
+
+  // Add new why choose reason
+  const addWhyChooseReason = () => {
+    setWhyChooseReasons([...whyChooseReasons, { title: "", description: "" }])
+  }
+
+  // Remove why choose reason
+  const removeWhyChooseReason = (index) => {
+    if (whyChooseReasons.length === 1) return
+    const newReasons = whyChooseReasons.filter((_, i) => i !== index)
+    setWhyChooseReasons(newReasons)
+  }
+
+  // Toggle product selection
+  const toggleProductSelection = (productId) => {
+    if (selectedProducts.includes(productId)) {
+      setSelectedProducts(selectedProducts.filter(id => id !== productId))
+    } else {
+      setSelectedProducts([...selectedProducts, productId])
+    }
+  }
+
+  return (
+    <div className="space-y-8 container mx-auto">
+      <div className="flex flex-col sm:flex-row items-center justify-between space-y-2">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Brand Page Settings</h1>
+          <p className="text-muted-foreground">
+            Manage brand page content, promotions, and settings
+          </p>
+        </div>
+      </div>
+      
+      {/* Brand selector */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Brand</CardTitle>
+          <CardDescription>Choose a brand to manage its page settings</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Select value={selectedBrand} onValueChange={setSelectedBrand}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a brand" />
+            </SelectTrigger>
+            <SelectContent>
+              {brands.map((brand) => (
+                <SelectItem key={brand._id} value={brand._id}>
+                  {brand.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
+      
+      {selectedBrand && !loading ? (
+        <Tabs defaultValue="about" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="about">About</TabsTrigger>
+            <TabsTrigger value="featured">Featured Products</TabsTrigger>
+            <TabsTrigger value="support">Support & FAQs</TabsTrigger>
+            <TabsTrigger value="promotions">Promotions</TabsTrigger>
+          </TabsList>
+
+          {/* About tab */}
+          <TabsContent value="about" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>About Content</CardTitle>
+                <CardDescription>Content for the About tab on the brand page</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="aboutContent">About Description</Label>
+                    <Textarea
+                      id="aboutContent"
+                      value={aboutContent}
+                      onChange={(e) => setAboutContent(e.target.value)}
+                      rows={5}
+                    />
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label>Why Choose This Brand</Label>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={addWhyChooseReason}
+                      >
+                        <Plus className="h-4 w-4 mr-1" /> Add Reason
+                      </Button>
+                    </div>
+                    
+                    {whyChooseReasons.map((reason, index) => (
+                      <div key={index} className="space-y-2 p-4 border rounded-md">
+                        <div className="flex items-center justify-between">
+                          <Label>Reason {index + 1}</Label>
+                          <Button 
+                            type="button" 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => removeWhyChooseReason(index)}
+                            disabled={whyChooseReasons.length === 1}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <Input
+                          placeholder="Title"
+                          value={reason.title}
+                          onChange={(e) => handleWhyChooseChange(index, "title", e.target.value)}
+                        />
+                        <Textarea
+                          placeholder="Description"
+                          value={reason.description}
+                          onChange={(e) => handleWhyChooseChange(index, "description", e.target.value)}
+                          rows={3}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Button 
+              className="w-full"
+              onClick={handleSaveSettings}
+              disabled={savingSettings}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save About Content
+            </Button>
+          </TabsContent>
+
+          {/* Featured Products tab */}
+          <TabsContent value="featured" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Featured Products</CardTitle>
+                <CardDescription>Select products to feature on the brand page</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="mb-4"
+                  onClick={() => setShowProductSelector(true)}
+                >
+                  <Edit className="h-4 w-4 mr-2" /> Edit Featured Products
+                </Button>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {selectedProducts.length > 0 ? (
+                    brandProducts
+                      .filter(product => selectedProducts.includes(product._id))
+                      .map(product => (
+                        <div key={product._id} className="border rounded-md p-4">
+                          <div className="aspect-square bg-gray-100 rounded-md mb-2 relative">
+                            {product.images && product.images[0] ? (
+                              <img 
+                                src={product.images[0]} 
+                                alt={product.name} 
+                                className="object-contain w-full h-full p-2"
+                              />
+                            ) : (
+                              <div className="flex items-center justify-center h-full text-gray-400">
+                                No Image
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-sm font-medium line-clamp-2">{product.name}</p>
+                          <p className="text-sm text-primary">${product.price}</p>
+                        </div>
+                      ))
+                  ) : (
+                    <div className="col-span-4 text-center py-8 text-muted-foreground">
+                      No featured products selected
+                    </div>
+                  )}
+                </div>
+                
+                {/* Product selector dialog */}
+                <Dialog open={showProductSelector} onOpenChange={setShowProductSelector}>
+                  <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Select Featured Products</DialogTitle>
+                      <DialogDescription>
+                        Check the products you want to feature on the brand page
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                      <div className="border rounded-md p-4 max-h-96 overflow-y-auto">
+                        {brandProducts.length > 0 ? (
+                          brandProducts.map(product => (
+                            <div 
+                              key={product._id} 
+                              className="flex items-center space-x-2 py-2 border-b last:border-b-0"
+                            >
+                              <Checkbox
+                                id={`product-${product._id}`}
+                                checked={selectedProducts.includes(product._id)}
+                                onCheckedChange={() => toggleProductSelection(product._id)}
+                              />
+                              <div className="w-12 h-12 bg-gray-100 rounded-md relative">
+                                {product.images && product.images[0] ? (
+                                  <img 
+                                    src={product.images[0]} 
+                                    alt={product.name} 
+                                    className="object-contain w-full h-full p-1"
+                                  />
+                                ) : null}
+                              </div>
+                              <Label 
+                                htmlFor={`product-${product._id}`}
+                                className="flex-1 cursor-pointer"
+                              >
+                                {product.name}
+                              </Label>
+                              <span className="text-primary font-medium">${product.price}</span>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-center py-4 text-muted-foreground">
+                            No products available for this brand
+                          </p>
+                        )}
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm text-muted-foreground">
+                          {selectedProducts.length} product(s) selected
+                        </p>
+                        <Button
+                          variant="outline"
+                          onClick={() => setSelectedProducts([])}
+                        >
+                          Clear All
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setShowProductSelector(false)}>
+                        Cancel
+                      </Button>
+                      <Button onClick={() => setShowProductSelector(false)}>
+                        Confirm Selection
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+            
+            <Button 
+              className="w-full"
+              onClick={handleSaveSettings}
+              disabled={savingSettings}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save Featured Products
+            </Button>
+          </TabsContent>
+
+          {/* Support & FAQs tab */}
+          <TabsContent value="support" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Support Information</CardTitle>
+                <CardDescription>Content for the Support tab on the brand page</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Warranty Information */}
+                  <div className="space-y-2">
+                    <Label htmlFor="warrantyInfo">Warranty Information</Label>
+                    <Textarea
+                      id="warrantyInfo"
+                      value={warrantyInfo}
+                      onChange={(e) => setWarrantyInfo(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+                  
+                  {/* Warranty Documents */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Warranty Documents</Label>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setShowAddDocument(true)}
+                      >
+                        <Plus className="h-4 w-4 mr-1" /> Add Document
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {brandSettings?.warrantyDocuments?.length > 0 ? (
+                        brandSettings.warrantyDocuments.map((doc) => (
+                          <div 
+                            key={doc._id} 
+                            className="flex items-center justify-between p-2 border rounded-md"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <a 
+                                href={doc.documentUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline flex items-center"
+                              >
+                                {doc.title}
+                              </a>
+                            </div>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteDocument(doc._id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground py-2">
+                          No warranty documents added
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Add document dialog */}
+                    <Dialog open={showAddDocument} onOpenChange={setShowAddDocument}>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Add Warranty Document</DialogTitle>
+                          <DialogDescription>
+                            Upload a warranty document for the brand
+                          </DialogDescription>
+                        </DialogHeader>
+                        
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="documentTitle">Document Title</Label>
+                            <Input
+                              id="documentTitle"
+                              value={documentTitle}
+                              onChange={(e) => setDocumentTitle(e.target.value)}
+                              placeholder="e.g., Warranty Policy"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="documentFile">Document File</Label>
+                            <Input
+                              id="documentFile"
+                              type="file"
+                              accept=".pdf,.doc,.docx"
+                              onChange={(e) => setDocumentFile(e.target.files[0])}
+                            />
+                            <p className="text-sm text-muted-foreground">
+                              Accepted formats: PDF, DOC, DOCX
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setShowAddDocument(false)}>
+                            Cancel
+                          </Button>
+                          <Button 
+                            onClick={handleAddDocument}
+                            disabled={!documentTitle || !documentFile}
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Upload Document
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  
+                  {/* Technical Support Info */}
+                  <div className="space-y-2">
+                    <Label htmlFor="techSupportInfo">Technical Support Information</Label>
+                    <Textarea
+                      id="techSupportInfo"
+                      value={technicalSupportInfo}
+                      onChange={(e) => setTechnicalSupportInfo(e.target.value)}
+                      rows={4}
+                    />
+                  </div>
+                  
+                  {/* FAQs */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Frequently Asked Questions</Label>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm"
+                        onClick={addFaq}
+                      >
+                        <Plus className="h-4 w-4 mr-1" /> Add FAQ
+                      </Button>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {faqs.map((faq, index) => (
+                        <div key={index} className="space-y-2 p-4 border rounded-md">
+                          <div className="flex items-center justify-between">
+                            <Label>FAQ {index + 1}</Label>
+                            <Button 
+                              type="button" 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => removeFaq(index)}
+                              disabled={faqs.length === 1}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <Input
+                            placeholder="Question"
+                            value={faq.question}
+                            onChange={(e) => handleFaqChange(index, "question", e.target.value)}
+                          />
+                          <Textarea
+                            placeholder="Answer"
+                            value={faq.answer}
+                            onChange={(e) => handleFaqChange(index, "answer", e.target.value)}
+                            rows={3}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Button 
+              className="w-full"
+              onClick={handleSaveSettings}
+              disabled={savingSettings}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save Support Content
+            </Button>
+          </TabsContent>
+
+          {/* Promotions tab */}
+          <TabsContent value="promotions" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Promotions & Deals</CardTitle>
+                <CardDescription>Manage promotions for the brand page</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="mb-4"
+                  onClick={() => setShowAddPromotion(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Add New Promotion
+                </Button>
+                
+                <div className="space-y-4">
+                  {brandSettings?.promotions?.length > 0 ? (
+                    brandSettings.promotions.map((promo) => (
+                      <div 
+                        key={promo._id} 
+                        className="flex flex-col sm:flex-row border rounded-md overflow-hidden"
+                      >
+                        <div className="w-full sm:w-48 h-40">
+                          <img 
+                            src={promo.imageUrl} 
+                            alt={promo.title} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 p-4">
+                          <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-medium">{promo.title}</h3>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeletePromotion(promo._id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-2">{promo.description}</p>
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            <div className="bg-primary/10 text-primary px-2 py-1 rounded-full">
+                              Tab: {promo.displayTab}
+                            </div>
+                            <div className="bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                              {format(new Date(promo.startDate), 'MMM d, yyyy')} - {format(new Date(promo.endDate), 'MMM d, yyyy')}
+                            </div>
+                            <div className={`${promo.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-2 py-1 rounded-full`}>
+                              {promo.isActive ? 'Active' : 'Inactive'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No promotions added yet
+                    </div>
+                  )}
+                </div>
+                
+                {/* Add promotion dialog */}
+                <Dialog open={showAddPromotion} onOpenChange={setShowAddPromotion}>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle>Add New Promotion</DialogTitle>
+                      <DialogDescription>
+                        Create a promotion or deal to display on the brand page
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="promotionTitle">Title</Label>
+                        <Input
+                          id="promotionTitle"
+                          value={promotionTitle}
+                          onChange={(e) => setPromotionTitle(e.target.value)}
+                          placeholder="e.g., Summer Sale"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="promotionDesc">Description</Label>
+                        <Textarea
+                          id="promotionDesc"
+                          value={promotionDescription}
+                          onChange={(e) => setPromotionDescription(e.target.value)}
+                          placeholder="Brief description of the promotion"
+                          rows={3}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Display Tab</Label>
+                        <Select value={promotionTab} onValueChange={setPromotionTab}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select tab" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Products</SelectItem>
+                            <SelectItem value="featured">Featured Products</SelectItem>
+                            <SelectItem value="about">About</SelectItem>
+                            <SelectItem value="support">Support</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Start Date</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start text-left"
+                              >
+                                {format(promotionStartDate, 'PPP')}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                              <Calendar
+                                mode="single"
+                                selected={promotionStartDate}
+                                onSelect={(date) => setPromotionStartDate(date || new Date())}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>End Date</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-full justify-start text-left"
+                              >
+                                {format(promotionEndDate, 'PPP')}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                              <Calendar
+                                mode="single"
+                                selected={promotionEndDate}
+                                onSelect={(date) => setPromotionEndDate(date || new Date())}
+                                disabled={(date) => date < promotionStartDate}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="promotionImage">Promotion Image</Label>
+                        <Input
+                          id="promotionImage"
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => setPromotionImage(e.target.files[0])}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Recommended size: 800x400px
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setShowAddPromotion(false)}>
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleAddPromotion}
+                        disabled={!promotionTitle || !promotionImage}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Promotion
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      ) : selectedBrand && loading ? (
+        <div className="py-16 text-center text-muted-foreground">
+          Loading brand settings...
+        </div>
+      ) : (
+        <div className="py-16 text-center text-muted-foreground">
+          Select a brand to manage its page settings
+        </div>
+      )}
+    </div>
+  )
+}

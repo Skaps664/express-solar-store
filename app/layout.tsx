@@ -5,6 +5,10 @@ import Header from "@/components/header"
 import Footer from "@/components/footer"
 import { AuthProvider } from "@/context/AuthContext"
 import { Toaster } from "react-hot-toast"
+import { CartProvider } from "@/context/CartContext"
+import AnalyticsProvider from "@/components/analytics-provider"
+import { FloatingCartButton } from "@/components/floating-cart-button"
+import { ToastProvider } from "@/components/ui/toast"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -23,10 +27,17 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <Toaster position="top-right" />
-          <Header />
-          <main>{children}</main>
-          <Footer />
+          <CartProvider>
+            <AnalyticsProvider>
+              <ToastProvider>
+                <Toaster position="top-center" />
+                <Header />
+                <main>{children}</main>
+                <Footer />
+                <FloatingCartButton />
+              </ToastProvider>
+            </AnalyticsProvider>
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

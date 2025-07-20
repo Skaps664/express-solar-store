@@ -5,8 +5,27 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Grid, List, SlidersHorizontal } from "lucide-react"
+import Link from "next/link"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE
+
+interface Filter {
+  field: string;
+  label?: string;
+  type: "select" | "range" | "boolean";
+}
+
+interface Product {
+  _id: string;
+  slug?: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  images?: string[];
+  brand?: {
+    name: string;
+  };
+}
 
 export default function StorePageWrapper() {
   return (
@@ -23,11 +42,11 @@ function StorePage() {
 
   const category = searchParams.get("category") || ""
   const search = searchParams.get("search") || ""
-  const [products, setProducts] = useState([])
-  const [filters, setFilters] = useState([])
+  const [products, setProducts] = useState<Product[]>([])
+  const [filters, setFilters] = useState<Filter[]>([])
   const [loading, setLoading] = useState(false)
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 20 })
-  const [filterState, setFilterState] = useState({})
+  const [filterState, setFilterState] = useState<Record<string, any>>({})
   const [sort, setSort] = useState("newest")
   const [limit, setLimit] = useState(20)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
@@ -75,17 +94,17 @@ function StorePage() {
   }, [category, filterState, sort])
 
   // Handle filter changes
-  const handleFilterChange = (field, value) => {
+  const handleFilterChange = (field: string, value: string | number | boolean) => {
     setFilterState((prev) => ({ ...prev, [field]: value }))
     setPagination((prev) => ({ ...prev, page: 1 })) // Reset to first page on filter change
   }
 
   // Handle sort and limit changes
-  const handleSortChange = (value) => setSort(value)
-  const handleLimitChange = (value) => setLimit(Number(value))
+  const handleSortChange = (value: string) => setSort(value)
+  const handleLimitChange = (value: string) => setLimit(Number(value))
 
   // Handle pagination
-  const goToPage = (page) => setPagination((prev) => ({ ...prev, page }))
+  const goToPage = (page: number) => setPagination((prev) => ({ ...prev, page }))
 
   return (
     <div key={key} className="container mx-auto px-4 py-8">
@@ -113,7 +132,7 @@ function StorePage() {
               </div>
               <div className="overflow-y-auto max-h-[60vh] p-4">
                 {/* Render dynamic filters */}
-                {filters.map((filter) => (
+                {filters.map((filter: Filter) => (
                   <div className="mb-6" key={filter.field}>
                     <h3 className="font-medium mb-2">{filter.label || filter.field}</h3>
                     {filter.type === "select" && (
@@ -188,7 +207,7 @@ function StorePage() {
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
             <h2 className="text-xl font-bold mb-4">Filter Products</h2>
             {/* Render dynamic filters */}
-            {filters.map((filter) => (
+            {filters.map((filter: Filter) => (
               <div className="mb-6" key={filter.field}>
                 <h3 className="font-medium mb-2">{filter.label || filter.field}</h3>
                 {filter.type === "select" && (
@@ -293,30 +312,27 @@ function StorePage() {
               products.map((product, index) => (
                 <div
                   key={product._id || index}
-                  className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden"
+                  className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden cursor-pointer"
                 >
-                  <div className="h-48 bg-gray-200 flex items-center justify-center">
-                    <img
-                      src={product.images?.[0] || "/placeholder.png"}
-                      alt={product.name}
-                      className="object-contain h-full"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <div className="text-xs text-gray-500 mb-1">{product.brand?.name}</div>
-                    <h3 className="font-medium mb-2">{product.name}</h3>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-amber-600 font-bold">PKR {product.price}</span>
-                      {product.originalPrice && (
-                        <span className="text-gray-400 line-through text-sm">PKR {product.originalPrice}</span>
-                      )}
+                  <Link href={`/product/${product.slug || product._id}`}>
+                    <div className="h-48 bg-gray-200 flex items-center justify-center">
+                      <img
+                        src={product.images?.[0] || "/placeholder.png"}
+                        alt={product.name}
+                        className="object-contain h-full"
+                      />
                     </div>
-                    <div className="flex justify-end">
-                      <Button variant="outline" size="sm">
-                        Add to Cart
-                      </Button>
+                    <div className="p-4">
+                      <div className="text-xs text-gray-500 mb-1">{product.brand?.name}</div>
+                      <h3 className="font-medium mb-2">{product.name}</h3>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-amber-600 font-bold">PKR {product.price}</span>
+                        {product.originalPrice && (
+                          <span className="text-gray-400 line-through text-sm">PKR {product.originalPrice}</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  </Link>
                 </div>
               ))
             )}

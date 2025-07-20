@@ -62,14 +62,14 @@ export default function CategoryGrid() {
       try {
         const data: HeadingData = await client.fetch(
           `*[_type == "homePageContent" && page == "Home Page Content"][0]`
-        )
-        setHeadingData(data)
+        );
+        setHeadingData(data);
       } catch (error) {
-        console.error("Failed to fetch Sanity heading:", error)
+        console.error("Failed to fetch Sanity heading:", error);
       }
-    }
+    };
 
-    fetchHeading()
+    fetchHeading();
   }, [])
 
   return (

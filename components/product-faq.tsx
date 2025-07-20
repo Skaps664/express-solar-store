@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Search, Plus, Minus } from "lucide-react"
 
-export default function ProductResources({ resources }) {
+export default function ProductResources({ resources }: { resources: { question?: string; answer?: string }[] }) {
   const [searchQuery, setSearchQuery] = useState("")
-  const [expandedResources, setExpandedResources] = useState({})
+  const [expandedResources, setExpandedResources] = useState<Record<number, boolean>>({})
   const [showAskForm, setShowAskForm] = useState(false)
   const [newResourceRequest, setNewResourceRequest] = useState({
     question: "",
@@ -16,14 +16,14 @@ export default function ProductResources({ resources }) {
     email: "",
   })
 
-  const toggleResource = (index) => {
+  const toggleResource = (index: number) => {
     setExpandedResources((prev) => ({
       ...prev,
       [index]: !prev[index],
     }))
   }
 
-  const handleAskSubmit = (e) => {
+  const handleAskSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     console.log("Resource request submitted:", newResourceRequest)
     setShowAskForm(false)
@@ -36,8 +36,8 @@ export default function ProductResources({ resources }) {
 
   const filteredResources = resources.filter(
     (res) =>
-      res.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      res.answer.toLowerCase().includes(searchQuery.toLowerCase()),
+      res.question?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      res.answer?.toLowerCase().includes(searchQuery.toLowerCase()),
   )
 
   return (

@@ -2,246 +2,116 @@
 
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChevronRight, Filter, ChevronDown } from "lucide-react"
+import { ChevronRight, Filter, ChevronDown  } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import InBrandAd from "@/components/inBrandAd"
 import { useState, use } from "react"
+import { useEffect} from "react"
+import { useBrandAnalytics } from "@/hooks/useAnalyticTracking"
 
-// Sample brand data - in a real app, this would come from a database or API
-const brandsData = {
-  "jinko-solar": {
-    name: "Jinko Solar",
-    logo: "/jinko-logo.webp",
-    banner: "/bann-4.jpg", // Desktop banner
-    mobileBanner: "/bann-1.jpg", // Mobile banner
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
-    description:
-      "Jinko is one of the largest and most innovative solar module manufacturers in the world. With a strong global presence, Jinko Solar is known for its high-efficiency panels and commitment to quality and innovation.",
-    established: 2006,
-    headquarters: "Shanghai",
-    warranty: "12-year product warranty, 25-year performance warranty",
-    categories: ["Mono PERC Panels", "Bifacial Panels", "N-Type Panels", "Tiger Neo Series"],
-    featuredProducts: [
-      {
-        id: "jinko-tiger-neo",
-        name: "Jinko 550W Tiger Neo N-Type Solar Panel",
-        price: 42500,
-        discountPrice: 39999,
-        image: "jinko-panel-1",
-      },
-      {
-        id: "jinko-eagle-bifacial",
-        name: "Jinko 535W Eagle Bifacial Solar Panel",
-        price: 41000,
-        discountPrice: null,
-        image: "jinko-panel-2",
-      },
-      {
-        id: "jinko-residential",
-        name: "Jinko 410W All Black Residential Panel",
-        price: 32000,
-        discountPrice: 29999,
-        image: "jinko-panel-3",
-      },
-      {
-        id: "jinko-commercial",
-        name: "Jinko 600W Tiger Pro Commercial Panel",
-        price: 48000,
-        discountPrice: null,
-        image: "jinko-panel-4",
-      },
-    ],
-  },
-  "canadian-solar": {
-    name: "Canadian Solar",
-    logo: "canadian-logo",
-    banner: "/canadian-banner.jpg", // Desktop banner
-    mobileBanner: "/canadian-banner-mobile.jpg", // Mobile banner
-    description:
-      "Canadian Solar is one of the world's largest solar technology and renewable energy companies. They are a leading manufacturer of solar photovoltaic modules and provider of solar energy solutions with operations across the globe.",
-    established: 2001,
-    headquarters: "Ontario, Canada",
-    warranty: "12-year product warranty, 25-year performance warranty",
-    categories: ["HiKu Panels", "BiHiKu Panels", "All Black Panels", "Commercial Panels"],
-    featuredProducts: [
-      {
-        id: "canadian-bihiku",
-        name: "Canadian Solar 540W BiHiKu Bifacial Panel",
-        price: 45000,
-        discountPrice: 42500,
-        image: "canadian-panel-1",
-      },
-      {
-        id: "canadian-hiku",
-        name: "Canadian Solar 450W HiKu Mono PERC Panel",
-        price: 36000,
-        discountPrice: null,
-        image: "canadian-panel-2",
-      },
-      {
-        id: "canadian-residential",
-        name: "Canadian Solar 400W All Black Residential Panel",
-        price: 30000,
-        discountPrice: 28500,
-        image: "canadian-panel-3",
-      },
-      {
-        id: "canadian-commercial",
-        name: "Canadian Solar 590W HiKu6 Commercial Panel",
-        price: 47000,
-        discountPrice: null,
-        image: "canadian-panel-4",
-      },
-    ],
-  },
-  "longi-solar": {
-    name: "Longi Solar",
-    logo: "longi-logo",
-    banner: "/longi-banner.jpg", // Desktop banner
-    mobileBanner: "/longi-banner-mobile.jpg", // Mobile banner
-    description:
-      "LONGi Solar is the world's largest manufacturer of high-efficiency mono-crystalline solar cells and modules. The company focuses on technological innovation and has set multiple world records for cell efficiency.",
-    established: 2000,
-    headquarters: "Xi'an, China",
-    warranty: "12-year product warranty, 25-year performance warranty",
-    categories: ["Hi-MO 5 Series", "Hi-MO 6 Series", "Residential Panels", "Commercial Panels"],
-    featuredProducts: [
-      {
-        id: "longi-himo5",
-        name: "Longi 500W Hi-MO 5 Mono PERC Module",
-        price: 39999,
-        discountPrice: 37500,
-        image: "longi-panel-1",
-      },
-      {
-        id: "longi-himo6",
-        name: "Longi 430W Hi-MO 6 Residential Panel",
-        price: 34000,
-        discountPrice: null,
-        image: "longi-panel-2",
-      },
-      {
-        id: "longi-residential",
-        name: "Longi 415W All Black Residential Panel",
-        price: 32500,
-        discountPrice: 30000,
-        image: "longi-panel-3",
-      },
-      {
-        id: "longi-commercial",
-        name: "Longi 570W Hi-MO 5m Commercial Panel",
-        price: 46000,
-        discountPrice: null,
-        image: "longi-panel-4",
-      },
-    ],
-  },
-  "ja-solar": {
-    name: "JA Solar",
-    logo: "ja-logo",
-    banner: "/ja-banner.jpg", // Desktop banner
-    mobileBanner: "/ja-banner-mobile.jpg", // Mobile banner
-    description:
-      "JA Solar is a manufacturer of high-performance photovoltaic products. The company has 12 manufacturing bases and more than 20 branches around the world, with products available in 135 countries and regions worldwide.",
-    established: 2005,
-    headquarters: "Beijing, China",
-    warranty: "12-year product warranty, 25-year performance warranty",
-    categories: ["MBB Half-Cell", "Bifacial Modules", "All Black Series", "Commercial Series"],
-    featuredProducts: [
-      {
-        id: "ja-mbb",
-        name: "JA Solar 530W MBB Half-Cell Module",
-        price: 41200,
-        discountPrice: 38500,
-        image: "ja-panel-1",
-      },
-      {
-        id: "ja-bifacial",
-        name: "JA Solar 545W Bifacial Module",
-        price: 43000,
-        discountPrice: null,
-        image: "ja-panel-2",
-      },
-      {
-        id: "ja-residential",
-        name: "JA Solar 410W All Black Residential Panel",
-        price: 31500,
-        discountPrice: 29000,
-        image: "ja-panel-3",
-      },
-      {
-        id: "ja-commercial",
-        name: "JA Solar 580W Commercial Panel",
-        price: 46500,
-        discountPrice: null,
-        image: "ja-panel-4",
-      },
-    ],
-  },
-  sorotec: {
-    name: "sorotec",
-    logo: "/sorotec-logo.png",
-    banner: "/bann-3.png", // Desktop banner
-    mobileBanner: "/bann-3-mobile.png", // Mobile banner
-    description:
-      "Sorotec is a global leader in smart energy solutions, specializing in residential and commercial solar inverters, storage systems, and smart energy management solutions. The company is known for its reliable and cost-effective products.",
-    established: 2010,
-    headquarters: "Shenzhen, China",
-    warranty: "5-10 year standard warranty, extendable to 20 years",
-    categories: ["String Inverters", "Hybrid Inverters", "Microinverters", "Commercial Inverters"],
-    featuredProducts: [
-      {
-        id: "sorotec-hybrid",
-        name: "Sorotec 5kW SPF 5000ES Hybrid Inverter",
-        price: 185000,
-        discountPrice: 175000,
-        image: "/prod-1.jpg",
-      },
-      {
-        id: "sorotec-string",
-        name: "Sorotec 8kW MIN 8000TL-X String Inverter",
-        price: 150000,
-        discountPrice: null,
-        image: "/prod-2.jpg",
-      },
-      {
-        id: "sorotec-lvm",
-        name: "Sorotec 3kW SPF 3000TL LVM-ES Inverter",
-        price: 120000,
-        discountPrice: 110000,
-        image: "/prod-3.jpg",
-      },
-    ],
-  },
-  // Add more brands as needed
+type BrandPageProps = {
+  params: Promise<{ brandSlug: string }>
 }
 
 // Format price in PKR with commas
-const formatPrice = (price) => {
+const formatPrice = (price: number) => {
   return `PKR ${price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
 }
 
-export default function BrandPage({ params }) {
-  // Unwrap the params promise
-  const unwrappedParams = use(params)
-  const { brandSlug } = unwrappedParams
-  
-  const brand = brandsData[brandSlug]
+export default function BrandPage({ params }: BrandPageProps) {
+  const [brand, setBrand] = useState<any>(null)
+  const [featuredProducts, setFeaturedProducts] = useState<any[]>([])
+  const [allProducts, setAllProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
-  const [isDesktop, setIsDesktop] = useState(false)
+  const [brandSlug, setBrandSlug] = useState<string>("")
 
-  // Handle case where brand doesn't exist
-  if (!brand) {
-    return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <h1 className="text-3xl font-bold mb-4">Brand Not Found</h1>
-        <p className="mb-8">Sorry, we couldn't find the brand you're looking for.</p>
-        <Button asChild>
-          <Link href="/store">Return to Store</Link>
-        </Button>
-      </div>
-    )
+  // Get brandSlug from params using use()
+  useEffect(() => {
+    async function getBrandSlug() {
+      const resolvedParams = await params
+      setBrandSlug(resolvedParams.brandSlug)
+    }
+    getBrandSlug()
+  }, [params])
+
+  useEffect(() => {
+    if (!brandSlug) return;
+
+    async function fetchBrandData() {
+      setLoading(true)
+      setError(null)
+      try {
+        console.log(`Fetching brand data for ${brandSlug}`)
+        console.log('API Base URL:', API_BASE)
+        
+        // Fetch brand details (includes featuredProducts, categories, etc.)
+        const brandResponse = await fetch(`${API_BASE}/api/brands/${brandSlug}`, {
+          headers: {
+            'Accept': 'application/json'
+          }
+        })
+        
+        console.log('Response status:', brandResponse.status)
+        console.log('Response headers:', Object.fromEntries(brandResponse.headers.entries()))
+        
+        const brandData = await brandResponse.json()
+        console.log('Raw brand data:', brandData)
+        
+        if (!brandResponse.ok) {
+          throw new Error(`Failed to load brand data: Status ${brandResponse.status}`)
+        }
+        
+        console.log('Brand data fetched:', brandData)
+        
+        setBrand(brandData.data || brandData)
+        setFeaturedProducts((brandData.data || brandData).featuredProducts || [])
+        
+        // Track brand view once we have the brand ID
+        if (brandData._id) {
+          const analytics = await import('@/lib/analytics').then(mod => mod.default.getInstance());
+          analytics.trackBrandView(brandData._id, brandSlug);
+        }
+
+        // Fetch all products for this brand - this is a separate API call
+        console.log(`Fetching all products for brand ${brandSlug}`)
+        const productsResponse = await fetch(`${API_BASE}/api/brands/${brandSlug}/products`)
+        console.log('Products response status:', productsResponse.status)
+        
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json()
+          console.log('Products data fetched:', productsData)
+          
+          if (productsData.success) {
+            setAllProducts(productsData.products || [])
+            console.log(`Found ${productsData.products?.length || 0} products for this brand`)
+          } else {
+            console.error('Failed to get products:', productsData.message)
+            setAllProducts([])
+          }
+        } else {
+          console.error('Error fetching products, status:', productsResponse.status)
+          setAllProducts([])
+        }
+      } catch (err) {
+        console.error("Error fetching brand data:", err)
+        setError("Failed to load brand data.")
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchBrandData()
+  }, [brandSlug])
+
+  if (loading) {
+    return <div className="py-16 text-center text-muted-foreground">Loading brand information...</div>
+  }
+  if (error || !brand) {
+    return <div className="py-16 text-center text-destructive">{error || "Brand not found."}</div>
   }
 
   return (
@@ -264,7 +134,7 @@ export default function BrandPage({ params }) {
         {/* Desktop banner - hidden on mobile */}
         <div className="absolute inset-0 hidden sm:block">
           <Image 
-              src={brand.banner} 
+              src={brand.banner || '/default-brand-banner.jpg'} 
               alt={`${brand.name} Banner`} 
               layout="fill"
               objectFit="cover"
@@ -276,7 +146,7 @@ export default function BrandPage({ params }) {
         {/* Mobile banner - hidden on desktop */}
         <div className="absolute inset-0 block sm:hidden">
           <Image 
-              src={brand.mobileBanner || brand.banner} 
+              src={brand.banner || '/default-brand-banner.jpg'} 
               alt={`${brand.name} Mobile Banner`} 
               layout="fill"
               objectFit="cover"
@@ -294,7 +164,7 @@ export default function BrandPage({ params }) {
         {/* Logo - Smaller on mobile */}
         <div className="w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 bg-gray-100 rounded-lg relative flex-shrink-0">
           <Image 
-            src={brand.logo.startsWith('/') ? brand.logo : `/${brand.logo}.webp`}
+            src={brand.logo || '/default-brand-logo.png'}
             alt={`${brand.name} Logo`}
             layout="fill"
             objectFit="contain"
@@ -311,65 +181,24 @@ export default function BrandPage({ params }) {
           {/* Info Grid - Stacked on mobile */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 text-xs sm:text-sm">
             <div className="text-center sm:text-left">
-              <span className="font-medium text-gray-700">Est:</span> {brand.established}
+              <span className="font-medium text-gray-700">Est:</span> {brand.establishedYear}
             </div>
             <div className="text-center sm:text-left">
               <span className="font-medium text-gray-700">HQ:</span> {brand.headquarters}
-            </div>
-            <div className="text-center sm:text-left">
-              <span className="font-medium text-gray-700">Warranty:</span> 
-              <span className="hidden sm:inline"> {brand.warranty}</span>
-              <span className="sm:hidden"> Available</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Tabs for different sections */}
-      <Tabs defaultValue="featured" className="mb-12">
+      <Tabs defaultValue="all" className="mb-12">
         <TabsList className="w-full justify-start border-b overflow-x-auto">
-          <TabsTrigger value="featured" className="text-xs sm:text-sm">Featured</TabsTrigger>
           <TabsTrigger value="all" className="text-xs sm:text-sm">All Products</TabsTrigger>
+          <TabsTrigger value="featured" className="text-xs sm:text-sm">Featured</TabsTrigger>
           <TabsTrigger value="about" className="text-xs sm:text-sm">About</TabsTrigger>
-          <TabsTrigger value="support" className="text-xs sm:text-sm">Support</TabsTrigger>
+          <TabsTrigger value="support" className="text-xs sm:text-sm">Support & Warranty</TabsTrigger>
         </TabsList>
 
-        {/* Featured Products Tab */}
-        <TabsContent value="featured" className="pt-6">
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Featured Products from {brand.name}</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-            {brand.featuredProducts.map((product) => (
-              <Link key={product.id} href={`/product/${product.id}`}>
-                <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors">
-                  <div className="h-32 sm:h-48 bg-gray-100 relative">
-                    <Image 
-                      src={product.image.startsWith('/') ? product.image : `/products/${product.image}.jpg`}
-                      alt={product.name}
-                      layout="fill"
-                      objectFit="contain"
-                    />
-                  </div>
-                  <div className="p-2 sm:p-4">
-                    <h3 className="font-medium mb-2 line-clamp-2 text-xs sm:text-sm h-8 sm:h-12">{product.name}</h3>
-                    <div className="flex items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
-                      {product.discountPrice ? (
-                        <>
-                          <span className="text-[#1a5ca4] font-bold text-xs sm:text-sm">{formatPrice(product.discountPrice)}</span>
-                          <span className="text-gray-500 line-through text-xs">{formatPrice(product.price)}</span>
-                        </>
-                      ) : (
-                        <span className="text-[#1a5ca4] font-bold text-xs sm:text-sm">{formatPrice(product.price)}</span>
-                      )}
-                    </div>
-                    <Button className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-xs sm:text-sm py-1 sm:py-2">Add to Cart</Button>
-                  </div>
-                </div>
-              </Link>
-            ))}
-            
-          </div>
-          <InBrandAd/>
-        </TabsContent>
 
         {/* All Products Tab */}
         <TabsContent value="all" className="pt-6">
@@ -388,17 +217,18 @@ export default function BrandPage({ params }) {
                 <ChevronDown className={`h-4 w-4 transition-transform ${showMobileFilters ? 'rotate-180' : ''}`} />
               </Button>
             </div>
+            
 
             {/* Categories sidebar - Hidden on mobile by default, shown when toggled */}
-            {(showMobileFilters || window.innerWidth >= 1024) && (
+            {(showMobileFilters || (typeof window !== 'undefined' && window.innerWidth >= 1024)) && (
               <div className="w-full lg:w-1/4">
                 <div className="border border-gray-200 rounded-lg p-4 shadow-sm">
                   <h3 className="font-bold mb-4 text-sm sm:text-base">Categories</h3>
                   <ul className="space-y-2">
-                    {brand.categories.map((category, index) => (
+                    {brand.productCategories?.map((category, index) => (
                       <li key={index}>
                         <a href="#" className="text-gray-700 hover:text-[#1a5ca4] text-sm">
-                          {category}
+                          {category.name}
                         </a>
                       </li>
                     ))}
@@ -429,11 +259,10 @@ export default function BrandPage({ params }) {
               </div>
             )}
 
-            {/* Products grid */}
             <div className="w-full lg:w-3/4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-2">
                 <div>
-                  <span className="text-gray-600 text-sm">Showing 1-8 of 24 products</span>
+                  <span className="text-gray-600 text-sm">Showing 1-{Math.min(allProducts.length, 8)} of {allProducts.length} products</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">Sort by:</span>
@@ -445,6 +274,38 @@ export default function BrandPage({ params }) {
                   </select>
                 </div>
               </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+            {allProducts.map((product) => (
+              <Link key={product._id} href={`/product/${product.slug}`}>
+                <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors">
+                  <div className="h-32 sm:h-48 bg-gray-100 relative">
+                    <Image 
+                      src={product.images?.[0] || '/default-product.jpg'}
+                      alt={product.name}
+                      layout="fill"
+                      objectFit="contain"
+                    />
+                  </div>
+                  <div className="p-2 sm:p-4">
+                    <h3 className="font-medium mb-2 line-clamp-2 text-xs sm:text-sm h-8 sm:h-12">{product.name}</h3>
+                    <div className="flex items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
+                      {product.originalPrice && product.originalPrice < product.price ? (
+                        <>
+                          <span className="text-[#1a5ca4] font-bold text-xs sm:text-sm">{formatPrice(product.originalPrice)}</span>
+                          <span className="text-gray-500 line-through text-xs">{formatPrice(product.price)}</span>
+                        </>
+                      ) : (
+                        <span className="text-[#1a5ca4] font-bold text-xs sm:text-sm">{formatPrice(product.price)}</span>
+                      )}
+                    </div>
+                    <Button className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-xs sm:text-sm py-1 sm:py-2">Add to Cart</Button>
+                  </div>
+                </div>
+              </Link>
+            ))}
+            
+          </div>
 
               {/* Pagination */}
               <div className="flex justify-center mt-6 sm:mt-8">
@@ -470,24 +331,118 @@ export default function BrandPage({ params }) {
           </div>
         </TabsContent>
 
+        {/* Featured Products Tab */}
+        <TabsContent value="featured" className="pt-6">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Featured Products from {brand.name}</h2>
+
+          
+          
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+            {/* Show custom featured products if available from settings, otherwise show default featured products */}
+            {(brand.pageSettings?.featuredProducts?.length > 0 ? brand.pageSettings.featuredProducts : featuredProducts).map((product) => (
+              <Link key={product._id} href={`/product/${product.slug}`}>
+                <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors">
+                  <div className="h-32 sm:h-48 bg-gray-100 relative">
+                    <Image 
+                      src={product.images?.[0] || '/default-product.jpg'}
+                      alt={product.name}
+                      layout="fill"
+                      objectFit="contain"
+                    />
+                  </div>
+                  <div className="p-2 sm:p-4">
+                    <h3 className="font-medium mb-2 line-clamp-2 text-xs sm:text-sm h-8 sm:h-12">{product.name}</h3>
+                    <div className="flex items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
+                      {product.originalPrice && product.originalPrice < product.price ? (
+                        <>
+                          <span className="text-[#1a5ca4] font-bold text-xs sm:text-sm">{formatPrice(product.originalPrice)}</span>
+                          <span className="text-gray-500 line-through text-xs">{formatPrice(product.price)}</span>
+                        </>
+                      ) : (
+                        <span className="text-[#1a5ca4] font-bold text-xs sm:text-sm">{formatPrice(product.price)}</span>
+                      )}
+                    </div>
+                    <Button className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-xs sm:text-sm py-1 sm:py-2">Add to Cart</Button>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          {/* Display active promotions for featured tab */}
+          {brand.pageSettings?.activePromotions?.filter(promo => promo.displayTab === 'featured').map((promo) => (
+            <div key={promo._id} className="my-8 group">
+              <div className="relative overflow-hidden rounded-lg shadow-lg transform transition-all duration-300 hover:scale-[1.01]">
+                <div className="relative h-[300px] md:h-[400px]">
+                  <Image 
+                    src={promo.imageUrl}
+                    alt={promo.title}
+                    layout="fill"
+                    objectFit="cover"
+                    className="transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
+                  
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                    <div className="mb-2">
+                      <span className="inline-block px-3 py-1 text-xs font-semibold bg-blue-600 rounded-full mb-3">
+                        {promo.displayTab.toUpperCase()}
+                      </span>
+                    </div>
+                    <h3 className="text-2xl font-bold mb-3 drop-shadow-lg">{promo.title}</h3>
+                    <p className="text-gray-200 mb-4 line-clamp-2 text-sm md:text-base">{promo.description}</p>
+                    {promo.linkUrl && promo.linkText && (
+                      <Link href={promo.linkUrl}>
+                        <Button 
+                          variant="outline" 
+                          className="text-white border-white hover:bg-white hover:text-black transition-colors"
+                        >
+                          {promo.linkText}
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </TabsContent>
+
+        
+
         {/* About Tab */}
         <TabsContent value="about" className="pt-6">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">About {brand.name}</h2>
+
+          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             <div>
-              <p className="text-gray-700 mb-4 text-sm sm:text-base">{brand.description}</p>
-              <p className="text-gray-700 mb-4 text-sm sm:text-base">
-                With a strong commitment to quality and innovation, {brand.name} has established itself as a leading
-                manufacturer in the solar industry since {brand.established}.
-              </p>
-              <p className="text-gray-700 text-sm sm:text-base">
-                Headquartered in {brand.headquarters}, {brand.name} products are known for their reliability,
-                efficiency, and excellent warranty terms, including {brand.warranty}.
-              </p>
+              {/* Render HTML content if it's HTML formatted */}
+              {brand.pageSettings?.aboutContent ? (
+                <div 
+                  className="text-gray-700 mb-4 text-sm sm:text-base prose prose-sm sm:prose-base max-w-none"
+                  dangerouslySetInnerHTML={{ __html: brand.pageSettings.aboutContent }}
+                />
+              ) : (
+                <>
+                  <p className="text-gray-700 mb-4 text-sm sm:text-base">
+                    {brand.description}
+                  </p>
+                  <p className="text-gray-700 mb-4 text-sm sm:text-base">
+                    With a strong commitment to quality and innovation, {brand.name} has established itself as a leading
+                    manufacturer in the solar industry since {brand.establishedYear}.
+                  </p>
+                  <p className="text-gray-700 text-sm sm:text-base">
+                    Headquartered in {brand.headquarters}, {brand.name} products are known for their reliability,
+                    efficiency, and excellent warranty terms.
+                  </p>
+                </>
+              )}
             </div>
             <div className="border border-gray-200 rounded-lg h-48 sm:h-64 relative">
               <Image 
-                src={`/brands/${brandSlug}-story.jpg`}
+                src={brand.thumbnail}
                 alt={`${brand.name} Story`}
                 layout="fill"
                 objectFit="cover"
@@ -499,48 +454,105 @@ export default function BrandPage({ params }) {
           <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
             <h3 className="text-lg sm:text-xl font-bold mb-4">Why Choose {brand.name}?</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-              <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-                <h4 className="font-bold mb-2 text-sm sm:text-base">Quality Assurance</h4>
-                <p className="text-gray-700 text-sm sm:text-base">
-                  Rigorous testing and quality control processes ensure that all {brand.name} products meet the highest
-                  standards of performance and durability.
-                </p>
-              </div>
-              <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-                <h4 className="font-bold mb-2 text-sm sm:text-base">Innovation</h4>
-                <p className="text-gray-700 text-sm sm:text-base">
-                  Continuous investment in R&D keeps {brand.name} at the forefront of solar technology, delivering
-                  cutting-edge solutions to customers worldwide.
-                </p>
-              </div>
-              <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-                <h4 className="font-bold mb-2 text-sm sm:text-base">Global Presence</h4>
-                <p className="text-gray-700 text-sm sm:text-base">
-                  With operations in multiple countries, {brand.name} has a strong global network that ensures reliable
-                  service and support wherever you are.
-                </p>
-              </div>
+              {brand.pageSettings?.whyChooseReasons?.length > 0 ? (
+                brand.pageSettings.whyChooseReasons.map((reason, index) => (
+                  <div key={index} className="p-4 border border-gray-200 rounded-lg shadow-sm">
+                    <h4 className="font-bold mb-2 text-sm sm:text-base">{reason.title}</h4>
+                    <p className="text-gray-700 text-sm sm:text-base">{reason.description}</p>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
+                    <h4 className="font-bold mb-2 text-sm sm:text-base">Quality Assurance</h4>
+                    <p className="text-gray-700 text-sm sm:text-base">
+                      Rigorous testing and quality control processes ensure that all {brand.name} products meet the highest
+                      standards of performance and durability.
+                    </p>
+                  </div>
+                  <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
+                    <h4 className="font-bold mb-2 text-sm sm:text-base">Innovation</h4>
+                    <p className="text-gray-700 text-sm sm:text-base">
+                      Continuous investment in R&D keeps {brand.name} at the forefront of solar technology, delivering
+                      cutting-edge solutions to customers worldwide.
+                    </p>
+                  </div>
+                  <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
+                    <h4 className="font-bold mb-2 text-sm sm:text-base">Global Presence</h4>
+                    <p className="text-gray-700 text-sm sm:text-base">
+                      With operations in multiple countries, {brand.name} has a strong global network that ensures reliable
+                      service and support wherever you are.
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
+          {/* Display active promotions for about tab */}
+          {brand.pageSettings?.activePromotions?.filter(promo => promo.displayTab === 'about' || promo.displayTab === 'all').map((promo) => (
+            <div key={promo._id} className="my-8 group">
+              <div className="relative overflow-hidden rounded-lg shadow-lg transform transition-all duration-300 hover:scale-[1.01]">
+                <div className="relative h-[300px] md:h-[400px]">
+                  <Image 
+                    src={promo.imageUrl}
+                    alt={promo.title}
+                    layout="fill"
+                    objectFit="cover"
+                    className="transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
+                  
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                    <div className="mb-2">
+                      <span className="inline-block px-3 py-1 text-xs font-semibold bg-blue-600 rounded-full mb-3">
+                        {promo.displayTab.toUpperCase()}
+                      </span>
+                    </div>
+                    <h3 className="text-2xl font-bold mb-3 drop-shadow-lg">{promo.title}</h3>
+                    <p className="text-gray-200 mb-4 line-clamp-2 text-sm md:text-base">{promo.description}</p>
+                    {promo.linkUrl && promo.linkText && (
+                      <Link href={promo.linkUrl}>
+                        <Button 
+                          variant="outline" 
+                          className="text-white border-white hover:bg-white hover:text-black transition-colors"
+                        >
+                          {promo.linkText}
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </TabsContent>
 
         {/* Support Tab */}
         <TabsContent value="support" className="pt-6">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">{brand.name} Support</h2>
+
+          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             <div className="p-4 sm:p-6 border border-gray-200 rounded-lg shadow-sm">
               <h3 className="text-lg sm:text-xl font-bold mb-4">Warranty Information</h3>
               <p className="text-gray-700 mb-4 text-sm sm:text-base">
-                {brand.name} products come with {brand.warranty}. Our warranty covers manufacturing defects and ensures
-                that your solar products perform as expected.
+                {brand.pageSettings?.warrantyInformation || 
+                `${brand.name} products come with comprehensive warranty coverage that varies by product line and model. Please refer to the specific product details for exact warranty terms and coverage information.`}
               </p>
-              <Button className="bg-[#1a5ca4] hover:bg-[#0e4a8a] text-sm sm:text-base">Download Warranty Document</Button>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                <p className="text-blue-800 text-sm">
+                  Note: Warranty terms, conditions, and coverage periods vary by product. Please check individual product specifications or contact our support team for detailed warranty information specific to your chosen product.
+                </p>
+              </div>
             </div>
             <div className="p-4 sm:p-6 border border-gray-200 rounded-lg shadow-sm">
               <h3 className="text-lg sm:text-xl font-bold mb-4">Technical Support</h3>
               <p className="text-gray-700 mb-4 text-sm sm:text-base">
-                Need help with your {brand.name} products? Our technical support team is here to assist you with
-                installation, troubleshooting, and maintenance.
+                {brand.pageSettings?.technicalSupportInfo ||
+                `Need help with your ${brand.name} products? Our technical support team is here to assist you with
+                installation, troubleshooting, and maintenance.`}
               </p>
               <Button className="bg-[#1a5ca4] hover:bg-[#0e4a8a] text-sm sm:text-base">Contact Support</Button>
             </div>
@@ -549,31 +561,81 @@ export default function BrandPage({ params }) {
           <div className="mt-6 sm:mt-8">
             <h3 className="text-lg sm:text-xl font-bold mb-4">Frequently Asked Questions</h3>
             <div className="space-y-4">
-              <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-                <h4 className="font-bold mb-2 text-sm sm:text-base">How do I register my {brand.name} product?</h4>
-                <p className="text-gray-700 text-sm sm:text-base">
-                  You can register your product on the official {brand.name} website or through our customer service
-                  portal. Registration is important to activate your warranty.
-                </p>
-              </div>
-              <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-                <h4 className="font-bold mb-2 text-sm sm:text-base">What maintenance do {brand.name} products require?</h4>
-                <p className="text-gray-700 text-sm sm:text-base">
-                  Most {brand.name} products require minimal maintenance. Regular cleaning to remove dust and debris is
-                  recommended to maintain optimal performance.
-                </p>
-              </div>
-              <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
-                <h4 className="font-bold mb-2 text-sm sm:text-base">How can I verify if my {brand.name} product is genuine?</h4>
-                <p className="text-gray-700 text-sm sm:text-base">
-                  All {brand.name} products come with unique serial numbers that can be verified through the official
-                  website or by contacting authorized dealers like Solar Express.
-                </p>
-              </div>
+              {brand.pageSettings?.faqs?.length > 0 ? (
+                brand.pageSettings.faqs.map((faq, index) => (
+                  <div key={index} className="p-4 border border-gray-200 rounded-lg shadow-sm">
+                    <h4 className="font-bold mb-2 text-sm sm:text-base">{faq.question}</h4>
+                    <p className="text-gray-700 text-sm sm:text-base">{faq.answer}</p>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
+                    <h4 className="font-bold mb-2 text-sm sm:text-base">How do I register my {brand.name} product?</h4>
+                    <p className="text-gray-700 text-sm sm:text-base">
+                      You can register your product on the official {brand.name} website or through our customer service
+                      portal. Registration is important to activate your warranty.
+                    </p>
+                  </div>
+                  <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
+                    <h4 className="font-bold mb-2 text-sm sm:text-base">What maintenance do {brand.name} products require?</h4>
+                    <p className="text-gray-700 text-sm sm:text-base">
+                      Most {brand.name} products require minimal maintenance. Regular cleaning to remove dust and debris is
+                      recommended to maintain optimal performance.
+                    </p>
+                  </div>
+                  <div className="p-4 border border-gray-200 rounded-lg shadow-sm">
+                    <h4 className="font-bold mb-2 text-sm sm:text-base">How can I verify if my {brand.name} product is genuine?</h4>
+                    <p className="text-gray-700 text-sm sm:text-base">
+                      All {brand.name} products come with unique serial numbers that can be verified through the official
+                      website or by contacting authorized dealers like Solar Express.
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
+          {/* Display active promotions for support tab */}
+          {brand.pageSettings?.activePromotions?.filter(promo => promo.displayTab === 'support' || promo.displayTab === 'all').map((promo) => (
+            <div key={promo._id} className="my-8 group">
+              <div className="relative overflow-hidden rounded-lg shadow-lg transform transition-all duration-300 hover:scale-[1.01]">
+                <div className="relative h-[300px] md:h-[400px]">
+                  <Image 
+                    src={promo.imageUrl}
+                    alt={promo.title}
+                    layout="fill"
+                    objectFit="cover"
+                    className="transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
+                  
+                  <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+                    <div className="mb-2">
+                      <span className="inline-block px-3 py-1 text-xs font-semibold bg-blue-600 rounded-full mb-3">
+                        {promo.displayTab.toUpperCase()}
+                      </span>
+                    </div>
+                    <h3 className="text-2xl font-bold mb-3 drop-shadow-lg">{promo.title}</h3>
+                    <p className="text-gray-200 mb-4 line-clamp-2 text-sm md:text-base">{promo.description}</p>
+                    {promo.linkUrl && promo.linkText && (
+                      <Link href={promo.linkUrl}>
+                        <Button 
+                          variant="outline" 
+                          className="text-white border-white hover:bg-white hover:text-black transition-colors"
+                        >
+                          {promo.linkText}
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </TabsContent>
       </Tabs>
+      
     </div>
   )
 }

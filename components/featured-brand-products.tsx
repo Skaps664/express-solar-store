@@ -3,8 +3,43 @@
 import Link from "next/link"
 import { Heart, Plus } from "lucide-react"
 import Image from "next/image"
+import { useEffect, useState } from "react"
+import { client } from "../lib/sanity"
+
+
+
+type HeadingData = {
+  featuredBrandsHeading: {
+    title: string
+    subtext: string
+  }
+}
 
 export default function FeaturedBrandProducts() {
+
+  const [headingData, setHeadingData] = useState<HeadingData | null>(null)
+
+  useEffect(() => {
+    const fetchHeading = async () => {
+      try {
+        const data: HeadingData = await client.fetch(
+          `*[_type == "homePageContent"][0]{
+    featuredBrandsHeading{
+      title,
+      subtext
+    }
+  }`
+        );
+        setHeadingData(data);
+      } catch (error) {
+        console.error("Failed to fetch Sanity heading:", error);
+      }
+    };
+
+    fetchHeading();
+  }, [])
+
+
   const products = [
     {
       id: "jinko-400w-panel",
@@ -27,7 +62,7 @@ export default function FeaturedBrandProducts() {
   ]
 
   // Format price in PKR with commas
-  const formatPrice = (price) => {
+  const formatPrice = (price : any) => {
     return `PKR ${price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
   }
 
@@ -35,8 +70,8 @@ export default function FeaturedBrandProducts() {
     <div className="my-12">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold">Power up!</h2>
-          <p className="text-gray-600">Panels, inverters & much more.</p>
+          <h2 className="text-2xl font-bold">{headingData?.featuredBrandsHeading?.title || "Power uup!"}</h2>
+          <p className="text-gray-600">{headingData?.featuredBrandsHeading?.subtext || "Pannels, inverters & much more."}</p>
         </div>
         <Link href="/store" className="text-[#1a5ca4] hover:underline font-medium">
           View all
@@ -181,7 +216,7 @@ export default function FeaturedBrandProducts() {
   {/* Background image covering entire card */}
   <div className="absolute inset-0 z-0">
     <Image
-      src="/q9.jpeg"
+      src="/q15.jpg"
       alt="JinkoSolar Panel"
       fill
       className="object-cover group-hover:scale-105 transition-transform duration-300"

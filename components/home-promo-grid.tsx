@@ -67,7 +67,7 @@ export default function HomePromoGrid() {
             </div>
           </div> */}
           <Image
-            src="q9.jpeg"
+            src="q17.jpg"
             alt="Solar Inverter"
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"

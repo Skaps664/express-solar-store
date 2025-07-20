@@ -5,8 +5,33 @@ import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { client } from "@/lib/sanity"
+
+type HeadingData = {
+  flashDealsHeading: string
+}
 
 export default function FlashDeals() {
+
+
+  const [headingData, setHeadingData] = useState<HeadingData | null>(null)
+  useEffect(() => {
+    const fetchHeading = async () => {
+      try {
+        const data: HeadingData = await client.fetch(
+          `*[_type == "homePageContent"][0]{ flashDealsHeading }`
+        );
+        console.log("Fetched Heading Data:", data);
+        setHeadingData(data);
+        
+      } catch (error) {
+        console.error("Failed to fetch Sanity heading:", error);
+      }
+    };
+
+    fetchHeading();
+  }, [])
+
   const [hours, setHours] = useState(5)
   const [minutes, setMinutes] = useState(59)
   const [seconds, setSeconds] = useState(59)
@@ -78,7 +103,7 @@ export default function FlashDeals() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
         <div>
           <h2 className="text-2xl font-bold text-[#1a5ca4] flex items-center gap-2">
-            Flash Deals
+            {headingData?.flashDealsHeading || "Flash Dealss"}
             <span className="bg-[#f26522] text-white text-xs px-2 py-1 rounded-full">HOT</span>
           </h2>
           <div className="flex items-center gap-2 mt-1">

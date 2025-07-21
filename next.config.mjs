@@ -7,11 +7,10 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   experimental: {
-    optimizeFonts: true,
-    optimizePackageImports: ['@/components'],
+    optimizePackageImports: ["@/components"],
   },
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === "production",
   },
   images: {
     domains: [

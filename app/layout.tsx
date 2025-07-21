@@ -10,7 +10,24 @@ import AnalyticsProvider from "@/components/analytics-provider"
 import { FloatingCartButton } from "@/components/floating-cart-button"
 import { ToastProvider } from "@/components/ui/toast"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({
+  subsets: ["latin"],
+  display: 'swap',
+  preload: true,
+  fallback: [
+    '-apple-system',
+    'BlinkMacSystemFont',
+    'Segoe UI',
+    'Roboto',
+    'Oxygen',
+    'Ubuntu',
+    'Cantarell',
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    'sans-serif'
+  ]
+})
 
 export const metadata = {
   title: "Solar Express - Renewable Energy Products",

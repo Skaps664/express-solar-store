@@ -1,5 +1,5 @@
 import type React from "react"
-import { Inter } from "next/font/google"
+// import { Inter } from "next/font/google"
 import "./globals.css"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
@@ -10,7 +10,24 @@ import AnalyticsProvider from "@/components/analytics-provider"
 import { FloatingCartButton } from "@/components/floating-cart-button"
 import { ToastProvider } from "@/components/ui/toast"
 
-const inter = Inter({ subsets: ["latin"] })
+// const inter = Inter({
+//   subsets: ["latin"],
+//   display: 'swap',
+//   preload: true,
+//   fallback: [
+//     '-apple-system',
+//     'BlinkMacSystemFont',
+//     'Segoe UI',
+//     'Roboto',
+//     'Oxygen',
+//     'Ubuntu',
+//     'Cantarell',
+//     'Fira Sans',
+//     'Droid Sans',
+//     'Helvetica Neue',
+//     'sans-serif'
+//   ]
+// })
 
 export const metadata = {
   title: "Solar Express - Renewable Energy Products",
@@ -25,7 +42,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className="font-inter">
         <AuthProvider>
           <CartProvider>
             <AnalyticsProvider>

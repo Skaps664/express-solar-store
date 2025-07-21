@@ -8,7 +8,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Loader2, ShoppingCart, CreditCard, WhatsApp } from "lucide-react"
+import { Loader2, ShoppingCart, CreditCard, MessageCircle } from "lucide-react"
 import { formatPrice } from "@/lib/utils"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
@@ -126,7 +126,7 @@ export default function CheckoutPage() {
         <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
           <div className="mb-4">
             <div className="bg-green-500 rounded-full p-3 inline-block">
-              <WhatsApp className="h-8 w-8 text-white" />
+              <MessageCircle className="h-8 w-8 text-white" />
             </div>
           </div>
           <h2 className="text-2xl font-bold mb-2">Your order is ready!</h2>
@@ -138,7 +138,7 @@ export default function CheckoutPage() {
             className="bg-green-600 hover:bg-green-700"
             onClick={() => window.open(whatsappURL, '_blank')}
           >
-            <WhatsApp className="mr-2 h-5 w-5" />
+            <MessageCircle className="mr-2 h-5 w-5" />
             Complete Order on WhatsApp
           </Button>
         </div>
@@ -320,7 +320,7 @@ export default function CheckoutPage() {
                     </>
                   ) : (
                     <>
-                      <WhatsApp className="mr-2 h-5 w-5" />
+                      <MessageCircle className="mr-2 h-5 w-5" />
                       Place Order via WhatsApp
                     </>
                   )}

@@ -10,7 +10,6 @@ import ProductResources from "@/components/product-resources";
 import ProductReviews from "@/components/reviews/product-reviews";
 import RelatedProducts from "@/components/related-products";
 import { useRouter } from "next/navigation";
-import { productsData } from "@/data/productsData";
 import { useProductAnalytics } from "@/hooks/useAnalyticTracking";
 import { useToast } from "@/components/ui/use-toast";
 import { useCart } from "@/context/CartContext";
@@ -532,10 +531,10 @@ export default function ProductClientSection({ id }: { id: string }) {
       </Tabs>
 
       {/* Related Products */}
-      <div className="mb-12">
+      {/* <div className="mb-12">
         <h2 className="text-2xl font-bold mb-6">You May Also Like</h2>
         <RelatedProducts productIds={product.relatedProducts || []} productsData={productsData} />
-      </div>
+      </div> */}
     </div>
   );
 }

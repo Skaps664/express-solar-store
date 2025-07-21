@@ -33,6 +33,7 @@ export default function CartPage() {
 
   const [promoCode, setPromoCode] = useState<string>("")
   const [promoApplied, setPromoApplied] = useState<boolean>(false)
+  const [checkoutLoading, setCheckoutLoading] = useState<boolean>(false)
 
   if (!user && !loading) {
     return (
@@ -101,14 +102,20 @@ const cartItems = cart
     }
   }
 
-  const handleCheckout = () => {
-    setLoading(true)
-    // Simulate checkout process
-    setTimeout(() => {
-      setLoading(false)
-      // Redirect to checkout page
-      console.log("Proceeding to checkout...")
-    }, 2000)
+    const handleCheckout = async () => {
+    if (!user) {
+      router.push('/auth')
+      return
+    }
+    
+    setCheckoutLoading(true)
+    try {
+      // Add checkout logic here
+      setCheckoutLoading(false)
+    } catch (error) {
+      console.error('Checkout failed:', error)
+      setCheckoutLoading(false)
+    }
   }
 
   if (cartItems.length === 0) {
@@ -306,14 +313,15 @@ const cartItems = cart
                 </a>
               </div>
 
-              {/* Checkout Button - Coming Soon */}
+              {/* Checkout Button */}
               <div className="mt-6">
-                <Button className="w-full bg-gray-400 text-white py-3 text-lg font-medium cursor-not-allowed" disabled>
-                  Payment Page Coming Soon
+                <Button 
+                  onClick={handleCheckout}
+                  disabled={cart.length === 0 || checkoutLoading}
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 text-lg font-medium transition-colors"
+                >
+                  {checkoutLoading ? "Processing..." : "Proceed to Checkout"}
                 </Button>
-                <p className="text-center text-sm text-gray-500 mt-2">
-                  For now, please use WhatsApp to complete your order
-                </p>
               </div>
 
               {/* Security Notice */}

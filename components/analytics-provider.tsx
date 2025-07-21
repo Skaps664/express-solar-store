@@ -1,18 +1,13 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { AnalyticsClient } from '@/lib/analytics';
 
 /**
- * Analytics provider component to be used at the app root level
- * This will automatically track page views
+ * Internal component that handles analytics tracking
  */
-export default function AnalyticsProvider({
-  children
-}: {
-  children: React.ReactNode
-}) {
+function AnalyticsTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
@@ -26,6 +21,24 @@ export default function AnalyticsProvider({
     }
   }, [pathname, searchParams]);
   
-  // Just render children, the tracking happens in the hook
-  return <>{children}</>;
+  return null; // This component doesn't render anything
+}
+
+/**
+ * Analytics provider component to be used at the app root level
+ * This will automatically track page views
+ */
+export default function AnalyticsProvider({
+  children
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <>
+      <Suspense fallback={null}>
+        <AnalyticsTracker />
+      </Suspense>
+      {children}
+    </>
+  );
 }

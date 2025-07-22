@@ -87,6 +87,7 @@ function AuthPage() {
           name: `${formData.firstName} ${formData.lastName}`,
           email: formData.email,
           password: formData.password,
+          mobile: formData.phone, // Add mobile field
         })
         // Navigate after successful registration
         router.push(redirect)

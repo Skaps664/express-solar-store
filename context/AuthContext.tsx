@@ -1,54 +1,129 @@
-"use client"
+'use client';
 
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useContext, ReactNode } from 'react';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
+import { api } from '@/lib/services/api';
+import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
-const AuthContext = createContext({
-  user: null,
-  setUser: (_: any) => {},
-  loading: true,
-  logout: () => {},
-})
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+}
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+  login: (credentials: { email: string; password: string }) => Promise<void>;
+  logout: () => void;
+  register: (data: { name: string; email: string; password: string }) => Promise<void>;
+  loginLoading: boolean;
+  registerLoading: boolean;
+}
 
-  // Universal user fetcher (calls your backend /api/auth/me)
-  useEffect(() => {
-    async function fetchUser() {
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
+  const router = useRouter();
+
+  const { data: user, isLoading } = useQuery<User | null>({
+    queryKey: ['user'],
+    queryFn: async (): Promise<User | null> => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/user/me`, {
-          credentials: "include",
-        })
-        if (!res.ok) throw new Error()
-        const data = await res.json()
-        setUser(data.user)
-      } catch {
-        setUser(null)
-      } finally {
-        setLoading(false)
+        const { data } = await api.get<{ user: User }>('/api/user/me');
+        return data.user || null;
+      } catch (error) {
+        // Always return null instead of undefined for failed requests
+        return null;
       }
-    }
-    fetchUser()
-  }, [])
+    },
+    retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-  // Logout function
-  const logout = async () => {
-    await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/user/logout`, {
-      method: "POST",
-      credentials: "include",
-    })
-    setUser(null)
-    window.location.href = "/auth"
-  }
+  const loginMutation = useMutation({
+    mutationFn: async (credentials: { email: string; password: string }) => {
+      const { data } = await api.post<{ user: User }>('/api/user/login', credentials);
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['user'], data.user);
+      toast.success('Successfully logged in');
+      // Don't auto-redirect, let the component handle it
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Login failed');
+    },
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      await api.post('/api/user/logout');
+    },
+    onSuccess: () => {
+      queryClient.setQueryData(['user'], null);
+      toast.success('Successfully logged out');
+      router.push('/login');
+    },
+    onError: () => {
+      toast.error('Logout failed');
+    },
+  });
+
+  const registerMutation = useMutation({
+    mutationFn: async (data: { name: string; email: string; password: string }) => {
+      const response = await api.post<{ user: User }>('/api/user/register', data);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(['user'], data.user);
+      toast.success('Registration successful');
+      // Don't auto-redirect, let the component handle it
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Registration failed');
+    },
+  });
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, logout }}>
+    <AuthContext.Provider
+      value={{
+        user: user ?? null,
+        loading: isLoading,
+        login: (credentials) => {
+          return new Promise<void>((resolve, reject) => {
+            loginMutation.mutate(credentials, {
+              onSuccess: () => resolve(),
+              onError: (error) => reject(error),
+            });
+          });
+        },
+        logout: logoutMutation.mutate,
+        register: (data) => {
+          return new Promise<void>((resolve, reject) => {
+            registerMutation.mutate(data, {
+              onSuccess: () => resolve(),
+              onError: (error) => reject(error),
+            });
+          });
+        },
+        loginLoading: loginMutation.isPending,
+        registerLoading: registerMutation.isPending,
+      }}
+    >
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 export function useAuth() {
-  return useContext(AuthContext)
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 }

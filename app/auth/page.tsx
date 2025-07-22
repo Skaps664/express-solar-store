@@ -53,7 +53,7 @@ function AuthPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const redirect = searchParams.get("redirect") || "/"
-  const { setUser } = useAuth()
+  const { login, register } = useAuth()
 
   const handleInputChange = (field: FormField, value: string | boolean) => {
     setFormData((prev) => ({
@@ -67,61 +67,30 @@ function AuthPage() {
     setLoading(true)
 
     try {
-      const endpoint = isLogin ? "/api/user/login" : "/api/user/register"
-      const payload = isLogin
-        ? {
-            email: formData.email,
-            password: formData.password,
-          }
-        : {
-            name: `${formData.firstName} ${formData.lastName}`,
-            email: formData.email,
-            password: formData.password,
-            mobile: formData.phone,
-          }
-
-      if (!isLogin && formData.password !== formData.confirmPassword) {
-        toast.error("Passwords do not match.")
-        setLoading(false)
-        return
-      }
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(payload),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        let msg = "Something went wrong"
-        if (data.message?.toLowerCase().includes("password")) {
-          msg = "Incorrect password. Please try again."
-        } else if (data.message?.toLowerCase().includes("user not found")) {
-          msg = "No account found with this email."
-        } else if (data.message?.toLowerCase().includes("already exists")) {
-          msg = "An account with this email already exists."
-        } else if (data.message) {
-          msg = data.message
-        }
-        toast.error(msg)
-        setLoading(false)
-        return
-      }
-      // For login, backend returns user info as top-level fields
       if (isLogin) {
-        setUser({
-          _id: data._id,
-          name: data.name,
-          email: data.email,
-          mobile: data.mobile,
-          createdAt: data.createdAt,
-          updatedAt: data.updatedAt,
+        // Use AuthContext login function
+        await login({
+          email: formData.email,
+          password: formData.password,
         })
+        // Navigate after successful login
+        router.push(redirect)
       } else {
-        setUser(data.data)
+        // Validate password confirmation
+        if (formData.password !== formData.confirmPassword) {
+          toast.error("Passwords do not match.")
+          return
+        }
+
+        // Use AuthContext register function
+        await register({
+          name: `${formData.firstName} ${formData.lastName}`,
+          email: formData.email,
+          password: formData.password,
+        })
+        // Navigate after successful registration
+        router.push(redirect)
       }
-      router.push(redirect)
     } catch (err: any) {
       toast.error(err.message || "Something went wrong")
     } finally {

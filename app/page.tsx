@@ -1,13 +1,9 @@
-import { Button } from "@/components/ui/button"
+
 import CategoryGrid from "@/components/category-grid"
-import PromotionalGrid from "@/components/promotional-grid"
 import FlashDeals from "@/components/flash-deals"
 import TopBrands from "@/components/top-brands"
-import CustomerReviews from "@/components/customer-reviews"
-import SolarCalculator from "@/components/solar-calculator"
 import SolarBenefits from "@/components/solar-benefits"
 import RecentlyViewed from "@/components/recently-viewed"
-import InstallationServices from "@/components/installation-services"
 import BlogPreview from "@/components/blog-preview"
 import FinancingOptions from "@/components/financing-options"
 import FeaturedBrandProducts from "@/components/featured-brand-products"
@@ -19,8 +15,6 @@ import FeaturedBrands from "@/components/featured-brands-card"
 import SolarAd from "@/components/installation-services"
 import FeaturedQuickShop from "@/components/featured-quick-shop"
 
-// sanity 
-import { client } from "@/lib/sanity"
 import MiniTopSolarAd from "@/components/miniTopSolarAd"
 import MiniBottomSolarAd from "@/components/miniBottomSolarAd"
 

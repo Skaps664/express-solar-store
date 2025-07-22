@@ -8,11 +8,32 @@ interface ApiResponse {
 
 const baseURL = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3000';
 
+// Token management for production cross-origin deployments
+export const getToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('accessToken');
+  }
+  return null;
+};
+
+export const setToken = (token: string) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('accessToken', token);
+  }
+};
+
+export const removeToken = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+  }
+};
+
 // Create axios instance with optimized settings
 export const api = axios.create({
   baseURL,
   withCredentials: true,
-  timeout: 15000, // Increased timeout for slower connections
+  timeout: 30000, // Increased timeout for production (30 seconds)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -27,6 +48,12 @@ const RETRY_DELAY = 1000; // 1 second
 // Request interceptor with enhanced error handling and retries
 api.interceptors.request.use(
   async (config: any) => {
+    // Add Authorization header if token exists
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     // Add timestamp to prevent caching for GET requests
     if (config.method?.toLowerCase() === 'get') {
       config.params = {
@@ -81,6 +108,7 @@ api.interceptors.response.use(
           return api(originalRequest);
         } catch (refreshError) {
           // Clear auth state and redirect to login
+          removeToken(); // Clear localStorage tokens
           console.error('Token refresh failed:', refreshError);
           toast.error('Session expired. Please log in again.');
           window.location.href = '/auth';

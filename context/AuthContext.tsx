@@ -18,7 +18,7 @@ interface AuthContextType {
   loading: boolean;
   login: (credentials: { email: string; password: string }) => Promise<void>;
   logout: () => void;
-  register: (data: { name: string; email: string; password: string }) => Promise<void>;
+  register: (data: { name: string; email: string; password: string; mobile?: string }) => Promise<void>;
   loginLoading: boolean;
   registerLoading: boolean;
 }
@@ -47,7 +47,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { email: string; password: string }) => {
-      const { data } = await api.post<{ user: User }>('/api/user/login', credentials);
+      const { data } = await api.post<{ user: User; token?: string }>('/api/user/login', credentials);
+      
+      // Store token in localStorage for production cross-origin deployments
+      if (data.token) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('accessToken', data.token);
+        }
+      }
+      
       return data;
     },
     onSuccess: (data) => {
@@ -65,6 +73,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await api.post('/api/user/logout');
     },
     onSuccess: () => {
+      // Clear localStorage tokens
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+      }
       queryClient.setQueryData(['user'], null);
       toast.success('Successfully logged out');
       router.push('/login');
@@ -75,8 +88,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (data: { name: string; email: string; password: string }) => {
-      const response = await api.post<{ user: User }>('/api/user/register', data);
+    mutationFn: async (data: { name: string; email: string; password: string; mobile?: string }) => {
+      const response = await api.post<{ user: User; token?: string }>('/api/user/register', data);
+      
+      // Store token in localStorage for production cross-origin deployments
+      if (response.data.token) {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('accessToken', response.data.token);
+        }
+      }
+      
       return response.data;
     },
     onSuccess: (data) => {

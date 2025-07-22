@@ -1,5 +1,4 @@
 import type React from "react"
-// import { Inter } from "next/font/google"
 import "./globals.css"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
@@ -9,30 +8,13 @@ import { CartProvider } from "@/context/CartContext"
 import AnalyticsProvider from "@/components/analytics-provider"
 import { FloatingCartButton } from "@/components/floating-cart-button"
 import { ToastProvider } from "@/components/ui/toast"
-
-// const inter = Inter({
-//   subsets: ["latin"],
-//   display: 'swap',
-//   preload: true,
-//   fallback: [
-//     '-apple-system',
-//     'BlinkMacSystemFont',
-//     'Segoe UI',
-//     'Roboto',
-//     'Oxygen',
-//     'Ubuntu',
-//     'Cantarell',
-//     'Fira Sans',
-//     'Droid Sans',
-//     'Helvetica Neue',
-//     'sans-serif'
-//   ]
-// })
+import { QueryProvider } from "@/providers/QueryProvider"
+import { ErrorBoundary } from '@/components/error-boundary'
 
 export const metadata = {
   title: "Solar Express - Renewable Energy Products",
   description: "Your one-stop shop for solar and renewable energy products",
-    generator: 'v0.dev'
+  generator: 'skordl'
 }
 
 export default function RootLayout({
@@ -42,20 +24,25 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <link rel="icon" href="/favicon.ico" />
       <body className="font-inter">
-        <AuthProvider>
-          <CartProvider>
-            <AnalyticsProvider>
-              <ToastProvider>
-                <Toaster position="top-center" />
-                <Header />
-                <main>{children}</main>
-                <Footer />
-                <FloatingCartButton />
-              </ToastProvider>
-            </AnalyticsProvider>
-          </CartProvider>
-        </AuthProvider>
+        <ErrorBoundary>
+          <QueryProvider>
+            <ToastProvider>
+              <AuthProvider>
+                <CartProvider>
+                  <AnalyticsProvider>
+                    <Toaster position="top-center" />
+                    <Header />
+                    <main className="min-h-screen">{children}</main>
+                    <Footer />
+                    <FloatingCartButton />
+                  </AnalyticsProvider>
+                </CartProvider>
+              </AuthProvider>
+            </ToastProvider>
+          </QueryProvider>
+        </ErrorBoundary>
       </body>
     </html>
   )

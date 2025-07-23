@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { api } from '@/lib/services/api'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search } from 'lucide-react'
@@ -17,7 +18,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import axios from 'axios'
 
 export interface SearchableEntity {
   _id: string
@@ -51,7 +51,7 @@ export function EntitySearch({ type, onSelect, placeholder }: EntitySearchProps)
           ? '/api/products/search'
           : '/api/brands/search'
         
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE}${endpoint}?q=${searchTerm}`)
+        const response = await api.get(`${endpoint}?q=${searchTerm}`)
         if (response.data.success) {
           setEntities(response.data.data)
         }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { api } from '@/lib/services/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -114,12 +114,11 @@ export default function AnalyticsDashboard() {
     try {
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3000';
       
-      const response = await axios.get(`${apiBaseUrl}/api/entity-search/search`, {
+      const response = await api.get('/api/entity-search/search', {
         params: {
-          search: searchTerm,
-          type
-        },
-        withCredentials: true
+          q: searchTerm,
+          limit: 20
+        }
       });
       
       if (response.data.success) {
@@ -148,17 +147,21 @@ export default function AnalyticsDashboard() {
       setLoading(true);
       setError(null);
       
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE;
+      // Fetch main site analytics
+      const dateParams = {
+        startDate: formatDateForAPI(dateRange.from),
+        endDate: formatDateForAPI(dateRange.to)
+      };
       
-      const response = await axios.get(`${apiBaseUrl}/api/analytics/site`, {
-        params: {
-          startDate: formatDateForAPI(dateRange.from),
-          endDate: formatDateForAPI(dateRange.to)
-        },
-        withCredentials: true
+      const response = await api.get('/api/analytics/site', {
+        params: dateParams
       });
       
-      setSiteAnalytics(response.data.data);
+      if (response.data.success) {
+        setSiteAnalytics(response.data.data);
+      } else {
+        setSiteAnalytics(DEFAULT_SITE_ANALYTICS);
+      }
       
       // Also fetch top brands and products
       await Promise.all([
@@ -182,13 +185,12 @@ export default function AnalyticsDashboard() {
   // Fetch analytics for a specific entity (product or brand)
   const fetchEntityAnalytics = async (entity: SelectedEntity) => {
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3000';
-      const response = await axios.get(`${apiBaseUrl}/api/analytics/entity/${entity.type}/${entity.slug}`, {
-        params: {
-          startDate: formatDateForAPI(dateRange.from),
-          endDate: formatDateForAPI(dateRange.to)
-        },
-        withCredentials: true
+      const dateParams = {
+        startDate: formatDateForAPI(dateRange.from),
+        endDate: formatDateForAPI(dateRange.to)
+      };
+      const response = await api.get(`/api/analytics/entity/${entity.type}/${entity.slug}`, {
+        params: dateParams
       });
       
       if (response.data.success) {
@@ -212,15 +214,12 @@ export default function AnalyticsDashboard() {
   // Fetch top brands
   const fetchTopBrands = async () => {
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3000';
-      const response = await axios.get(`${apiBaseUrl}/api/analytics/top/brands`, {
-        params: {
-          metric: 'views',
-          startDate: formatDateForAPI(dateRange.from),
-          endDate: formatDateForAPI(dateRange.to),
-          limit: 10
-        },
-        withCredentials: true
+      const dateParams = {
+        startDate: formatDateForAPI(dateRange.from),
+        endDate: formatDateForAPI(dateRange.to)
+      };
+      const response = await api.get('/api/analytics/top/brands', {
+        params: dateParams
       });
       
       if (response.data.success) {
@@ -237,15 +236,13 @@ export default function AnalyticsDashboard() {
   // Fetch top products
   const fetchTopProducts = async () => {
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3000';
-      const response = await axios.get(`${apiBaseUrl}/api/analytics/top/products`, {
+      const response = await api.get('/api/analytics/top/products', {
         params: {
           metric: 'views',
           startDate: formatDateForAPI(dateRange.from),
           endDate: formatDateForAPI(dateRange.to),
           limit: 10
-        },
-        withCredentials: true
+        }
       });
       
       if (response.data.success) {
@@ -262,16 +259,14 @@ export default function AnalyticsDashboard() {
   // Fetch time series data
   const fetchTimeSeriesData = async () => {
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3000';
-      const response = await axios.get(`${apiBaseUrl}/api/analytics/report/time-series`, {
+      const response = await api.get('/api/analytics/report/time-series', {
         params: {
           entityType: 'site',
           metric: 'views',
           startDate: formatDateForAPI(dateRange.from),
           endDate: formatDateForAPI(dateRange.to),
           interval: 'day'
-        },
-        withCredentials: true
+        }
       });
       
       if (response.data.success) {

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { api } from "@/lib/services/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -53,19 +54,8 @@ export default function UserManagementPage() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch(`${API_BASE}/api/user/all/`, {
-        credentials: 'include',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const response = await api.get('/api/user/all/');
+      const data = response.data;
       console.log('API Response:', data); // Debug log
       
       if (data.success) {

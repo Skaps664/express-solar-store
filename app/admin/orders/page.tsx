@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { api } from "@/lib/services/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -19,85 +20,113 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MoreHorizontal, Search, Eye, Package, Truck } from "lucide-react"
 import WarningBanner from "@/components/warning-banner"
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE
+
+interface OrderItem {
+  name: string
+  quantity: number
+  price: number
+}
+
+interface CustomerInfo {
+  fullName?: string
+  email?: string
+  phoneNumber?: string
+  whatsappNumber?: string
+  shippingAddress?: string
+  specialNotes?: string
+}
+
+interface Order {
+  _id: string
+  orderNumber?: string
+  status: string
+  paymentStatus?: string
+  totalAmount?: number
+  createdAt: string
+  customerInfo?: CustomerInfo
+  items?: OrderItem[]
+  orderNotes?: string
+  trackingNumber?: string
+}
+
 export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Mock data - replace with your API calls
-  const orders = [
-    {
-      id: "ORD-001",
-      customer: {
-        name: "John Doe",
-        email: "john@example.com",
-        phone: "+1 234 567 8900",
-      },
-      items: [
-        { name: "Wireless Headphones", quantity: 1, price: 199.99 },
-        { name: "Phone Case", quantity: 2, price: 29.99 },
-      ],
-      total: 259.97,
-      status: "completed",
-      paymentStatus: "paid",
-      shippingAddress: "123 Main St, City, State 12345",
-      date: "2024-01-15",
-      trackingNumber: "TRK123456789",
-    },
-    {
-      id: "ORD-002",
-      customer: {
-        name: "Jane Smith",
-        email: "jane@example.com",
-        phone: "+1 234 567 8901",
-      },
-      items: [{ name: "Running Shoes", quantity: 1, price: 89.99 }],
-      total: 89.99,
-      status: "pending",
-      paymentStatus: "pending",
-      shippingAddress: "456 Oak Ave, City, State 12345",
-      date: "2024-01-15",
-      trackingNumber: null,
-    },
-    {
-      id: "ORD-003",
-      customer: {
-        name: "Bob Johnson",
-        email: "bob@example.com",
-        phone: "+1 234 567 8902",
-      },
-      items: [
-        { name: "Coffee Mug", quantity: 3, price: 15.99 },
-        { name: "T-Shirt", quantity: 1, price: 24.99 },
-      ],
-      total: 72.96,
-      status: "processing",
-      paymentStatus: "paid",
-      shippingAddress: "789 Pine St, City, State 12345",
-      date: "2024-01-14",
-      trackingNumber: "TRK987654321",
-    },
-  ]
+  // Fetch orders from API
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true)
+        console.log("Fetching orders from:", `/api/orders/admin/all`)
+        
+        const response = await api.get('/api/orders/admin/all')
+        console.log("Fetched orders:", response.data)
+        setOrders((response.data as any).orders || [])
+      } catch (error) {
+        console.error("Error fetching orders:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOrders()
+  }, [])
+
+  // Update order status
+  const updateOrderStatus = async (orderId: string, status: string, paymentStatus?: string) => {
+    try {
+      const updateData: any = { status }
+      if (paymentStatus) updateData.paymentStatus = paymentStatus
+      
+      await api.put(`/api/orders/${orderId}`, updateData)
+      
+      // Refresh orders after update
+      const response = await api.get('/api/orders/admin/all')
+      setOrders((response.data as any).orders || [])
+    } catch (error) {
+      console.error("Error updating order status:", error)
+    }
+  }
 
   const filteredOrders = orders.filter(
     (order) =>
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.email.toLowerCase().includes(searchTerm.toLowerCase()),
+      order._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerInfo?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.customerInfo?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "completed":
-        return "default"
-      case "processing":
-        return "secondary"
+  const getStatusColor = (status: string) => {
+    switch (status?.toLowerCase()) {
       case "pending":
         return "outline"
+      case "confirmed":
+        return "secondary"
+      case "processing":
+        return "default"
+      case "shipped":
+        return "default"
+      case "delivered":
+        return "default"
       case "cancelled":
         return "destructive"
       default:
         return "outline"
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading orders...</div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -137,24 +166,24 @@ export default function OrdersPage() {
             </TableHeader>
             <TableBody>
               {filteredOrders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
+                <TableRow key={order._id}>
+                  <TableCell className="font-medium">{order.orderNumber || order._id?.substring(0, 8)}</TableCell>
                   <TableCell>
                     <div>
-                      <div className="font-medium">{order.customer.name}</div>
-                      <div className="text-sm text-muted-foreground">{order.customer.email}</div>
+                      <div className="font-medium">{order.customerInfo?.fullName || "N/A"}</div>
+                      <div className="text-sm text-muted-foreground">{order.customerInfo?.email || "N/A"}</div>
                     </div>
                   </TableCell>
-                  <TableCell>${order.total.toFixed(2)}</TableCell>
+                  <TableCell>PKR {order.totalAmount?.toLocaleString() || "0"}</TableCell>
                   <TableCell>
-                    <Badge variant={getStatusColor(order.status)}>{order.status}</Badge>
+                    <Badge variant={getStatusColor(order.status)}>{order.status || "pending"}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={order.paymentStatus === "paid" ? "default" : "outline"}>
-                      {order.paymentStatus}
+                    <Badge variant={order.paymentStatus === "Paid" ? "default" : "outline"}>
+                      {order.paymentStatus || "Pending"}
                     </Badge>
                   </TableCell>
-                  <TableCell>{order.date}</TableCell>
+                  <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -170,71 +199,107 @@ export default function OrdersPage() {
                               View Details
                             </DropdownMenuItem>
                           </DialogTrigger>
-                          <DialogContent className="sm:max-w-[600px]">
+                          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
                             <DialogHeader>
-                              <DialogTitle>Order Details - {order.id}</DialogTitle>
-                              <DialogDescription>Complete information about this order.</DialogDescription>
+                              <DialogTitle>Order Details - {order.orderNumber || order._id?.substring(0, 8)}</DialogTitle>
+                              <DialogDescription>Complete order information and status</DialogDescription>
                             </DialogHeader>
                             <Tabs defaultValue="details" className="w-full">
                               <TabsList className="grid w-full grid-cols-3">
-                                <TabsTrigger value="details">Details</TabsTrigger>
-                                <TabsTrigger value="customer">Customer</TabsTrigger>
+                                <TabsTrigger value="details">Order Details</TabsTrigger>
+                                <TabsTrigger value="customer">Customer Info</TabsTrigger>
                                 <TabsTrigger value="shipping">Shipping</TabsTrigger>
                               </TabsList>
                               <TabsContent value="details" className="space-y-4">
-                                <div className="space-y-2">
-                                  <h4 className="font-medium">Order Items</h4>
-                                  {order.items.map((item, index) => (
-                                    <div key={index} className="flex justify-between items-center p-2 border rounded">
-                                      <div>
-                                        <div className="font-medium">{item.name}</div>
-                                        <div className="text-sm text-muted-foreground">Qty: {item.quantity}</div>
-                                      </div>
-                                      <div className="font-medium">${(item.price * item.quantity).toFixed(2)}</div>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <strong>Order ID:</strong> {order._id}
+                                  </div>
+                                  <div>
+                                    <strong>Order Number:</strong> {order.orderNumber || "N/A"}
+                                  </div>
+                                  <div>
+                                    <strong>Status:</strong> 
+                                    <select 
+                                      value={order.status} 
+                                      onChange={(e) => updateOrderStatus(order._id, e.target.value)}
+                                      className="ml-2 p-1 border rounded"
+                                    >
+                                      <option value="Pending">Pending</option>
+                                      <option value="Confirmed">Confirmed</option>
+                                      <option value="Processing">Processing</option>
+                                      <option value="Shipped">Shipped</option>
+                                      <option value="Delivered">Delivered</option>
+                                      <option value="Cancelled">Cancelled</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <strong>Payment Status:</strong>
+                                    <select 
+                                      value={order.paymentStatus || "Pending"} 
+                                      onChange={(e) => updateOrderStatus(order._id, order.status, e.target.value)}
+                                      className="ml-2 p-1 border rounded"
+                                    >
+                                      <option value="Pending">Pending</option>
+                                      <option value="Paid">Paid</option>
+                                      <option value="Failed">Failed</option>
+                                      <option value="Refunded">Refunded</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div>
+                                  <strong>Items:</strong>
+                                  {order.items?.map((item, index) => (
+                                    <div key={index} className="border-b py-2">
+                                      <div>{item.name} x {item.quantity}</div>
+                                      <div className="text-sm text-muted-foreground">PKR {(item.price * item.quantity).toLocaleString()}</div>
                                     </div>
                                   ))}
-                                  <div className="flex justify-between items-center pt-2 border-t font-bold">
-                                    <div>Total</div>
-                                    <div>${order.total.toFixed(2)}</div>
-                                  </div>
+                                </div>
+                                <div className="text-lg font-semibold">
+                                  <strong>Total:</strong>
+                                  <div>PKR {order.totalAmount?.toLocaleString() || "0"}</div>
                                 </div>
                               </TabsContent>
                               <TabsContent value="customer" className="space-y-4">
                                 <div className="space-y-2">
                                   <div>
-                                    <strong>Name:</strong> {order.customer.name}
+                                    <strong>Name:</strong> {order.customerInfo?.fullName || "N/A"}
                                   </div>
                                   <div>
-                                    <strong>Email:</strong> {order.customer.email}
+                                    <strong>Email:</strong> {order.customerInfo?.email || "N/A"}
                                   </div>
                                   <div>
-                                    <strong>Phone:</strong> {order.customer.phone}
+                                    <strong>Phone:</strong> {order.customerInfo?.phoneNumber || "N/A"}
+                                  </div>
+                                  <div>
+                                    <strong>WhatsApp:</strong> {order.customerInfo?.whatsappNumber || "N/A"}
                                   </div>
                                 </div>
                               </TabsContent>
                               <TabsContent value="shipping" className="space-y-4">
                                 <div className="space-y-2">
                                   <div>
-                                    <strong>Address:</strong> {order.shippingAddress}
+                                    <strong>Address:</strong> {order.customerInfo?.shippingAddress || "N/A"}
+                                  </div>
+                                  <div>
+                                    <strong>Special Notes:</strong> {order.customerInfo?.specialNotes || order.orderNotes || "None"}
                                   </div>
                                   {order.trackingNumber && (
                                     <div>
                                       <strong>Tracking:</strong> {order.trackingNumber}
                                     </div>
                                   )}
-                                  <div>
-                                    <strong>Status:</strong> {order.status}
-                                  </div>
                                 </div>
                               </TabsContent>
                             </Tabs>
                           </DialogContent>
                         </Dialog>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateOrderStatus(order._id, "Processing")}>
                           <Package className="mr-2 h-4 w-4" />
                           Mark as Processing
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateOrderStatus(order._id, "Shipped")}>
                           <Truck className="mr-2 h-4 w-4" />
                           Mark as Shipped
                         </DropdownMenuItem>

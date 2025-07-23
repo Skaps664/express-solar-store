@@ -66,6 +66,19 @@ function AuthPage() {
     e.preventDefault()
     setLoading(true)
 
+    // Basic validation
+    if (!formData.email || !formData.password) {
+      toast.error("Please fill in all required fields.")
+      setLoading(false)
+      return
+    }
+
+    if (!formData.email.includes("@")) {
+      toast.error("Please enter a valid email address.")
+      setLoading(false)
+      return
+    }
+
     try {
       if (isLogin) {
         // Use AuthContext login function
@@ -73,12 +86,32 @@ function AuthPage() {
           email: formData.email,
           password: formData.password,
         })
-        // Navigate after successful login
-        router.push(redirect)
+        
+        // Only redirect on successful login
+        console.log("✅ Login successful, redirecting to:", redirect)
+        toast.success("Successfully signed in!")
+        
+        // Wait a moment for auth state to update
+        setTimeout(() => {
+          router.push(redirect)
+        }, 100)
       } else {
         // Validate password confirmation
         if (formData.password !== formData.confirmPassword) {
           toast.error("Passwords do not match.")
+          setLoading(false)
+          return
+        }
+
+        if (formData.password.length < 6) {
+          toast.error("Password must be at least 6 characters long.")
+          setLoading(false)
+          return
+        }
+
+        if (!formData.firstName || !formData.lastName) {
+          toast.error("Please enter your first and last name.")
+          setLoading(false)
           return
         }
 
@@ -89,11 +122,20 @@ function AuthPage() {
           password: formData.password,
           mobile: formData.phone, // Add mobile field
         })
-        // Navigate after successful registration
-        router.push(redirect)
+        
+        // Only redirect on successful registration
+        console.log("✅ Registration successful, redirecting to:", redirect)
+        
+        // Wait a moment for auth state to update
+        setTimeout(() => {
+          router.push(redirect)
+        }, 100)
       }
     } catch (err: any) {
-      toast.error(err.message || "Something went wrong")
+      // Error handling - authentication failed
+      console.log("❌ Authentication failed:", err)
+      // Error toast is already handled by AuthContext
+      // Do not redirect on failure
     } finally {
       setLoading(false)
     }

@@ -41,13 +41,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     },
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 1 * 60 * 1000, // 1 minute (reduced from 5)
+    gcTime: 5 * 60 * 1000, // 5 minutes (reduced from 10)
+    refetchOnWindowFocus: true, // Ensure refetch when window regains focus
   });
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { email: string; password: string }) => {
-      const { data } = await api.post<{ user: User; token?: string }>('/api/user/login', credentials);
+      const { data } = await api.post<{ user: User; token?: string; success: boolean; message?: string }>('/api/user/login', credentials);
+      
+      // Check if the backend indicates failure
+      if (!data.success) {
+        throw new Error(data.message || 'Login failed');
+      }
       
       // Store token in localStorage for production cross-origin deployments
       if (data.token) {
@@ -58,13 +64,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      console.log("✅ Login mutation success, user data:", data.user);
+      
+      // First set the user data immediately
       queryClient.setQueryData(['user'], data.user);
-      toast.success('Successfully logged in');
+      
+      // Then force a refetch to ensure sync with backend
+      try {
+        await queryClient.refetchQueries({ queryKey: ['user'] });
+      } catch (error) {
+        console.log('User refetch failed:', error);
+        // Still use the login response data
+      }
+      
+      // Don't show success toast here - let the page handle it
       // Don't auto-redirect, let the component handle it
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Login failed');
+      console.log("❌ Login error details:", error);
+      console.log("Error response:", error?.response);
+      console.log("Error data:", error?.response?.data);
+      
+      const errorMessage = error?.response?.data?.message || error?.message || 'Login failed. Please try again.';
+      toast.error(errorMessage);
     },
   });
 
@@ -80,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       queryClient.setQueryData(['user'], null);
       toast.success('Successfully logged out');
-      router.push('/login');
+      router.push('/auth');
     },
     onError: () => {
       toast.error('Logout failed');
@@ -89,7 +112,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: async (data: { name: string; email: string; password: string; mobile?: string }) => {
-      const response = await api.post<{ user: User; token?: string }>('/api/user/register', data);
+      const response = await api.post<{ user: User; token?: string; message?: string; success: boolean }>('/api/user/register', data);
+      
+      // Check if the backend indicates failure
+      if (!response.data.success) {
+        throw new Error(response.data.message || 'Registration failed');
+      }
       
       // Store token in localStorage for production cross-origin deployments
       if (response.data.token) {
@@ -100,13 +128,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       return response.data;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      console.log("✅ Registration mutation success, user data:", data.user);
+      
+      // First set the user data immediately
       queryClient.setQueryData(['user'], data.user);
-      toast.success('Registration successful');
+      
+      // Then force a refetch to ensure sync with backend
+      try {
+        await queryClient.refetchQueries({ queryKey: ['user'] });
+      } catch (error) {
+        console.log('User refetch failed:', error);
+        // Still use the registration response data
+      }
+      
+      // Use the custom message from backend
+      toast.success(data.message || 'Account created successfully, happy shopping!');
       // Don't auto-redirect, let the component handle it
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || 'Registration failed');
+      console.log("❌ Registration error details:", error);
+      const errorMessage = error?.response?.data?.message || error?.message || 'Registration failed. Please try again.';
+      toast.error(errorMessage);
     },
   });
 

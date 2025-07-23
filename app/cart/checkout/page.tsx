@@ -30,7 +30,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     // Redirect if not logged in
     if (!user && !loading) {
-      router.push('/auth/login?redirect=/cart/checkout')
+      router.push('/auth?redirect=/cart/checkout')
     }
   }, [user, loading, router])
 
@@ -47,7 +47,7 @@ export default function CheckoutPage() {
       <div className="container mx-auto py-16 text-center">
         <h1 className="text-2xl font-bold">Please log in to checkout</h1>
         <Button asChild className="mt-4">
-          <Link href="/auth/login?redirect=/cart/checkout">Login</Link>
+          <Link href="/auth?redirect=/cart/checkout">Login</Link>
         </Button>
       </div>
     )

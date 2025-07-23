@@ -104,7 +104,7 @@ const cartItems = cart
 
     const handleCheckout = async () => {
     if (!user) {
-      router.push('/auth')
+      router.push('/auth?redirect=/cart')
       return
     }
     

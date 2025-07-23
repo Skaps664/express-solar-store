@@ -9,7 +9,7 @@ import { Sun, Battery, Zap, Home, Wrench, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import PriceTicker from "./price-ticker"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
 import { useCart } from "@/context/CartContext"
 import { MiniCart } from "./mini-cart"
@@ -102,6 +102,7 @@ export default function Header({ user }: HeaderProps) {
 	const mobileSidebarRef = useRef<HTMLDivElement | null>(null)
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const router = useRouter()
+	const pathname = usePathname()
 	const [dropdownOpen, setDropdownOpen] = useState(false)
 
 	useEffect(() => {
@@ -405,7 +406,7 @@ export default function Header({ user }: HeaderProps) {
 									</div>
 								</button>
 							) : (
-								<Link href="/auth" className="hidden md:flex flex-col items-end cursor-pointer">
+								<Link href={`/auth?redirect=${encodeURIComponent(pathname)}`} className="hidden md:flex flex-col items-end cursor-pointer">
 									<span className="text-xs text-white/80">Sign In</span>
 									<div className="flex items-center">
 										<span className="text-sm font-medium text-white">Account</span>
@@ -611,7 +612,7 @@ export default function Header({ user }: HeaderProps) {
 									</button>
 								</div>
 							) : (
-								<Link href="/auth" onClick={handleMobileNavClick}>
+								<Link href={`/auth?redirect=${encodeURIComponent(pathname)}`} onClick={handleMobileNavClick}>
 									<span className="text-sm font-medium block">Sign In / Register</span>
 									<span className="text-xs text-white/80 block">Manage your account</span>
 								</Link>

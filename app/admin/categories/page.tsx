@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import axios from "axios"
+import { api } from "@/lib/services/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -21,8 +21,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { MoreHorizontal, Plus, Search, Edit, Trash2, Sun, Battery, Zap, Tag } from "lucide-react"
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<any[]>([])
@@ -69,7 +67,7 @@ export default function CategoriesPage() {
   // Fetch categories
   useEffect(() => {
     setLoading(true)
-    axios.get(`${API_BASE}/api/category/admin/all`, { withCredentials: true })
+    api.get('/api/category/admin/all')
       .then(res => {
         // Normalize IDs for easier use
         setCategories(res.data.map((cat: any) => ({
@@ -138,17 +136,13 @@ export default function CategoriesPage() {
         isFeatured: (form.querySelector('#isFeatured') as HTMLInputElement)?.checked ?? false,
       }
 
-      await axios.post(
-        `${API_BASE}/api/category/new/create`,
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
+      await api.post(
+        '/api/category/new/create',
+        data
       )
       setIsAddDialogOpen(false)
       form.reset()
-      const res = await axios.get(`${API_BASE}/api/category/admin/all`, { withCredentials: true })
+      const res = await api.get('/api/category/admin/all')
       setCategories(res.data.map((cat: any) => ({
         ...cat,
         id: cat._id,
@@ -183,18 +177,14 @@ export default function CategoriesPage() {
         sortOrder: editSortOrder,
       }
 
-      await axios.put(
-        `${API_BASE}/api/category/update/${editCategory.id}`,
-        data,
-        {
-          headers: { "Content-Type": "application/json" },
-          withCredentials: true,
-        }
+      await api.put(
+        `/api/category/update/${editCategory.id}`,
+        data
       )
       setIsEditDialogOpen(false)
       setEditCategory(null)
       clearEditForm()
-      const res = await axios.get(`${API_BASE}/api/category/admin/all`, { withCredentials: true })
+      const res = await api.get('/api/category/admin/all')
       setCategories(res.data.map((cat: any) => ({
         ...cat,
         id: cat._id,
@@ -220,10 +210,10 @@ export default function CategoriesPage() {
 
     setLoading(true)
     try {
-      await axios.delete(`${API_BASE}/api/category/delete/${id}`, { withCredentials: true })
+      await api.delete(`/api/category/delete/${id}`)
       
       // Refetch categories
-      const res = await axios.get(`${API_BASE}/api/category/admin/all`, { withCredentials: true })
+      const res = await api.get('/api/category/admin/all')
       setCategories(res.data.map((cat: any) => ({
         ...cat,
         id: cat._id,

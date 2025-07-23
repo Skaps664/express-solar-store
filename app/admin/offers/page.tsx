@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import axios from "axios"
+import { api } from "@/lib/services/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -21,7 +21,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Plus, Edit, Trash2, Calendar, DollarSign } from "lucide-react"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE
 
 export default function OffersPage() {
   const [offers, setOffers] = useState([])
@@ -58,12 +57,12 @@ export default function OffersPage() {
   useEffect(() => {
     setLoading(true)
     Promise.all([
-      axios.get(`${API_BASE}/api/offers`, { withCredentials: true }),
-      axios.get(`${API_BASE}/api/products`, { withCredentials: true }),
+      api.get(`/api/offers`),
+      api.get(`/api/products/admin/all`),
     ])
       .then(([offerRes, productRes]) => {
         setOffers(offerRes.data || [])
-        setProducts(productRes.data.products || productRes.data || [])
+        setProducts(productRes.data.products || [])
       })
       .catch(err => {
         console.error("Error fetching data:", err)
@@ -116,8 +115,8 @@ export default function OffersPage() {
     setLoading(true)
 
     try {
-      const res = await axios.post(
-        `${API_BASE}/api/offers/create`,
+      const res = await api.post(
+        `/api/offers/create`,
         {
           product: selectedProduct,
           name: offerName,
@@ -132,7 +131,7 @@ export default function OffersPage() {
       )
 
       // Update offers list
-      const offerRes = await axios.get(`${API_BASE}/api/offers`, { withCredentials: true })
+      const offerRes = await api.get(`/api/offers`)
       setOffers(offerRes.data || [])
       setIsAddDialogOpen(false)
       resetForm()
@@ -152,8 +151,8 @@ export default function OffersPage() {
     setLoading(true)
 
     try {
-      await axios.put(
-        `${API_BASE}/api/offers/update/${editOffer._id}`,
+      await api.put(
+        `/api/offers/update/${editOffer._id}`,
         {
           name: editName,
           description: editDescription,
@@ -168,7 +167,7 @@ export default function OffersPage() {
       )
 
       // Update offers list
-      const offerRes = await axios.get(`${API_BASE}/api/offers`, { withCredentials: true })
+      const offerRes = await api.get(`/api/offers`)
       setOffers(offerRes.data || [])
       setIsEditDialogOpen(false)
       resetEditForm()
@@ -186,9 +185,9 @@ export default function OffersPage() {
     setLoading(true)
 
     try {
-      await axios.delete(`${API_BASE}/api/offers/delete/${id}`, { withCredentials: true })
+      await api.delete(`/api/offers/delete/${id}`)
       // Update offers list
-      const offerRes = await axios.get(`${API_BASE}/api/offers`, { withCredentials: true })
+      const offerRes = await api.get(`/api/offers`)
       setOffers(offerRes.data || [])
     } catch (err) {
       console.error("Error deleting offer:", err)

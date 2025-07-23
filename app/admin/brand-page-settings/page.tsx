@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import axios from "axios"
+import { useEffect, useState } from "react"
+import { api } from "@/lib/services/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -30,7 +30,6 @@ import { format } from "date-fns"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useToast } from "@/components/ui/use-toast"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE
 
 // Types
 interface Brand {
@@ -109,7 +108,7 @@ export default function BrandPageSettingsPage() {
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const response = await axios.get(`${API_BASE}/api/brands`, { withCredentials: true })
+        const response = await api.get('/api/brands')
         setBrands(response.data)
       } catch (error) {
         console.error("Error fetching brands:", error)
@@ -131,8 +130,8 @@ export default function BrandPageSettingsPage() {
       
       setLoading(true)
       try {
-        const response = await axios.get(
-          `${API_BASE}/api/brand-page-settings/${selectedBrand}`, 
+        const response = await api.get(
+          `/api/brand-page-settings/${selectedBrand}`, 
           { withCredentials: true }
         )
         
@@ -170,8 +169,8 @@ export default function BrandPageSettingsPage() {
         }
         
         // Also fetch brand products for selection
-        const productsResponse = await axios.get(
-          `${API_BASE}/api/brand-page-settings/${selectedBrand}/products`, 
+        const productsResponse = await api.get(
+          `/api/brand-page-settings/${selectedBrand}/products`, 
           { withCredentials: true }
         )
         
@@ -234,8 +233,8 @@ export default function BrandPageSettingsPage() {
       
       console.log('Sending settings data:', settingsData);
 
-      const response = await axios.put(
-        `${API_BASE}/api/brand-page-settings/${selectedBrand}`,
+      const response = await api.put(
+        `/api/brand-page-settings/${selectedBrand}`,
         settingsData,
         { 
           withCredentials: true,
@@ -285,8 +284,8 @@ export default function BrandPageSettingsPage() {
       formData.append("isActive", "true")
       formData.append("image", promotionImage)
       
-      const response = await axios.post(
-        `${API_BASE}/api/brand-page-settings/${selectedBrand}/promotion`, 
+      const response = await api.post(
+        `/api/brand-page-settings/${selectedBrand}/promotion`, 
         formData,
         { 
           withCredentials: true,
@@ -301,8 +300,8 @@ export default function BrandPageSettingsPage() {
         })
         
         // Update the settings with the new promotion
-        const updatedSettings = await axios.get(
-          `${API_BASE}/api/brand-page-settings/${selectedBrand}`, 
+        const updatedSettings = await api.get(
+          `/api/brand-page-settings/${selectedBrand}`, 
           { withCredentials: true }
         )
         
@@ -333,8 +332,8 @@ export default function BrandPageSettingsPage() {
     if (!window.confirm("Are you sure you want to delete this promotion?")) return
     
     try {
-      const response = await axios.delete(
-        `${API_BASE}/api/brand-page-settings/${selectedBrand}/promotion/${promotionId}`, 
+      const response = await api.delete(
+        `/api/brand-page-settings/${selectedBrand}/promotion/${promotionId}`, 
         { withCredentials: true }
       )
       
@@ -345,8 +344,8 @@ export default function BrandPageSettingsPage() {
         })
         
         // Update the settings without the deleted promotion
-        const updatedSettings = await axios.get(
-          `${API_BASE}/api/brand-page-settings/${selectedBrand}`, 
+        const updatedSettings = await api.get(
+          `/api/brand-page-settings/${selectedBrand}`, 
           { withCredentials: true }
         )
         

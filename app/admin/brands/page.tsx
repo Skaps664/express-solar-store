@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import axios from "axios"
+import { api } from "@/lib/services/api"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -54,14 +54,14 @@ export default function BrandsPage() {
   useEffect(() => {
     setLoading(true)
     // Fetch brands
-    axios.get(`${API_BASE}/api/brands/admin/all`, { withCredentials: true })
+    api.get('/api/brands/admin/all')
       .then(res => setBrands(res.data))
       .catch(err => {
         console.error("Error fetching brands:", err)
       })
       .finally(() => setLoading(false))
     // Fetch categories (use public endpoint for all active main categories)
-    axios.get(`${API_BASE}/api/category/`)
+    api.get('/api/category/')
       .then(res => {
         setCategories(res.data.map((cat: any) => ({ value: cat._id, label: cat.name })))
       })
@@ -108,19 +108,14 @@ export default function BrandsPage() {
 
     setLoading(true)
     try {
-      await axios.post(
-        `${API_BASE}/api/brands/new/create`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true,
-        }
-      )
+      await api.post('/api/brands/new/create', formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      })
       setIsAddDialogOpen(false)
       form.reset()
       setSelectedCategories([])
       // Refetch brands
-      const res = await axios.get(`${API_BASE}/api/brands/admin/all`, { withCredentials: true })
+      const res = await api.get('/api/brands/admin/all')
       setBrands(res.data)
     } catch (err) {
       alert("Failed to add brand")
@@ -156,20 +151,15 @@ export default function BrandsPage() {
     setLoading(true)
     try {
       // Always use the brand's slug for update
-      await axios.put(
-        `${API_BASE}/api/brands/update/${editBrand.slug}`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          withCredentials: true,
-        }
-      )
+      await api.put(`/api/brands/update/${editBrand.slug}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      })
       setIsEditDialogOpen(false)
       setEditBrand(null)
       clearEditForm()
       setEditSelectedCategories([])
       // Refetch brands
-      const res = await axios.get(`${API_BASE}/api/brands/admin/all`, { withCredentials: true })
+      const res = await api.get('/api/brands/admin/all')
       setBrands(res.data)
     } catch (err) {
       alert("Failed to update brand")
@@ -186,15 +176,9 @@ export default function BrandsPage() {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem("authToken"); // Retrieve token from localStorage
-      await axios.delete(`${API_BASE}/api/brands/del/${slug}`, {
-        headers: {
-          Authorization: `Bearer ${token}`, // Include token in Authorization header
-        },
-        withCredentials: true,
-      });
+      await api.delete(`/api/brands/del/${slug}`);
       // Refetch brands after deletion
-      const res = await axios.get(`${API_BASE}/api/brands/admin/all`, { withCredentials: true })
+      const res = await api.get('/api/brands/admin/all')
       setBrands(res.data)
       alert("Brand deleted successfully.");
     } catch (err) {

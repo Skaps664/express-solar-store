@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import axios from "axios"
+import { api } from "@/lib/services/api"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,8 +24,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { MoreHorizontal, Plus, Search, Edit, Trash2 } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE
 
 function safeJsonParse(val: string) {
   try {
@@ -91,14 +89,20 @@ export default function ProductsPage() {
   useEffect(() => {
     setLoading(true)
     Promise.all([
-      axios.get(`${API_BASE}/api/products/admin/all`, { withCredentials: true }),
-      axios.get(`${API_BASE}/api/category`, { withCredentials: true }),
-      axios.get(`${API_BASE}/api/brands`, { withCredentials: true }),
+      api.get<{ success: boolean; products: any[] }>('/api/products/admin/all'),
+      api.get<any[]>('/api/category/admin/all'),
+      api.get<any[]>('/api/brands'),
     ])
       .then(([prodRes, catRes, brandRes]) => {
-        setProducts(prodRes.data.products || prodRes.data)
+        if (!prodRes.data.success) {
+          throw new Error('Failed to fetch products');
+        }
+        setProducts(prodRes.data.products)
         setCategories(catRes.data)
         setBrands(brandRes.data)
+      })
+      .catch(err => {
+        console.error("Error fetching data:", err)
       })
       .finally(() => setLoading(false))
   }, [])
@@ -196,11 +200,10 @@ export default function ProductsPage() {
 
     setLoading(true);
     try {
-      await axios.post(`${API_BASE}/api/products/create`, formData, {
+      await api.post('/api/products/create', formData, {
         headers: { 
           "Content-Type": "multipart/form-data",
-        },
-        withCredentials: true,
+        }
       });
       setIsAddDialogOpen(false);
       // Reset form state
@@ -213,7 +216,7 @@ export default function ProductsPage() {
       setRelatedProductsSearch("");
       setDocumentTypes({});
       
-      const prodRes = await axios.get(`${API_BASE}/api/products/admin/all`, { withCredentials: true });
+      const prodRes = await api.get('/api/products/admin/all');
       setProducts(prodRes.data.products || prodRes.data);
     } catch (err: any) {
       console.error("Product creation error:", err);
@@ -392,13 +395,12 @@ export default function ProductsPage() {
 
     setLoading(true)
     try {
-      await axios.put(`${API_BASE}/api/products/update/${editProduct._id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
+      await api.put(`/api/products/update/${editProduct._id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
       })
       setIsEditDialogOpen(false)
       clearEditForm()
-      const prodRes = await axios.get(`${API_BASE}/api/products/admin/all`, { withCredentials: true })
+      const prodRes = await api.get('/api/products/admin/all')
       setProducts(prodRes.data.products || prodRes.data)
     } catch (err: any) {
       console.error("Product update error:", err);
@@ -415,11 +417,11 @@ export default function ProductsPage() {
     setLoading(true)
     try {
       console.log("Deleting product with ID:", id)
-      const deleteResponse = await axios.delete(`${API_BASE}/api/products/delete/${id}`, { withCredentials: true })
+      const deleteResponse = await api.delete(`/api/products/delete/${id}`)
       console.log("Delete response:", deleteResponse.data)
       
       console.log("Refetching products...")
-      const prodRes = await axios.get(`${API_BASE}/api/products/admin/all`, { withCredentials: true })
+      const prodRes = await api.get('/api/products/admin/all')
       console.log("Fetched products after deletion:", prodRes.data)
       
       const newProducts = prodRes.data.products || prodRes.data

@@ -63,11 +63,11 @@ export default function AdminLayout({
     if (loading) return // Wait until loading is false
 
     if (!adminUser) {
-      router.replace("/auth") // Not logged in
+      router.replace(`/auth?redirect=${encodeURIComponent(pathname)}`) // Not logged in
     } else if (!adminUser.isAdmin) {
       router.replace("/") // Not admin
     }
-  }, [adminUser, loading, router])
+  }, [adminUser, loading, router, pathname])
 
   if (loading) {
     return (

@@ -71,7 +71,7 @@ export default function OrdersPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       if (!user) {
-        router.push('/auth/login?redirect=/account/orders')
+        router.push('/auth?redirect=/account/orders')
         return
       }
 

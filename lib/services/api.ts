@@ -111,7 +111,8 @@ api.interceptors.response.use(
           removeToken(); // Clear localStorage tokens
           console.error('Token refresh failed:', refreshError);
           toast.error('Session expired. Please log in again.');
-          window.location.href = '/auth';
+          const currentPath = window.location.pathname;
+          window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`;
           return Promise.reject(refreshError);
         }
       }

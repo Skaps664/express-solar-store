@@ -212,6 +212,35 @@ export default function CategoriesPage() {
     }
   }
 
+  // --- DELETE CATEGORY ---
+  const handleDeleteCategory = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this category? This action cannot be undone.")) {
+      return
+    }
+
+    setLoading(true)
+    try {
+      await axios.delete(`${API_BASE}/api/category/delete/${id}`, { withCredentials: true })
+      
+      // Refetch categories
+      const res = await axios.get(`${API_BASE}/api/category/admin/all`, { withCredentials: true })
+      setCategories(res.data.map((cat: any) => ({
+        ...cat,
+        id: cat._id,
+        status: cat.isActive ? "active" : "inactive",
+        featured: cat.isFeatured ?? false,
+        productCount: cat.productCount ?? 0,
+        sortOrder: cat.sortOrder ?? 0,
+        parentCategory: cat.parentCategory?._id || cat.parentCategory || "",
+      })))
+    } catch (err: any) {
+      console.error("Failed to delete category:", err)
+      alert(`Failed to delete category: ${err?.response?.data?.message || err.message || "Please try again."}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -505,7 +534,7 @@ export default function CategoriesPage() {
                             <Edit className="mr-2 h-4 w-4" />
                             Edit Category
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteCategory(category.id)}>
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete Category
                           </DropdownMenuItem>

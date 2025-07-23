@@ -126,8 +126,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) {
         if (res.status === 401) {
           toast.error("Please login again to add items to cart")
-          // Redirect to login page
-          window.location.href = '/auth'
+          // Redirect to login page with current path
+          const currentPath = window.location.pathname;
+          window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`
           return false
         }
         

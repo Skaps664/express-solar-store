@@ -91,7 +91,7 @@ export default function ProductsPage() {
   useEffect(() => {
     setLoading(true)
     Promise.all([
-      axios.get(`${API_BASE}/api/products`, { withCredentials: true }),
+      axios.get(`${API_BASE}/api/products/admin/all`, { withCredentials: true }),
       axios.get(`${API_BASE}/api/category`, { withCredentials: true }),
       axios.get(`${API_BASE}/api/brands`, { withCredentials: true }),
     ])
@@ -213,7 +213,7 @@ export default function ProductsPage() {
       setRelatedProductsSearch("");
       setDocumentTypes({});
       
-      const prodRes = await axios.get(`${API_BASE}/api/products`, { withCredentials: true });
+      const prodRes = await axios.get(`${API_BASE}/api/products/admin/all`, { withCredentials: true });
       setProducts(prodRes.data.products || prodRes.data);
     } catch (err: any) {
       console.error("Product creation error:", err);
@@ -398,7 +398,7 @@ export default function ProductsPage() {
       })
       setIsEditDialogOpen(false)
       clearEditForm()
-      const prodRes = await axios.get(`${API_BASE}/api/products`, { withCredentials: true })
+      const prodRes = await axios.get(`${API_BASE}/api/products/admin/all`, { withCredentials: true })
       setProducts(prodRes.data.products || prodRes.data)
     } catch (err: any) {
       console.error("Product update error:", err);
@@ -414,11 +414,22 @@ export default function ProductsPage() {
     if (!window.confirm("Are you sure you want to delete this product?")) return
     setLoading(true)
     try {
-      await axios.delete(`${API_BASE}/api/products/delete/${id}`, { withCredentials: true })
-      const prodRes = await axios.get(`${API_BASE}/api/products`, { withCredentials: true })
-      setProducts(prodRes.data.products || prodRes.data)
-    } catch (err) {
-      alert("Failed to delete product")
+      console.log("Deleting product with ID:", id)
+      const deleteResponse = await axios.delete(`${API_BASE}/api/products/delete/${id}`, { withCredentials: true })
+      console.log("Delete response:", deleteResponse.data)
+      
+      console.log("Refetching products...")
+      const prodRes = await axios.get(`${API_BASE}/api/products/admin/all`, { withCredentials: true })
+      console.log("Fetched products after deletion:", prodRes.data)
+      
+      const newProducts = prodRes.data.products || prodRes.data
+      console.log("Setting new products:", newProducts.length, "products")
+      setProducts(newProducts)
+      
+      alert("Product deleted successfully!")
+    } catch (err: any) {
+      console.error("Failed to delete product:", err)
+      alert(`Failed to delete product: ${err?.response?.data?.message || err.message}`)
     } finally {
       setLoading(false)
     }

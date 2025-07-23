@@ -16,6 +16,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAuthenticated: boolean;
   login: (credentials: { email: string; password: string }) => Promise<void>;
   logout: () => void;
   register: (data: { name: string; email: string; password: string; mobile?: string }) => Promise<void>;
@@ -33,14 +34,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryKey: ['user'],
     queryFn: async (): Promise<User | null> => {
       try {
-        const { data } = await api.get<{ user: User }>('/api/user/me');
-        return data.user || null;
-      } catch (error) {
+        const { data } = await api.get<{ user: User; success: boolean }>('/api/user/me');
+        
+        // Check if the response indicates success
+        if (data.success && data.user) {
+          return data.user;
+        }
+        
+        return null;
+      } catch (error: any) {
+        console.log('User query failed:', error?.response?.status);
         // Always return null instead of undefined for failed requests
         return null;
       }
     },
-    retry: false,
+    retry: (failureCount, error: any) => {
+      // Don't retry 401 errors (user not authenticated)
+      if (error?.response?.status === 401) {
+        return false;
+      }
+      // Retry up to 2 times for other errors
+      return failureCount < 2;
+    },
     staleTime: 1 * 60 * 1000, // 1 minute (reduced from 5)
     gcTime: 5 * 60 * 1000, // 5 minutes (reduced from 10)
     refetchOnWindowFocus: true, // Ensure refetch when window regains focus
@@ -158,6 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user: user ?? null,
         loading: isLoading,
+        isAuthenticated: !!user,
         login: (credentials) => {
           return new Promise<void>((resolve, reject) => {
             loginMutation.mutate(credentials, {

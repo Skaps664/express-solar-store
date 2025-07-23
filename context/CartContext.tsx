@@ -1,6 +1,7 @@
 "use client"
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { useAuth } from "@/context/AuthContext"
+import { api } from "@/lib/services/api"
 import toast from "react-hot-toast"
 
 type CartItem = {
@@ -27,7 +28,7 @@ type CartContextType = {
   removeFromCart: (cartItemId: string) => Promise<boolean>
   clearCart: () => Promise<boolean>
   createOrder: (params?: {
-    shippingAddress?: any;
+    customerInfo?: any;
     paymentMethod?: string;
     orderNotes?: string;
   }) => Promise<{ success: boolean; orderId?: string; order?: any; whatsappURL?: string }>
@@ -36,13 +37,13 @@ type CartContextType = {
 const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth() // <-- Use AuthContext's user
+  const { user, isAuthenticated } = useAuth()
   const [cart, setCart] = useState<CartItem[]>([])
   const [cartTotal, setCartTotal] = useState<number>(0)
   const [loading, setLoading] = useState(true)
 
   const fetchCart = useCallback(async () => {
-    if (!user) {
+    if (!isAuthenticated) {
       setCart([])
       setCartTotal(0)
       setLoading(false)
@@ -51,38 +52,40 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     setLoading(true)
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/cart`, {
-        credentials: "include",
-      })
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`)
-      }
-
-      const data = await res.json()
+      const response = await api.get('/api/cart')
+      const data = response.data as any
+      
+      console.log("Raw cart API response:", data)
       setCart(data.cart || [])
       
       // Use cartTotal from API if available, otherwise calculate it
       if (typeof data.cartTotal === 'number') {
         setCartTotal(data.cartTotal)
+        console.log("Using API cartTotal:", data.cartTotal)
       } else {
         // Fallback calculation
         const total = (data.cart || []).reduce((sum: number, item: CartItem) => {
           const price = item.product?.price || item.price || 0
+          console.log("Item price calculation:", { item: item.name || item.product?.name, price, quantity: item.quantity })
           return sum + (price * item.quantity)
         }, 0)
         setCartTotal(total)
+        console.log("Calculated cartTotal:", total)
       }
       
-      console.log("Cart data loaded:", { items: data.cart?.length, total: data.cartTotal })
-    } catch (error) {
+      console.log("Cart data loaded:", { items: data.cart?.length, total: data.cartTotal, calculatedTotal: cartTotal })
+    } catch (error: any) {
       console.error('Error fetching cart:', error)
+      // If it's a 401 error, the user is not authenticated
+      if (error?.response?.status === 401) {
+        console.log('User not authenticated, clearing cart')
+      }
       setCart([])
       setCartTotal(0)
     } finally {
       setLoading(false)
     }
-  }, [user])
+  }, [isAuthenticated])
 
   const addToCart = useCallback(async ({
     productId,
@@ -93,205 +96,149 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     quantity?: number
     selectedVariant?: string
   }) => {
-    if (!user) {
+    if (!isAuthenticated) {
       toast.error("Please login to add items to cart")
+      // Redirect to login page with current path
+      const currentPath = window.location.pathname;
+      window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`
       return false
     }
 
     try {
-      console.log(`Sending cart request to ${process.env.NEXT_PUBLIC_API_BASE}/api/cart`)
+      console.log("Adding to cart:", { productId, quantity, selectedVariant })
       
-      // First check if the API base URL is correctly configured
-      if (!process.env.NEXT_PUBLIC_API_BASE) {
-        console.error("API base URL is not configured")
-        toast.error("Configuration error: API URL not set")
-        return false
-      }
-      
-      // Log the actual request being made
-      console.log("Cart request data:", { productId, quantity, selectedVariant })
-      
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/cart`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-        },
-        credentials: "include", // Important for cookies
-        body: JSON.stringify({ productId, quantity, selectedVariant }),
+      const response = await api.post('/api/cart', { 
+        productId, 
+        quantity, 
+        selectedVariant 
       })
-
-      // Log the response status to help debug
-      console.log(`Cart API response status: ${res.status}`)
+      const data = response.data as any
       
-      if (!res.ok) {
-        if (res.status === 401) {
-          toast.error("Please login again to add items to cart")
-          // Redirect to login page with current path
-          const currentPath = window.location.pathname;
-          window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`
-          return false
-        }
-        
-        // Try to get more information from the error response
-        try {
-          const errorData = await res.json()
-          console.error("Server error details:", errorData)
-          throw new Error(errorData.message || `HTTP error! status: ${res.status}`)
-        } catch (parseError) {
-          throw new Error(`HTTP error! status: ${res.status}`)
-        }
-      }
-
-      const data = await res.json()
       console.log("Cart API response data:", data)
       
       if (data.success) {
         setCart(data.cart)
         // Update the cart total from the response if available
-        if (data.cartTotal !== undefined) {
+        if (typeof data.cartTotal === 'number') {
           setCartTotal(data.cartTotal)
         }
+        toast.success("Item added to cart!")
         return true
+      } else {
+        toast.error(data.message || "Failed to add item to cart")
+        return false
       }
-      return false
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding to cart:', error)
-      return false
-    }
-  }, [user])
-
-  const updateCartItem = async (cartItemId: string, quantity: number) => {
-    try {
-      console.log(`Updating cart item ${cartItemId} to quantity ${quantity}`)
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/cart/${cartItemId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ quantity }),
-      })
       
-      if (!res.ok) {
-        console.error(`Error updating cart item: HTTP ${res.status}`)
+      if (error?.response?.status === 401) {
+        toast.error("Please login again to add items to cart")
+        // Redirect to login page with current path
+        const currentPath = window.location.pathname;
+        window.location.href = `/auth?redirect=${encodeURIComponent(currentPath)}`
         return false
       }
       
-      const data = await res.json()
-      console.log("Update cart response:", data)
+      const errorMessage = error?.response?.data?.message || "Failed to add item to cart"
+      toast.error(errorMessage)
+      return false
+    }
+  }, [isAuthenticated])
+
+  const updateCartItem = useCallback(async (cartItemId: string, quantity: number) => {
+    if (!isAuthenticated) {
+      toast.error("Please login to update cart")
+      return false
+    }
+
+    try {
+      console.log(`Updating cart item ${cartItemId} to quantity ${quantity}`)
+      const response = await api.put(`/api/cart/${cartItemId}`, { quantity })
+      const data = response.data as any
       
       if (data.success) {
         setCart(data.cart)
-        // Use cartTotal from API if available, otherwise calculate it
         if (typeof data.cartTotal === 'number') {
-          console.log(`Setting cart total to ${data.cartTotal} from API`)
           setCartTotal(data.cartTotal)
-        } else {
-          // Fallback calculation
-          const total = data.cart.reduce((sum: number, item: CartItem) => {
-            const price = item.product?.price || item.price || 0
-            return sum + (price * item.quantity)
-          }, 0)
-          console.log(`Calculated cart total: ${total}`)
-          setCartTotal(total)
         }
         return true
       }
       return false
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating cart item:', error)
+      toast.error(error?.response?.data?.message || "Failed to update cart item")
       return false
     }
-  }
+  }, [isAuthenticated])
 
-  const removeFromCart = async (cartItemId: string) => {
+  const removeFromCart = useCallback(async (cartItemId: string) => {
+    if (!isAuthenticated) {
+      toast.error("Please login to remove items from cart")
+      return false
+    }
+
     try {
-      console.log(`Removing cart item ${cartItemId}`)
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/cart/${cartItemId}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      })
-      
-      if (!res.ok) {
-        console.error(`Error removing cart item: HTTP ${res.status}`)
-        return false
-      }
-      
-      const data = await res.json()
-      console.log("Remove cart item response:", data)
+      console.log(`Removing cart item: ${cartItemId}`)
+      const response = await api.delete(`/api/cart/${cartItemId}`)
+      const data = response.data as any
       
       if (data.success) {
         setCart(data.cart || [])
-        
-        // Use cartTotal from API if available, otherwise calculate it
         if (typeof data.cartTotal === 'number') {
-          console.log(`Setting cart total to ${data.cartTotal} from API`)
           setCartTotal(data.cartTotal)
-        } else if (data.cart?.length === 0) {
-          // If cart is empty, total is 0
-          setCartTotal(0)
         } else {
-          // Fallback calculation
-          const total = (data.cart || []).reduce((sum: number, item: CartItem) => {
-            const price = item.product?.price || item.price || 0
-            return sum + (price * item.quantity)
-          }, 0)
-          console.log(`Calculated cart total: ${total}`)
-          setCartTotal(total)
+          setCartTotal(0)
         }
+        toast.success("Item removed from cart")
         return true
       }
       return false
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error removing from cart:', error)
+      toast.error(error?.response?.data?.message || "Failed to remove item from cart")
       return false
     }
-  }
-  
-  const clearCart = async () => {
-    try {
-      console.log("Clearing cart")
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/cart`, {
-        method: "DELETE",
-        credentials: "include",
-      })
-      
-      if (!res.ok) {
-        console.error(`Error clearing cart: HTTP ${res.status}`)
-        return false
-      }
-      
-      const data = await res.json()
-      console.log("Clear cart response:", data)
-      
-      if (data.success) {
-        setCart([])
-        setCartTotal(0)
-        return true
-      }
+  }, [isAuthenticated])
+
+  const clearCart = useCallback(async () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to clear cart")
       return false
-    } catch (error) {
+    }
+
+    try {
+      await api.delete('/api/cart/clear')
+      setCart([])
+      setCartTotal(0)
+      toast.success("Cart cleared")
+      return true
+    } catch (error: any) {
       console.error('Error clearing cart:', error)
+      toast.error(error?.response?.data?.message || "Failed to clear cart")
       return false
     }
-  }
-  
-  const createOrder = async (params?: {
-    shippingAddress?: any
-    paymentMethod?: string
-    orderNotes?: string
+  }, [isAuthenticated])
+
+  const createOrder = useCallback(async (params?: {
+    customerInfo?: any;
+    paymentMethod?: string;
+    orderNotes?: string;
   }) => {
+    if (!isAuthenticated) {
+      toast.error("Please login to create an order")
+      return { success: false }
+    }
+
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/orders`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(params || {}),
+      const response = await api.post('/api/orders', {
+        customerInfo: params?.customerInfo,
+        paymentMethod: params?.paymentMethod || "WhatsApp",
+        orderNotes: params?.orderNotes
       })
-      
-      const data = await res.json()
+      const data = response.data as any
       
       if (data.success) {
-        // Clear cart on successful order creation
+        // Clear cart after successful order
         setCart([])
         setCartTotal(0)
         return {
@@ -303,52 +250,49 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
       
       return { success: false }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating order:', error)
+      toast.error(error?.response?.data?.message || "Failed to create order")
       return { success: false }
     }
-  }
+  }, [isAuthenticated])
 
+  // Fetch cart when user authentication changes
   useEffect(() => {
     fetchCart()
   }, [fetchCart])
-  
-  // Ensure cartTotal is always in sync with cart items
+
+  // Calculate total if cart changes but total is 0
   useEffect(() => {
     if (cart.length === 0) {
       setCartTotal(0)
       return
     }
-    
-    // Only recalculate if cartTotal is 0 but we have items
-    // This is a failsafe for when the API doesn't return cartTotal
+
+    // Recalculate total if needed
     if (cartTotal === 0 && cart.length > 0) {
-      const calculatedTotal = cart.reduce((sum, item) => {
+      const total = cart.reduce((sum, item) => {
         const price = item.product?.price || item.price || 0
         return sum + (price * item.quantity)
       }, 0)
-      
-      if (calculatedTotal > 0) {
-        console.log(`Recalculated cart total: ${calculatedTotal}`)
-        setCartTotal(calculatedTotal)
-      }
+      setCartTotal(total)
     }
   }, [cart, cartTotal])
 
-  const contextValue: CartContextType = {
-    cart,
-    cartTotal,
-    loading,
-    fetchCart,
-    addToCart,
-    updateCartItem,
-    removeFromCart,
-    clearCart,
-    createOrder,
-  }
-
   return (
-    <CartContext.Provider value={contextValue}>
+    <CartContext.Provider
+      value={{
+        cart,
+        cartTotal,
+        loading,
+        fetchCart,
+        addToCart,
+        updateCartItem,
+        removeFromCart,
+        clearCart,
+        createOrder,
+      }}
+    >
       {children}
     </CartContext.Provider>
   )
@@ -356,7 +300,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
 export function useCart() {
   const context = useContext(CartContext)
-  if (!context) {
+  if (context === undefined) {
     throw new Error("useCart must be used within a CartProvider")
   }
   return context

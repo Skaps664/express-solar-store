@@ -108,14 +108,8 @@ const cartItems = cart
       return
     }
     
-    setCheckoutLoading(true)
-    try {
-      // Add checkout logic here
-      setCheckoutLoading(false)
-    } catch (error) {
-      console.error('Checkout failed:', error)
-      setCheckoutLoading(false)
-    }
+    // Redirect to new checkout page
+    router.push('/checkout')
   }
 
   if (cartItems.length === 0) {
@@ -295,7 +289,7 @@ const cartItems = cart
                   Get instant support and place your order directly through WhatsApp
                 </p>
                 <a
-                  href="https://wa.me/923001234567?text=Hi! I'm interested in ordering solar products from my cart. Can you help me complete my order?"
+                  href="https://wa.me/923259327819?text=Hi! I'm interested in ordering solar products from my cart. Can you help me complete my order?"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block"

@@ -58,6 +58,31 @@
   }
 }
 
+/* Fix for aria-hidden focus conflicts with dropdown menus and dialogs */
+@layer utilities {
+  /* Ensure dropdown menus have proper focus management */
+  [data-radix-popper-content-wrapper] {
+    z-index: 60 !important;
+  }
+  
+  /* Prevent focus conflicts in nested interactive elements */
+  [data-state="open"][data-radix-popper-content-wrapper] {
+    pointer-events: auto !important;
+  }
+  
+  /* Ensure dropdown menu items remain focusable */
+  [role="menuitem"], [role="button"] {
+    pointer-events: auto !important;
+  }
+  
+  /* Override aria-hidden for interactive content */
+  [aria-hidden="true"] [role="menuitem"],
+  [aria-hidden="true"] [role="button"],
+  [aria-hidden="true"] [data-radix-dropdown-menu-content],
+  [aria-hidden="true"] [data-radix-dropdown-menu-item] {
+    pointer-events: auto !important;
+  }
+}
 
 @font-face {
   font-family: 'Inter';

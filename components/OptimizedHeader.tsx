@@ -164,11 +164,11 @@ export default function OptimizedHeader() {
                   {user ? (
                     <>
                       <Link
-                        href="/profile"
+                        href="/account"
                         className="block px-4 py-2 text-sm hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
                       >
-                        My Profile
+                        My Account
                       </Link>
                       <Link
                         href="/orders"

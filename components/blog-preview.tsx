@@ -71,26 +71,26 @@ export default function BlogPreview() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         {blogPosts.map((blog, index) => (
           <div
             key={index}
             className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-all"
           >
-            <div className="h-48 bg-gray-100 relative">
+            <div className="h-32 md:h-48 bg-gray-100 relative">
               <Image src={blog.image || "/placeholder.svg"} alt={blog.title} fill className="object-cover" />
               <div className="absolute top-3 right-3 bg-[#1a5ca4] text-white text-xs px-2 py-1 rounded">
                 {blog.category}
               </div>
             </div>
-            <div className="p-4">
-              <div className="flex items-center gap-1 text-gray-500 text-sm mb-2">
-                <Calendar className="h-4 w-4" />
+            <div className="p-3 md:p-4">
+              <div className="flex items-center gap-1 text-gray-500 text-xs md:text-sm mb-2">
+                <Calendar className="h-3 w-3 md:h-4 md:w-4" />
                 <span>{blog.date}</span>
               </div>
-              <h3 className="font-bold text-lg mb-2 text-[#1a5ca4]">{blog.title}</h3>
-              <p className="text-gray-600 text-sm mb-4 line-clamp-3">{blog.excerpt}</p>
-              <Button variant="outline" className="w-full border-[#1a5ca4] text-[#1a5ca4]" asChild>
+              <h3 className="font-bold text-sm md:text-lg mb-2 text-[#1a5ca4] line-clamp-2">{blog.title}</h3>
+              <p className="text-gray-600 text-xs md:text-sm mb-3 md:mb-4 line-clamp-2 md:line-clamp-3">{blog.excerpt}</p>
+              <Button variant="outline" className="w-full border-[#1a5ca4] text-[#1a5ca4] text-xs md:text-sm" asChild>
                 <Link href={`/blogs/${blog.slug}`}>Read More</Link>
               </Button>
             </div>

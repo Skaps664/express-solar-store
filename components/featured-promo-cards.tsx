@@ -33,19 +33,19 @@ export default function FeaturedPromoCards() {
     <div className="my-8">
       <h2 className="text-2xl font-bold text-[#1a5ca4] mb-6">{headingData?.topRatedHeading || "Browse Top Rated Productsss"}</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Solar Panels Card */}
         <Link href="/category/solar-panels" className="group">
-          <div className="bg-blue-50 rounded-lg overflow-hidden relative h-[350px] hover:shadow-lg transition-all">
-            <div className="absolute inset-0 p-6 flex flex-col justify-between z-10">
+          <div className="bg-blue-50 rounded-lg overflow-hidden relative h-[280px] md:h-[350px] hover:shadow-lg transition-all">
+            <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-between z-10">
               <div>
                 <div className="bg-[#1a5ca4] text-white text-xs font-bold px-2 py-1 rounded inline-block mb-2">
                   BESTSELLER
                 </div>
-                <h3 className="text-2xl font-bold text-[#1a5ca4] mb-2">Solar Panels</h3>
-                <p className="text-gray-700">High-efficiency panels for maximum energy production</p>
+                <h3 className="text-lg md:text-2xl font-bold text-[#1a5ca4] mb-1 md:mb-2">Solar Panels</h3>
+                <p className="text-gray-700 text-xs md:text-sm">High-efficiency panels for maximum energy production</p>
               </div>
-              <Button className="bg-[#1a5ca4] hover:bg-[#0e4a8a] w-fit">Shop Now</Button>
+              <Button className="bg-[#1a5ca4] hover:bg-[#0e4a8a] w-fit text-xs md:text-sm">Shop Now</Button>
             </div>
             <Image
               src="eighteen.jpg"
@@ -58,16 +58,16 @@ export default function FeaturedPromoCards() {
 
         {/* Inverters Card */}
         <Link href="/category/inverters" className="group">
-          <div className="bg-green-50 rounded-lg overflow-hidden relative h-[350px] hover:shadow-lg transition-all">
-            <div className="absolute inset-0 p-6 flex flex-col justify-between z-10">
+          <div className="bg-green-50 rounded-lg overflow-hidden relative h-[280px] md:h-[350px] hover:shadow-lg transition-all">
+            <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-between z-10">
               <div>
                 <div className="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded inline-block mb-2">
                   NEW ARRIVAL
                 </div>
-                <h3 className="text-2xl font-bold text-[#1a5ca4] mb-2">Smart Inverters</h3>
-                <p className="text-gray-700">Convert DC to AC with maximum efficiency</p>
+                <h3 className="text-lg md:text-2xl font-bold text-[#1a5ca4] mb-1 md:mb-2">Smart Inverters</h3>
+                <p className="text-gray-700 text-xs md:text-sm">Convert DC to AC with maximum efficiency</p>
               </div>
-              <Button className="bg-[#1a5ca4] hover:bg-[#0e4a8a] w-fit">Shop Now</Button>
+              <Button className="bg-[#1a5ca4] hover:bg-[#0e4a8a] w-fit text-xs md:text-sm">Shop Now</Button>
             </div>
             <Image
               src="q5.jpeg"
@@ -80,16 +80,16 @@ export default function FeaturedPromoCards() {
 
         {/* Batteries Card */}
         <Link href="/category/batteries" className="group">
-          <div className="bg-amber-50 rounded-lg overflow-hidden relative h-[350px] hover:shadow-lg transition-all">
-            <div className="absolute inset-0 p-6 flex flex-col justify-between z-10">
+          <div className="bg-amber-50 rounded-lg overflow-hidden relative h-[280px] md:h-[350px] hover:shadow-lg transition-all">
+            <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-between z-10">
               <div>
                 <div className="bg-amber-600 text-white text-xs font-bold px-2 py-1 rounded inline-block mb-2">
                   SALE
                 </div>
-                <h3 className="text-2xl font-bold text-[#1a5ca4] mb-2">Energy Storage</h3>
-                <p className="text-gray-700">Store excess energy for when you need it most</p>
+                <h3 className="text-lg md:text-2xl font-bold text-[#1a5ca4] mb-1 md:mb-2">Energy Storage</h3>
+                <p className="text-gray-700 text-xs md:text-sm">Store excess energy for when you need it most</p>
               </div>
-              <Button className="bg-[#1a5ca4] hover:bg-[#0e4a8a] w-fit">Shop Now</Button>
+              <Button className="bg-[#1a5ca4] hover:bg-[#0e4a8a] w-fit text-xs md:text-sm">Shop Now</Button>
             </div>
             <Image
               src="q4.jpeg"
@@ -101,16 +101,16 @@ export default function FeaturedPromoCards() {
         </Link>
 
         <Link href="/category/accessories" className="group">
-          <div className="bg-blue-50 rounded-lg overflow-hidden relative h-[350px] hover:shadow-lg transition-all">
-            <div className="absolute inset-0 p-6 flex flex-col justify-between z-10">
+          <div className="bg-blue-50 rounded-lg overflow-hidden relative h-[280px] md:h-[350px] hover:shadow-lg transition-all">
+            <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-between z-10">
               <div>
                 <div className="bg-amber-600 text-white text-xs font-bold px-2 py-1 rounded inline-block mb-2">
                   SALE
                 </div>
-                <h3 className="text-2xl font-bold text-[#1a5ca4] mb-2">Accessries</h3>
-                <p className="text-gray-700">what you need for your setup.</p>
+                <h3 className="text-lg md:text-2xl font-bold text-[#1a5ca4] mb-1 md:mb-2">Accessories</h3>
+                <p className="text-gray-700 text-xs md:text-sm">what you need for your setup.</p>
               </div>
-              <Button className="bg-[#1a5ca4] hover:bg-[#0e4a8a] w-fit">Shop Now</Button>
+              <Button className="bg-[#1a5ca4] hover:bg-[#0e4a8a] w-fit text-xs md:text-sm">Shop Now</Button>
             </div>
             <Image
               src="q11.jpeg"

@@ -59,6 +59,12 @@ export default function FeaturedBrandProducts() {
       price: 150000,
       image: "/13.png?height=180&width=180",
     },
+    {
+      id: "jinko-380w-panel",
+      name: "JinkoSolar EcoSeries 380W Mono Solar Panel with Advanced Technology",
+      price: 110000,
+      image: "/11.png?height=180&width=180",
+    },
   ]
 
   // Format price in PKR with commas
@@ -112,72 +118,42 @@ export default function FeaturedBrandProducts() {
   </Link>
 </div>
 
-        {/* Products grid for mobile - original layout with fixes */}
-        <div className="space-y-4">
-          {/* Top row - two products side by side */}
-          <div className="flex gap-4">
-            {products.slice(0, 2).map((product) => (
-              <div key={product.id} className="relative w-1/2">
-                <button className="absolute top-2 right-2 z-10 text-gray-500 hover:text-red-500 bg-white rounded-full p-1">
-                  <Heart size={16} />
-                </button>
-                <Link href={`/product/${product.id}`} className="block group">
-                  <div className="h-32 bg-gray-100 rounded-md flex items-center justify-center mb-2 overflow-hidden">
-                    <Image
-                      src={product.image || "/placeholder.svg"}
-                      alt={product.name}
-                      width={120}
-                      height={120}
-                      className="object-contain group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="pr-6">
-                    <div className="text-sm font-bold">{formatPrice(product.price)}</div>
-                    <h3 className="text-xs line-clamp-2 group-hover:text-[#1a5ca4] transition-colors">
-                      {product.name}
-                    </h3>
-                  </div>
-                </Link>
-                <button className="absolute bottom-0 right-0 flex items-center justify-center w-7 h-7 border border-gray-300 rounded-full hover:bg-gray-100">
-                  <Plus size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom row - single stretched product */}
-          <div className="relative">
-            <button className="absolute top-2 right-2 z-10 text-gray-500 hover:text-red-500 bg-white rounded-full p-1">
-              <Heart size={16} />
-            </button>
-            <Link href={`/product/${products[2].id}`} className="block group">
-              <div className="h-40 bg-gray-100 rounded-md flex items-center justify-center mb-2 overflow-hidden">
-                <Image
-                  src={products[2].image || "/placeholder.svg"}
-                  alt={products[2].name}
-                  width={280}
-                  height={160}
-                  className="object-contain group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="pr-10">
-                <div className="text-sm font-bold">{formatPrice(products[2].price)}</div>
-                <h3 className="text-xs line-clamp-2 group-hover:text-[#1a5ca4] transition-colors">
-                  {products[2].name}
-                </h3>
-              </div>
-            </Link>
-            <button className="absolute bottom-0 right-0 flex items-center justify-center w-7 h-7 border border-gray-300 rounded-full hover:bg-gray-100">
-              <Plus size={14} />
-            </button>
-          </div>
+        {/* Products grid for mobile - 2x2 grid */}
+        <div className="grid grid-cols-2 gap-4 auto-rows-max">
+          {products.slice(0, 4).map((product) => (
+            <div key={product.id} className="relative flex flex-col">
+              <button className="absolute top-2 right-2 z-10 text-gray-500 hover:text-red-500 bg-white rounded-full p-1">
+                <Heart size={16} />
+              </button>
+              <Link href={`/product/${product.id}`} className="block group flex-1">
+                <div className="h-32 bg-gray-100 rounded-md flex items-center justify-center mb-2 overflow-hidden">
+                  <Image
+                    src={product.image || "/placeholder.svg"}
+                    alt={product.name}
+                    width={120}
+                    height={120}
+                    className="object-contain group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="pr-6 pb-8">
+                  <div className="text-sm font-bold">{formatPrice(product.price)}</div>
+                  <h3 className="text-xs line-clamp-2 group-hover:text-[#1a5ca4] transition-colors">
+                    {product.name}
+                  </h3>
+                </div>
+              </Link>
+              <button className="absolute bottom-0 right-0 flex items-center justify-center w-7 h-7 border border-gray-300 rounded-full hover:bg-gray-100">
+                <Plus size={14} />
+              </button>
+            </div>
+          ))}
         </div>
       </div>
 
       {/* Original desktop layout - only visible on lg screens and up */}
       <div className="hidden lg:flex lg:flex-row gap-6">
         {/* Left side - Products (65% width) */}
-        <div className="lg:w-[65%] grid grid-cols-3 gap-4">
+        <div className="lg:w-[65%] grid grid-cols-4 gap-4">
           {products.map((product) => (
             <div key={product.id} className="relative">
               <button className="absolute top-2 right-2 z-10 text-gray-500 hover:text-red-500 bg-white rounded-full p-1">

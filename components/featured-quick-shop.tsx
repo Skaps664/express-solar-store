@@ -116,9 +116,13 @@ export default function FeaturedProducts() {
   // Carousel navigation functions
   const nextSlide = () => {
     if (isTransitioning || products.length === 0) return
+    
+    // If we have fewer or equal products than items per view, don't scroll
+    if (products.length <= itemsPerView) return
+    
     setIsTransitioning(true)
     setCurrentIndex((prev) => {
-      const maxIndex = Math.max(0, products.length - itemsPerView)
+      const maxIndex = products.length - itemsPerView
       return prev >= maxIndex ? 0 : prev + 1
     })
     setTimeout(() => setIsTransitioning(false), 300)
@@ -126,9 +130,13 @@ export default function FeaturedProducts() {
 
   const prevSlide = () => {
     if (isTransitioning || products.length === 0) return
+    
+    // If we have fewer or equal products than items per view, don't scroll
+    if (products.length <= itemsPerView) return
+    
     setIsTransitioning(true)
     setCurrentIndex((prev) => {
-      const maxIndex = Math.max(0, products.length - itemsPerView)
+      const maxIndex = products.length - itemsPerView
       return prev <= 0 ? maxIndex : prev - 1
     })
     setTimeout(() => setIsTransitioning(false), 300)
@@ -206,7 +214,7 @@ export default function FeaturedProducts() {
             size="icon"
             className="h-9 w-9 rounded-full border-[#1a5ca4] hover:bg-[#1a5ca4] hover:text-white"
             onClick={prevSlide}
-            disabled={isTransitioning || loading || products.length === 0}
+            disabled={isTransitioning || loading || products.length === 0 || products.length <= itemsPerView}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -215,7 +223,7 @@ export default function FeaturedProducts() {
             size="icon"
             className="h-9 w-9 rounded-full border-[#1a5ca4] hover:bg-[#1a5ca4] hover:text-white"
             onClick={nextSlide}
-            disabled={isTransitioning || loading || products.length === 0}
+            disabled={isTransitioning || loading || products.length === 0 || products.length <= itemsPerView}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -257,14 +265,18 @@ export default function FeaturedProducts() {
               className="flex transition-transform duration-300 ease-in-out"
               style={{
                 transform: `translateX(-${currentIndex * (100 / itemsPerView)}%)`,
-                width: `${(products.length / itemsPerView) * 100}%`
+                width: products.length <= itemsPerView ? '100%' : `${(products.length / itemsPerView) * 100}%`
               }}
             >
               {products.map((product, index) => (
                 <div
                   key={product._id}
                   className="flex-shrink-0"
-                  style={{ width: `${100 / products.length}%` }}
+                  style={{ 
+                    width: products.length <= itemsPerView 
+                      ? `${100 / itemsPerView}%` 
+                      : `${100 / products.length}%` 
+                  }}
                 >
                   <div className="px-2">
                     <Link

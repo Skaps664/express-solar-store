@@ -18,12 +18,14 @@ interface PriceData {
 export default function PriceTicker() {
   const [position, setPosition] = useState(0)
   const [prices, setPrices] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
 
   // Fetch prices from Sanity
   useEffect(() => {
     const fetchPrices = async () => {
+      setLoading(true) // Start loading
       try {
         console.log("Fetching ticker content...")
         const data: PriceData = await client.fetch(`
@@ -58,13 +60,17 @@ export default function PriceTicker() {
       } catch (error) {
         console.error("Failed to fetch prices from Sanity:", error)
         setPrices([])
+      } finally {
+        setLoading(false) // End loading
       }
     }
 
     fetchPrices()
   }, [])
 
-  const tickerText = prices.join(" | ")
+  const tickerText = loading 
+    ? "Loading latest solar prices... Please wait... Stay tuned for the best solar prices..." 
+    : prices.join(" | ")
 
   useEffect(() => {
     if (!containerRef.current || !contentRef.current) return
@@ -82,12 +88,7 @@ export default function PriceTicker() {
 
     const tickerInterval = setInterval(animate, 30)
     return () => clearInterval(tickerInterval)
-  }, [prices]) // Depend on prices to recalculate when content changes
-
-  // Don't render if no prices are loaded
-  if (prices.length === 0) {
-    return null
-  }
+  }, [prices, loading]) // Added loading dependency
 
   return (
     <div 
@@ -99,7 +100,7 @@ export default function PriceTicker() {
         className="inline-block"
         style={{ transform: `translateX(${position}px)` }}
       >
-        {/* Duplicate content multiple times to ensure continuous flow */}
+        {/* Show loading or actual content with duplicates for continuous flow */}
         {tickerText} | {tickerText} | {tickerText} | {tickerText}
       </div>
     </div>

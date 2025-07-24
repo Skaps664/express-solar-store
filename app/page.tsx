@@ -12,7 +12,7 @@ import FeaturedPromoCards from "@/components/featured-promo-cards"
 import BestSellers from "@/components/best-sellers"
 import NewArrivals from "@/components/new-arrivals"
 import FeaturedBrands from "@/components/featured-brands-card"
-import SolarAd from "@/components/installation-services"
+import SolarAd from "@/components/SolarAd"
 import FeaturedQuickShop from "@/components/featured-quick-shop"
 
 import MiniTopSolarAd from "@/components/miniTopSolarAd"

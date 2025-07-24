@@ -191,13 +191,13 @@ export default function FeaturedProducts() {
         <div>
           <h2 className="text-2xl font-bold text-[#1a5ca4] flex items-center gap-3">
             <TrendingUp className="h-6 w-6 text-[#f26522]" />
-            {headingData?.featuredProductsHeading?.title || "Featured Products"}
+            {headingData?.featuredProductsHeading?.title || "Feature Products"}
             <span className="bg-gradient-to-r from-[#f26522] to-[#ff8c42] text-white text-xs px-3 py-1 rounded-full">
               FEATURED
             </span>
           </h2>
           <p className="text-gray-600 mt-1 text-sm">
-            {headingData?.featuredProductsHeading?.subtext || "Discover our handpicked featured products"}
+            {headingData?.featuredProductsHeading?.subtext || "Discover our handpicked feature products"}
           </p>
         </div>
         <div className="flex gap-2 mt-3 md:mt-0">

@@ -71,7 +71,7 @@ export default function FeaturedProducts() {
     const fetchHeading = async () => {
       try {
         const data: HeadingData = await client.fetch(
-          `*[_type == "homePageContent"]{
+          `*[_type == "homePageContent"][0]{
             featuredProductsHeading{
               title,
               subtext

@@ -1,22 +1,68 @@
 "use client"
 
-import { StepForward } from "lucide-react";
+import { StepForward } from "lucide-react"
 import { useEffect, useState } from "react"
+import { client } from "@/lib/sanity"
+
+interface PriceData {
+  page: string
+  one: string
+  two: string
+  three: string
+  four: string
+  five: string
+  six: string
+  seven: string
+}
 
 export default function PriceTicker() {
   const [position, setPosition] = useState(0)
+  const [prices, setPrices] = useState<string[]>([])
 
- const solarPrices = [
-  "Longi Hi‑Mo 6 575 W Mono/Bifacial – PKR 20,770–21,315",   // typical price range :contentReference[oaicite:1]{index=1}
-  "Longi 550 W Mono PERC – PKR 19,525",                        
-  "Jinko N‑Type 575 W A‑Grade – PKR 17,825",                  
-  "Jinko 550 W Single‑Glass A‑Grade – PKR 15,400",             
-  "Canadian N‑Type Bifacial 575–580 W – PKR 20,700–21,060",    
-  "JA N‑Type Bifacial 580–600 W – PKR 17,250–19,200",          
-  "Trina N‑Type Bifacial 590–620 W – PKR 19,840",              
-];
+  // Fetch prices from Sanity
+  useEffect(() => {
+    const fetchPrices = async () => {
+      try {
+        console.log("Fetching ticker content...")
+        const data: PriceData = await client.fetch(`
+          *[_type == "tickerContent"][0] {
+            page,
+            one,
+            two,
+            three,
+            four,
+            five,
+            six,
+            seven
+          }
+        `)
+        
+        console.log("Received data from Sanity:", data)
+        
+        if (data) {
+          const pricesArray = [
+            data.one,
+            data.two,
+            data.three,
+            data.four,
+            data.five,
+            data.six,
+            data.seven,
+          ].filter(Boolean) // Remove any null/undefined values
+          
+          setPrices(pricesArray)
+          console.log("Processed prices array:", pricesArray)
+        }
+      } catch (error) {
+        console.error("Failed to fetch prices from Sanity:", error)
+        setPrices([])
+      }
+    }
 
-  const tickerText = solarPrices.join(" | ")
+    fetchPrices()
+  }, [])
+
+  const tickerText = prices.join(" | ")
 
   useEffect(() => {
     const tickerInterval = setInterval(() => {
@@ -30,6 +76,11 @@ export default function PriceTicker() {
 
     return () => clearInterval(tickerInterval)
   }, [])
+
+  // Don't render if no prices are loaded
+  if (prices.length === 0) {
+    return null
+  }
 
   return (
     <div className="overflow-hidden whitespace-nowrap bg-[#ff6900] text-white py-1">

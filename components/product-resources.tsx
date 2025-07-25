@@ -52,8 +52,10 @@ const Button = ({ children, variant = "default", size = "default", className = "
 };
 
 // Tabs components (simplified version)
-const Tabs = ({ children, defaultValue, className = "" }: any) => {
-  const [activeTab, setActiveTab] = useState(defaultValue);
+const Tabs = ({ children, defaultValue, value, onValueChange, className = "" }: any) => {
+  const [internalActiveTab, setInternalActiveTab] = useState(defaultValue);
+  const activeTab = value !== undefined ? value : internalActiveTab;
+  const setActiveTab = onValueChange || setInternalActiveTab;
   
   return (
     <div className={className} data-active-tab={activeTab}>
@@ -149,6 +151,13 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
   const documents = finalResources.filter(resource => resource.type === 'document');
   const videos = finalResources.filter(resource => resource.type === 'video');
   const [selectedVideo, setSelectedVideo] = useState<Resource | null>(videos.length > 0 ? videos[0] : null);
+  const [activeTab, setActiveTab] = useState('all');
+  
+  // Function to handle video selection from all resources tab
+  const handleVideoSelect = (video: Resource) => {
+    setSelectedVideo(video);
+    setActiveTab('videos');
+  };
   
   // Function to extract YouTube video ID
   const getVideoId = (url: string): string => {
@@ -193,7 +202,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
   
   return (
     <div>
-      <Tabs defaultValue="all">
+      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="all">All Resources ({finalResources.length})</TabsTrigger>
           {documents.length > 0 && <TabsTrigger value="documents">Documents ({documents.length})</TabsTrigger>}
@@ -204,7 +213,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
           {/* Video player */}
           {selectedVideo && (
             <div className="mb-6">
-              <div className="bg-gray-100 rounded-lg overflow-hidden">
+              <div className="bg-gray-100 rounded-lg overflow-hidden max-w-2xl mx-auto lg:mx-0">
                 <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden' }}>
                   {selectedVideo.url ? (
                     <iframe 
@@ -224,7 +233,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
               </div>
               
               {/* Video info */}
-              <div className="mt-4">
+              <div className="mt-4 max-w-2xl mx-auto lg:mx-0">
                 <h3 className="text-lg font-medium">{selectedVideo.title || 'Untitled Video'}</h3>
                 {selectedVideo.description && (
                   <p className="text-sm text-gray-600 mt-1">{selectedVideo.description}</p>
@@ -312,7 +321,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
                 className={`border rounded-lg p-4 hover:shadow-md ${
                   resource.type === 'video' ? 'cursor-pointer' : ''
                 }`}
-                onClick={() => resource.type === 'video' ? setSelectedVideo(resource) : null}
+                onClick={() => resource.type === 'video' ? handleVideoSelect(resource) : null}
               >
                 <div className="flex items-start">
                   <div className="rounded-full p-2 bg-blue-100 text-blue-600 mr-3">
@@ -342,8 +351,13 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
                         </a>
                       </Button>
                     ) : (
-                      <div className="text-xs text-gray-400 mt-2 truncate">
-                        {resource.url}
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="text-xs text-gray-400 truncate flex-1 mr-2">
+                          {resource.url}
+                        </div>
+                        <div className="text-xs text-blue-600 font-medium whitespace-nowrap">
+                          Click to watch
+                        </div>
                       </div>
                     )}
                   </div>

@@ -9,7 +9,7 @@ import { Sun, Battery, Zap, Home, Wrench, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import PriceTicker from "./price-ticker"
-import { useRouter, usePathname } from "next/navigation"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
 import { useCart } from "@/context/CartContext"
 import { MiniCart } from "./mini-cart"
@@ -104,6 +104,7 @@ export default function Header({ user }: HeaderProps) {
 	const router = useRouter()
 	const pathname = usePathname()
 	const [dropdownOpen, setDropdownOpen] = useState(false)
+	const searchParams = useSearchParams()
 
 	useEffect(() => {
 		async function fetchNavigationData() {
@@ -197,6 +198,17 @@ export default function Header({ user }: HeaderProps) {
 
 		fetchNavigationData();
 	}, [])
+
+	// Sync search term with URL parameters
+	useEffect(() => {
+		const searchParam = searchParams.get('search')
+		if (searchParam && searchParam !== searchTerm) {
+			setSearchTerm(searchParam)
+		} else if (!searchParam && pathname !== '/store' && searchTerm) {
+			// Clear search term when not on store page and no search param
+			setSearchTerm('')
+		}
+	}, [searchParams, pathname])
 
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
@@ -304,7 +316,7 @@ export default function Header({ user }: HeaderProps) {
 			setIsMobileMenuOpen(false)
 			setActiveCategory(null)
 			setActiveBrand(null)
-			setSearchTerm("")
+			// Don't clear search term here - let URL sync handle it
 		}
 	}
 

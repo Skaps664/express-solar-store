@@ -1,20 +1,45 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { client } from "@/lib/sanity"
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE
+
 type HeadingData = {
   flashDealsHeading: string
 }
 
+type Product = {
+  _id: string
+  slug: string
+  name: string
+  price: number
+  images: string[]
+}
+
+type Offer = {
+  _id: string
+  name: string
+  description?: string
+  discountType: string
+  discountValue: number
+  originalPrice: number
+  discountedPrice: number
+  startDate: string
+  endDate: string
+  product: Product
+}
+
 export default function FlashDeals() {
-
-
   const [headingData, setHeadingData] = useState<HeadingData | null>(null)
+  const [deals, setDeals] = useState<Offer[]>([])
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     const fetchHeading = async () => {
       try {
@@ -30,6 +55,37 @@ export default function FlashDeals() {
     };
 
     fetchHeading();
+  }, [])
+
+  useEffect(() => {
+    const fetchDeals = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/offers`)
+        if (response.ok) {
+          const data = await response.json()
+          console.log("Fetched offers data:", data)
+          
+          // Filter out offers without product data and ensure they have the required fields
+          const validDeals = data.filter((offer: any) => 
+            offer && 
+            offer.product && 
+            offer.product._id && 
+            offer.product.name &&
+            offer.discountedPrice !== undefined &&
+            offer.originalPrice !== undefined
+          )
+          
+          console.log("Valid deals after filtering:", validDeals)
+          setDeals(validDeals || [])
+        } else {
+          console.error("Failed to fetch offers:", response.status)
+        }
+      } catch (error) {
+        console.error("Failed to fetch offers:", error)
+      }
+    }
+
+    fetchDeals()
   }, [])
 
   const [hours, setHours] = useState(5)
@@ -58,44 +114,33 @@ export default function FlashDeals() {
     return () => clearInterval(timer)
   }, [hours, minutes, seconds])
 
-  const deals = [
-    {
-      id: "jinko-tiger-neo",
-      name: "Jinko 550W Tiger Neo N-Type Solar Panel",
-      originalPrice: 42500,
-      salePrice: 36999,
-      image: "/19.webp?height=150&width=150",
-      discount: "13% OFF",
-    },
-    {
-      id: "growatt-hybrid",
-      name: "Growatt 5kW SPF 5000ES Hybrid Inverter",
-      originalPrice: 185000,
-      salePrice: 159000,
-      image: "/14.webp?height=150&width=150",
-      discount: "14% OFF",
-    },
-    {
-      id: "tesla-powerwall",
-      name: "Tesla Powerwall 13.5kWh Battery",
-      originalPrice: 950000,
-      salePrice: 899000,
-      image: "/16.webp?height=150&width=150",
-      discount: "5% OFF",
-    },
-    {
-      id: "off-grid-kits",
-      name: "Complete 5kW Solar System Package",
-      originalPrice: 750000,
-      salePrice: 675000,
-      image: "/17.webp?height=150&width=150",
-      discount: "10% OFF",
-    },
-  ]
+  // Navigation functions
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current
+      const itemWidth = container.offsetWidth / (window.innerWidth >= 768 ? 4 : 2)
+      container.scrollBy({ left: -itemWidth, behavior: 'smooth' })
+      setCurrentIndex(Math.max(0, currentIndex - 1))
+    }
+  }
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      const container = scrollContainerRef.current
+      const itemWidth = container.offsetWidth / (window.innerWidth >= 768 ? 4 : 2)
+      container.scrollBy({ left: itemWidth, behavior: 'smooth' })
+      setCurrentIndex(Math.min(deals.length - 1, currentIndex + 1))
+    }
+  }
 
   // Format price in PKR with commas
-  const formatPrice = (price) => {
+  const formatPrice = (price: number) => {
     return `PKR ${price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
+  }
+
+  // Calculate discount percentage
+  const calculateDiscount = (original: number, sale: number) => {
+    return Math.round(((original - sale) / original) * 100)
   }
 
   return (
@@ -123,51 +168,78 @@ export default function FlashDeals() {
             </div>
           </div>
         </div>
-        <div className="flex gap-2 mt-2 md:mt-0">
-          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8 rounded-full">
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+        {deals.length > 4 && (
+          <div className="flex gap-2 mt-2 md:mt-0">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="h-8 w-8 rounded-full"
+              onClick={scrollLeft}
+              disabled={currentIndex === 0}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="h-8 w-8 rounded-full"
+              onClick={scrollRight}
+              disabled={currentIndex >= deals.length - 4}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {deals.map((deal, index) => (
+      {deals.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          No flash deals available at the moment.
+        </div>
+      ) : (
+        <div 
+          ref={scrollContainerRef}
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 overflow-x-auto scrollbar-hide"
+          style={{ scrollBehavior: 'smooth' }}
+        >
+          {deals.filter(deal => deal.product).map((deal, index) => (
           <Link
-            key={index}
-            href={`/product/${deal.id}`}
-            className="block border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-all group"
+            key={deal._id}
+            href={`/product/${deal.product.slug}`}
+            className="block border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-all group min-w-0"
           >
             <div className="relative">
               <div className="h-40 bg-gray-100 flex items-center justify-center">
                 <Image
-                  src={deal.image || "/placeholder.svg"}
-                  alt={deal.name}
+                  src={(deal.product.images && deal.product.images[0]) || "/placeholder.svg"}
+                  alt={deal.product.name}
                   width={150}
                   height={150}
                   className="object-contain group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <div className="absolute top-2 right-2 bg-[#f26522] text-white text-xs font-bold px-2 py-1 rounded">
-                {deal.discount}
-              </div>
+              {deal.originalPrice && deal.originalPrice > deal.discountedPrice && (
+                <div className="absolute top-2 right-2 bg-[#f26522] text-white text-xs font-bold px-2 py-1 rounded">
+                  {calculateDiscount(deal.originalPrice, deal.discountedPrice)}% OFF
+                </div>
+              )}
             </div>
             <div className="p-4">
               <h3 className="font-medium text-sm mb-2 line-clamp-2 h-10 group-hover:text-[#1a5ca4] transition-colors">
-                {deal.name}
+                {deal.product.name}
               </h3>
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg font-bold text-[#1a5ca4]">{formatPrice(deal.salePrice)}</span>
-                <span className="text-xs text-gray-500 line-through">{formatPrice(deal.originalPrice)}</span>
+                <span className="text-lg font-bold text-[#1a5ca4]">{formatPrice(deal.discountedPrice)}</span>
+                {deal.originalPrice && deal.originalPrice > deal.discountedPrice && (
+                  <span className="text-xs text-gray-500 line-through">{formatPrice(deal.originalPrice)}</span>
+                )}
               </div>
               <Button
                 className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a]"
                 onClick={(e) => {
                   e.preventDefault()
                   // Add to cart logic
-                  window.location.href = `/cart/add/${deal.id}`
+                  window.location.href = `/cart/add/${deal.product._id}`
                 }}
               >
                 Add to Cart
@@ -175,7 +247,8 @@ export default function FlashDeals() {
             </div>
           </Link>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, Suspense } from "react"
 import Link from "next/link"
 import { Search, ShoppingCart, User, Menu, X, ChevronDown, ChevronRight, MapPin } from "lucide-react"
 import { Sun, Battery, Zap, Home, Wrench, ShieldCheck } from "lucide-react"
@@ -83,6 +83,23 @@ interface HeaderProps {
 	}
 }
 
+// Component that handles search params
+function SearchHandler({ searchTerm, setSearchTerm, pathname }: { searchTerm: string, setSearchTerm: (term: string) => void, pathname: string }) {
+	const searchParams = useSearchParams()
+	
+	useEffect(() => {
+		const searchParam = searchParams.get('search')
+		if (searchParam && searchParam !== searchTerm) {
+			setSearchTerm(searchParam)
+		} else if (!searchParam && pathname !== '/store' && searchTerm) {
+			// Clear search term when not on store page and no search param
+			setSearchTerm('')
+		}
+	}, [searchParams, pathname, searchTerm, setSearchTerm])
+	
+	return null
+}
+
 export default function Header({ user }: HeaderProps) {
 	const { user: authUser, logout } = useAuth()
 	const { cart } = useCart()
@@ -104,7 +121,6 @@ export default function Header({ user }: HeaderProps) {
 	const router = useRouter()
 	const pathname = usePathname()
 	const [dropdownOpen, setDropdownOpen] = useState(false)
-	const searchParams = useSearchParams()
 
 	useEffect(() => {
 		async function fetchNavigationData() {
@@ -198,17 +214,6 @@ export default function Header({ user }: HeaderProps) {
 
 		fetchNavigationData();
 	}, [])
-
-	// Sync search term with URL parameters
-	useEffect(() => {
-		const searchParam = searchParams.get('search')
-		if (searchParam && searchParam !== searchTerm) {
-			setSearchTerm(searchParam)
-		} else if (!searchParam && pathname !== '/store' && searchTerm) {
-			// Clear search term when not on store page and no search param
-			setSearchTerm('')
-		}
-	}, [searchParams, pathname])
 
 	useEffect(() => {
 		function handleClickOutside(event: MouseEvent) {
@@ -337,6 +342,9 @@ export default function Header({ user }: HeaderProps) {
 	
 	return (
 		<header className="sticky top-0 z-50 bg-white">
+			<Suspense fallback={null}>
+				<SearchHandler searchTerm={searchTerm} setSearchTerm={setSearchTerm} pathname={pathname} />
+			</Suspense>
 			<div className="overflow-hidden">
 				<PriceTicker />
 			</div>

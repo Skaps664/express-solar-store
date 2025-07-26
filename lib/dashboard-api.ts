@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3000';
 
 // Get auth token from localStorage
 const getAuthToken = () => {
@@ -22,7 +22,7 @@ export const dashboardApi = {
   // Get dashboard statistics
   getStats: async (days = 30) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/dashboard/stats?days=${days}`, {
+      const response = await fetch(`${API_BASE_URL}/api/dashboard/stats?days=${days}`, {
         method: 'GET',
         headers: getAuthHeaders(),
       });
@@ -42,7 +42,7 @@ export const dashboardApi = {
   // Get recent activity
   getActivity: async (limit = 10) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/dashboard/activity?limit=${limit}`, {
+      const response = await fetch(`${API_BASE_URL}/api/dashboard/activity?limit=${limit}`, {
         method: 'GET',
         headers: getAuthHeaders(),
       });
@@ -62,7 +62,7 @@ export const dashboardApi = {
   // Get all orders (admin)
   getOrders: async (page = 1, limit = 10, status = 'all') => {
     try {
-      const response = await fetch(`${API_BASE_URL}/orders/admin/all?page=${page}&limit=${limit}&status=${status}`, {
+      const response = await fetch(`${API_BASE_URL}/api/orders/admin/all?page=${page}&limit=${limit}&status=${status}`, {
         method: 'GET',
         headers: getAuthHeaders(),
       });
@@ -82,7 +82,7 @@ export const dashboardApi = {
   // Get user statistics
   getUserStats: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/user/admin/stats`, {
+      const response = await fetch(`${API_BASE_URL}/api/user/admin/stats`, {
         method: 'GET',
         headers: getAuthHeaders(),
       });
@@ -102,7 +102,7 @@ export const dashboardApi = {
   // Get site analytics
   getSiteAnalytics: async (startDate = null, endDate = null) => {
     try {
-      let url = `${API_BASE_URL}/analytics/site`;
+      let url = `${API_BASE_URL}/api/analytics/site`;
       const params = new URLSearchParams();
       
       if (startDate) params.append('startDate', startDate);

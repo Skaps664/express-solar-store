@@ -43,6 +43,7 @@ const navigation = [
 
 type AdminUser = {
   isAdmin: boolean
+  role: string
   // add other user properties if needed
 }
 
@@ -56,18 +57,15 @@ export default function AdminLayout({
   const router = useRouter()
   const { user, loading } = useAuth()
 
-  // Explicitly type user as AdminUser or null
-  const adminUser = user as AdminUser | null
-
   useEffect(() => {
     if (loading) return // Wait until loading is false
 
-    if (!adminUser) {
+    if (!user) {
       router.replace(`/auth?redirect=${encodeURIComponent(pathname)}`) // Not logged in
-    } else if (!adminUser.isAdmin) {
+    } else if (!user.isAdmin && user.role !== 'admin') {
       router.replace("/") // Not admin
     }
-  }, [adminUser, loading, router, pathname])
+  }, [user, loading, router, pathname])
 
   if (loading) {
     return (
@@ -76,7 +74,7 @@ export default function AdminLayout({
       </div>
     )
   }
-  if (!adminUser || !adminUser.isAdmin) return null
+  if (!user || (!user.isAdmin && user.role !== 'admin')) return null
 
   const Sidebar = ({ mobile = false }) => (
     <div className="flex h-full flex-col">

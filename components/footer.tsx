@@ -132,7 +132,7 @@ export default function Footer() {
               </a>
             </div>
             <div className="space-y-2">
-              <Input type="email" placeholder="Subscribe to Newsletter" className="bg-white/10 border-white/20 text-sm" />
+              <Input type="email" placeholder="Subscribe to Newsletter" className="text-white bg-white/10 border-white/20 text-sm" />
               <Button className="w-full bg-[#f26522] hover:bg-[#e55511] text-sm">Subscribe</Button>
             </div>
           </div>
@@ -141,7 +141,10 @@ export default function Footer() {
         <hr className="border-white/20 mb-6" />
 
         <div className="text-center text-white/70 text-xs md:text-sm">
-          &copy; {new Date().getFullYear()} Solar Express. All rights reserved. |  Designed & Developed by Team <a href="https://skordl.com" className="text-[#f26522] hover:text-[#e55511]">skordl</a>
+          &copy; {new Date().getFullYear()} Solar Express. All rights reserved.
+          <p>
+        Designed & developed with <span className="text-[#39FF14]">♥</span> by <strong>Team <a href="https://skordl.com" className="text-[#39FF14] hover:text-[#e55511]">skordl</a></strong>
+      </p>
         </div>
       </div>
     </footer>

@@ -103,36 +103,7 @@ export default function AnalyticsDashboard() {
   const [entityAnalytics, setEntityAnalytics] = useState<EntityAnalytics | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchLoading, setSearchLoading] = useState(false);
   const [selectedEntity, setSelectedEntity] = useState<SelectedEntity | null>(null);
-
-  // Handle entity search using the new unified search endpoint
-  const handleEntitySearch = async (searchTerm: string, type: 'product' | 'brand') => {
-    if (!searchTerm) return [];
-    
-    setSearchLoading(true);
-    try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3000';
-      
-      const response = await api.get('/api/entity-search/search', {
-        params: {
-          q: searchTerm,
-          limit: 20
-        }
-      });
-      
-      if (response.data.success) {
-        // Data is already in the correct format with names, slugs, and view counts
-        return response.data.data;
-      }
-      return [];
-    } catch (error) {
-      console.error(`Error searching ${type}s:`, error);
-      return [];
-    } finally {
-      setSearchLoading(false);
-    }
-  };
 
   // Fetch site analytics when date range changes
   useEffect(() => {
@@ -379,19 +350,17 @@ export default function AnalyticsDashboard() {
                   <div className="flex-1">
                     <h4 className="mb-2 text-sm font-medium">Product Analytics</h4>
                     <EntitySearch
-                      onSearch={(query) => handleEntitySearch(query, 'product')}
+                      type="product"
                       onSelect={(entity) => handleEntitySelect(entity, 'product')}
                       placeholder="Search for a product..."
-                      loading={searchLoading}
                     />
                   </div>
                   <div className="flex-1">
                     <h4 className="mb-2 text-sm font-medium">Brand Analytics</h4>
                     <EntitySearch
-                      onSearch={(query) => handleEntitySearch(query, 'brand')}
+                      type="brand"
                       onSelect={(entity) => handleEntitySelect(entity, 'brand')}
                       placeholder="Search for a brand..."
-                      loading={searchLoading}
                     />
                   </div>
                 </div>
@@ -543,10 +512,9 @@ export default function AnalyticsDashboard() {
               </CardHeader>
               <CardContent>
                 <EntitySearch
-                  onSearch={(query) => handleEntitySearch(query, 'brand')}
+                  type="brand"
                   onSelect={(entity) => handleEntitySelect(entity, 'brand')}
                   placeholder="Search for a brand..."
-                  loading={searchLoading}
                 />
                 
                 {selectedEntity?.type === 'brand' && entityAnalytics && (
@@ -645,10 +613,9 @@ export default function AnalyticsDashboard() {
               </CardHeader>
               <CardContent>
                 <EntitySearch
-                  onSearch={(query) => handleEntitySearch(query, 'product')}
+                  type="product"
                   onSelect={(entity) => handleEntitySelect(entity, 'product')}
                   placeholder="Search for a product..."
-                  loading={searchLoading}
                 />
                 
                 {selectedEntity?.type === 'product' && entityAnalytics && (

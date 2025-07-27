@@ -11,7 +11,7 @@ export default function Footer() {
           {/* Contact Info */}
           <div className="lg:col-span-2">
             <div className="mb-6">
-              <img src="/logo-crop.PNG" alt="Solar Express Logo" className="h-12 md:h-12" />
+              <img src="/logo-crop.png" alt="Solar Express Logo" className="h-12 md:h-12" />
             </div>
             <h3 className="text-lg md:text-xl font-bold mb-4">Contact Us</h3>
             <ul className="space-y-3">

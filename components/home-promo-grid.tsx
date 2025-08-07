@@ -26,7 +26,66 @@ export default function HomePromoGrid() {
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
         </Link>
+        
+        <Link
+          href="/services/installation"
+          className="col-span-2 rounded-lg overflow-hidden p-6 h-[300px] group hover:shadow-lg transition-all relative"
+        >
+          {/* <div className="flex flex-col md:flex-row h-full justify-between items-center relative z-10">
+            <div className="md:w-2/3">
+              <h2 className="text-2xl font-bold text-white mb-2">Free installation with SolarExpress+</h2>
+              <p className="text-white mb-4">One free consultation per customer. T&C apply.</p>
+              <span className="text-white font-semibold hover:underline">Try SolarExpress+ for free</span>
+            </div>
+          </div> */}
+          <Image
+            src="/wer.jpg"
+            alt="Solar Panel Installation"
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        </Link>
 
+        
+
+        {/* Tall Right Block (spans both rows) */}
+        <Link
+          href="/premium-solutions"
+          className="col-span-1 row-span-2 rounded-lg overflow-hidden p-6 flex flex-col justify-between group hover:shadow-lg transition-all h-[610px] relative"
+        >
+          {/* <div className="relative z-10">
+            <h2 className="text-2xl font-bold text-white mb-4">Premium solar solutions for homes</h2>
+            <span className="text-white font-semibold hover:underline">Shop now</span>
+          </div> */}
+          <Image
+            src="/q1.jpeg"
+            alt="Premium Solar Home Installation"
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        </Link>
+
+        {/* Bottom Row */}
+        <Link
+          href="/summer-deals"
+          className="col-span-1 bg-blue-100 rounded-lg overflow-hidden p-6 h-[300px] group hover:shadow-lg transition-all relative"
+        >
+          {/* <div className="flex flex-col h-full justify-between relative z-10">
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-2">Summer energy</h2>
+              <h2 className="text-2xl font-bold text-white mb-4">savings from PKR 25,000</h2>
+              <span className="text-white font-semibold hover:underline">Shop now</span>
+            </div>
+          </div> */}
+          <Image
+            src="/q8.jpeg"
+            alt="Solar Panels in Summer"
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        </Link>
+
+        
         <Link
           href="/category/solar-panels"
           className="col-span-1 rounded-lg overflow-hidden p-6 h-[300px] group hover:shadow-lg transition-all relative"
@@ -74,61 +133,6 @@ export default function HomePromoGrid() {
           />
         </Link>
 
-        {/* Tall Right Block (spans both rows) */}
-        <Link
-          href="/premium-solutions"
-          className="col-span-1 row-span-2 rounded-lg overflow-hidden p-6 flex flex-col justify-between group hover:shadow-lg transition-all h-[610px] relative"
-        >
-          {/* <div className="relative z-10">
-            <h2 className="text-2xl font-bold text-white mb-4">Premium solar solutions for homes</h2>
-            <span className="text-white font-semibold hover:underline">Shop now</span>
-          </div> */}
-          <Image
-            src="/q1.jpeg"
-            alt="Premium Solar Home Installation"
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        </Link>
-
-        {/* Bottom Row */}
-        <Link
-          href="/summer-deals"
-          className="col-span-1 bg-blue-100 rounded-lg overflow-hidden p-6 h-[300px] group hover:shadow-lg transition-all relative"
-        >
-          {/* <div className="flex flex-col h-full justify-between relative z-10">
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-2">Summer energy</h2>
-              <h2 className="text-2xl font-bold text-white mb-4">savings from PKR 25,000</h2>
-              <span className="text-white font-semibold hover:underline">Shop now</span>
-            </div>
-          </div> */}
-          <Image
-            src="/q8.jpeg"
-            alt="Solar Panels in Summer"
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        </Link>
-
-        <Link
-          href="/services/installation"
-          className="col-span-2 rounded-lg overflow-hidden p-6 h-[300px] group hover:shadow-lg transition-all relative"
-        >
-          {/* <div className="flex flex-col md:flex-row h-full justify-between items-center relative z-10">
-            <div className="md:w-2/3">
-              <h2 className="text-2xl font-bold text-white mb-2">Free installation with SolarExpress+</h2>
-              <p className="text-white mb-4">One free consultation per customer. T&C apply.</p>
-              <span className="text-white font-semibold hover:underline">Try SolarExpress+ for free</span>
-            </div>
-          </div> */}
-          <Image
-            src="/one.jpg"
-            alt="Solar Panel Installation"
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        </Link>
       </div>
 
       {/* REDESIGNED MOBILE VIEW - Modern and Professional Layout */}

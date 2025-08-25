@@ -107,6 +107,218 @@ export default function ProductsPage() {
       .finally(() => setLoading(false))
   }, [])
 
+  // Debug effect to log when edit form state changes
+  useEffect(() => {
+    if (isEditDialogOpen && editProduct) {
+      console.log("Edit dialog opened with state:", {
+        editName,
+        editDescription, 
+        editPrice,
+        editOriginalPrice,
+        editStock,
+        editCategory,
+        editBrand,
+        isFeatured,
+        isBestSeller,
+        isNewArrival,
+        specifications: specifications.length,
+        keyFeatures: editKeyFeatures.length,
+        tags: editTags.length,
+        videos: editVideos.length
+      });
+    }
+  }, [isEditDialogOpen, editProduct, editName, editDescription, editPrice, editOriginalPrice, editStock, editCategory, editBrand, isFeatured, isBestSeller, isNewArrival]);
+
+  // Effect to populate form when editProduct changes
+  useEffect(() => {
+    if (editProduct) {
+      console.log("Populating form from useEffect for product:", editProduct.name);
+      console.log("Product description from database:", editProduct.description);
+      
+      // Basic fields
+      setEditName(editProduct.name || "");
+      setEditDescription(editProduct.description || "");
+      setEditPrice(editProduct.price?.toString() || "");
+      setEditOriginalPrice(editProduct.originalPrice?.toString() || "");
+      setEditStock(editProduct.stock?.toString() || "");
+      setEditViewCount(editProduct.viewCount?.toString() || "0");
+      
+      // Category and brand - handle both object and string formats
+      setEditCategory(typeof editProduct.category === 'object' ? editProduct.category?._id : editProduct.category || "");
+      setEditSubCategory(typeof editProduct.subCategory === 'object' ? editProduct.subCategory?._id : editProduct.subCategory || "");
+      setEditBrand(typeof editProduct.brand === 'object' ? editProduct.brand?._id : editProduct.brand || "");
+
+      // Arrays (keyFeatures, tags, videos)
+      const parseArrayField = (field: any): string[] => {
+        if (!field) return [];
+        if (Array.isArray(field)) return field.map(item => item?.toString() || '');
+        if (typeof field === "string") {
+          try {
+            const parsed = JSON.parse(field);
+            return Array.isArray(parsed) ? parsed.map(item => item?.toString() || '') : [field];
+          } catch {
+            return field ? [field] : [];
+          }
+        }
+        return [];
+      };
+
+      // Marketing flags
+      setIsFeatured(Boolean(editProduct.isFeatured));
+      setIsBestSeller(Boolean(editProduct.isBestSeller));
+      setIsNewArrival(Boolean(editProduct.isNewArrival));
+
+      // Handle arrays
+      const keyFeatures = parseArrayField(editProduct.keyFeatures);
+      const tags = parseArrayField(editProduct.tags);
+      const videos = parseArrayField(editProduct.videos);
+
+      setEditKeyFeatures(keyFeatures);
+      setEditTags(tags);
+      setEditVideos(videos);
+      setParsedKeyFeatures(keyFeatures);
+      setParsedTags(tags);
+      setParsedVideos(videos.map((video, index) => {
+        if (typeof video === 'string') {
+          return {
+            url: video,
+            title: `Product Video ${index + 1}`,
+            description: '',
+          };
+        }
+        return video;
+      }));
+
+      // Handle specifications
+      if (editProduct.specifications) {
+        try {
+          let specs = editProduct.specifications;
+          if (typeof specs === 'string') {
+            specs = JSON.parse(specs);
+          }
+          
+          // Ensure specs is an array and has proper structure
+          if (!Array.isArray(specs)) {
+            specs = [specs].filter(Boolean);
+          }
+
+          // Log the specifications data for debugging
+          console.log("Raw specifications:", specs);
+          
+          // Normalize the specifications structure
+          const normalizedSpecs = specs.map((group: any) => ({
+            groupName: group.groupName || '',
+            items: Array.isArray(group.items) 
+              ? group.items.map((item: any) => ({
+                  name: item.name || '',
+                  value: item.value || '',
+                  unit: item.unit || ''
+                }))
+              : [{ name: '', value: '', unit: '' }]
+          }));
+          
+          setSpecifications(normalizedSpecs.length > 0 ? normalizedSpecs : [emptySpecGroup()]);
+          console.log("Setting specifications:", normalizedSpecs);
+        } catch (error) {
+          console.error("Error parsing specifications:", error);
+          setSpecifications([emptySpecGroup()]);
+        }
+      } else {
+        setSpecifications([emptySpecGroup()]);
+      }
+
+      // Handle shipping info
+      const defaultShippingInfo = {
+        freeShipping: false,
+        estimatedDelivery: "",
+        returnPolicy: "",
+        warrantyService: "",
+      };
+      
+      let shippingData = editProduct.shippingInfo;
+      let finalShippingInfo = defaultShippingInfo;
+      
+      try {
+        if (typeof shippingData === 'string') {
+          shippingData = JSON.parse(shippingData);
+        }
+        
+        // Ensure we have an object
+        shippingData = typeof shippingData === 'object' ? shippingData : {};
+        
+        // Create the final shipping info object with all fields properly handled
+        finalShippingInfo = {
+          freeShipping: shippingData.freeShipping === true || shippingData.freeShipping === 'true' || false,
+          estimatedDelivery: shippingData.estimatedDelivery || "",
+          returnPolicy: shippingData.returnPolicy || "",
+          warrantyService: shippingData.warrantyService || "",
+        };
+        
+        console.log("Setting shipping info:", finalShippingInfo);
+        setShippingInfo(finalShippingInfo);
+        
+      } catch (error) {
+        console.error("Error parsing shipping info:", error);
+        setShippingInfo(defaultShippingInfo);
+      }
+
+      // Related products
+      setSelectedRelatedProducts(
+        Array.isArray(editProduct.relatedProducts)
+          ? editProduct.relatedProducts.map((p: any) => (typeof p === "object" ? p._id : p))
+          : []
+      );
+
+      // Document types and files
+      const documentTypesData: Record<string, string> = {};
+      if (editProduct.documents || editProduct.documentTypes) {
+        try {
+          // Handle documents array
+          let docs = editProduct.documents;
+          if (typeof docs === 'string') {
+            docs = JSON.parse(docs);
+          }
+          if (Array.isArray(docs)) {
+            docs.forEach((doc: any) => {
+              if (doc.name || doc.fileName) {
+                documentTypesData[doc.name || doc.fileName] = doc.type || "";
+              }
+            });
+          }
+
+          // Handle documentTypes array
+          let docTypes = editProduct.documentTypes;
+          if (typeof docTypes === 'string') {
+            docTypes = JSON.parse(docTypes);
+          }
+          if (Array.isArray(docTypes)) {
+            docTypes.forEach((doc: any) => {
+              if (doc.name) {
+                documentTypesData[doc.name] = doc.type || "";
+              }
+            });
+          }
+        } catch (error) {
+          console.error("Error parsing document data:", error);
+        }
+      }
+      
+      setDocumentTypes(documentTypesData);
+      setDocFiles([]);
+
+      console.log("Set form data:", {
+        name: editProduct.name,
+        description: editProduct.description?.length || 0,
+        keyFeatures: keyFeatures.length,
+        tags: tags.length,
+        videos: videos.length,
+        specifications: specifications.length,
+        shippingInfo: finalShippingInfo,
+        documents: Object.keys(documentTypesData).length
+      });
+    }
+  }, [editProduct]);
+
   // Filtering logic
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
@@ -216,8 +428,8 @@ export default function ProductsPage() {
       setRelatedProductsSearch("");
       setDocumentTypes({});
       
-      const prodRes = await api.get('/api/products/admin/all');
-      setProducts(prodRes.data.products || prodRes.data);
+      const prodRes = await api.get<{ success: boolean; products: any[] }>('/api/products/admin/all');
+      setProducts(prodRes.data.products || (prodRes.data as any));
     } catch (err: any) {
       console.error("Product creation error:", err);
       const errorMessage = err.response?.data?.message || err.message || "Failed to add product";
@@ -232,91 +444,107 @@ export default function ProductsPage() {
     e.preventDefault()
     if (!editProduct) return
 
-    // Validate required fields
-    const requiredFields = ["name", "price", "category", "brand"];
-    const missingFields = requiredFields.filter(field => {
-      const value = e.currentTarget.elements.namedItem(field)?.value;
-      return !value || value.trim() === "";
-    });
+    // Validate required fields more specifically
+    const requiredFields = [
+      { name: "name", value: editName, label: "Product Name" },
+      { name: "price", value: editPrice, label: "Price" },
+      { name: "stock", value: editStock, label: "Stock" },
+      { name: "category", value: editCategory, label: "Category" },
+      { name: "brand", value: editBrand, label: "Brand" }
+    ];
+
+    const missingFields = requiredFields.filter(field => !field.value || field.value.trim() === "");
 
     if (missingFields.length > 0) {
-      alert(`Please fill in all required fields: ${missingFields.join(", ")}`);
+      alert(`Please fill in all required fields: ${missingFields.map(f => f.label).join(", ")}`);
       return;
     }
 
-    const form = e.currentTarget as HTMLFormElement
-    const formData = new FormData(form)
+    const form = e.currentTarget as HTMLFormData
+    const formData = new FormData()
 
-    // Set controlled form data
+    // Set controlled form data explicitly
     formData.set("name", editName);
-    formData.set("description", editDescription);
+    formData.set("description", editDescription || ""); // Allow empty description
     formData.set("price", editPrice);
-    formData.set("originalPrice", editOriginalPrice);
+    formData.set("originalPrice", editOriginalPrice || "");
     formData.set("stock", editStock);
-    formData.set("viewCount", editViewCount);
+    formData.set("viewCount", editViewCount || "0");
     formData.set("category", editCategory);
     formData.set("brand", editBrand);
 
     // Handle subCategory field - explicitly omit it if empty to avoid MongoDB casting errors
     if (editSubCategory && editSubCategory !== "") {
       formData.set("subCategory", editSubCategory);
-    } else {
-      formData.delete("subCategory");
     }
 
-    // Convert JSON fields properly - be careful with specifications format
+    // Handle images from file input
+    const imageInput = e.currentTarget.querySelector('input[name="images"]') as HTMLInputElement;
+    if (imageInput?.files && imageInput.files.length > 0) {
+      Array.from(imageInput.files).forEach(file => {
+        formData.append("images", file);
+      });
+    }
+
+    // Handle documents from file input
+    const docInput = e.currentTarget.querySelector('input[name="documents"]') as HTMLInputElement;
+    if (docInput?.files && docInput.files.length > 0) {
+      Array.from(docInput.files).forEach(file => {
+        formData.append("documents", file);
+      });
+      
+      // Add document types for new uploads
+      if (Object.keys(documentTypes).length > 0) {
+        const validDocTypes = Object.keys(documentTypes)
+          .filter(fileName => documentTypes[fileName].trim() !== '')
+          .map(fileName => ({
+            name: fileName,
+            type: documentTypes[fileName],
+          }));
+          
+        if (validDocTypes.length > 0) {
+          formData.set("documentTypes", JSON.stringify(validDocTypes));
+        }
+      }
+    }
+
+    // Convert specifications properly - ensure valid structure
     try {
-      // Make sure specifications are valid before sending
-      // First validate that we have a proper array
       if (!Array.isArray(specifications)) {
         throw new Error("Specifications is not an array");
       }
       
-      // Format each specification group correctly
-      const formattedSpecs = specifications.filter(spec => {
-        // Skip completely empty groups
-        if (!spec.groupName && (!spec.items || !spec.items.some((item: any) => 
-          item.name || item.value || item.unit
-        ))) {
-          return false;
-        }
-        return true;
-      }).map(spec => {
-        // Ensure valid group name - use default if empty
-        const groupName = spec.groupName || "Specifications";
-        
-        // Ensure valid items array with proper structure
-        // Filter out completely empty items
-        const items = Array.isArray(spec.items) 
-          ? spec.items
-            .filter((item: any) => item.name || item.value || item.unit)
-            .map((item: any) => ({
-              name: item.name || "Specification",
-              value: item.value || "",
-              unit: item.unit || "",
-            }))
-          : [];
-        
-        return { groupName, items };
-      });
+      // Format each specification group correctly and filter out empty ones
+      const formattedSpecs = specifications
+        .filter(spec => {
+          // Keep groups that have a name or have items with data
+          return spec.groupName || (spec.items && spec.items.some((item: any) => 
+            item.name || item.value || item.unit
+          ));
+        })
+        .map(spec => {
+          const groupName = spec.groupName || "Specifications";
+          
+          // Filter and clean items
+          const items = Array.isArray(spec.items) 
+            ? spec.items
+              .filter((item: any) => item.name || item.value || item.unit)
+              .map((item: any) => ({
+                name: item.name || "",
+                value: item.value || "",
+                unit: item.unit || "",
+              }))
+            : [];
+          
+          return { groupName, items };
+        })
+        .filter(spec => spec.items.length > 0); // Only include groups with items
       
-      // Only include non-empty groups
-      const validSpecs = formattedSpecs.filter(spec => spec.items.length > 0);
+      formData.set("specifications", JSON.stringify(formattedSpecs));
+      console.log("Sending specifications:", formattedSpecs);
       
-      // Instead of JSON.stringify, send as a proper FormData entry
-      formData.delete("specifications");
-      validSpecs.forEach((spec, index) => {
-        formData.append(`specifications[${index}][groupName]`, spec.groupName);
-        spec.items.forEach((item, itemIndex) => {
-          formData.append(`specifications[${index}][items][${itemIndex}][name]`, item.name);
-          formData.append(`specifications[${index}][items][${itemIndex}][value]`, item.value);
-          formData.append(`specifications[${index}][items][${itemIndex}][unit]`, item.unit);
-        });
-      });
-      console.log("Sending specifications:", validSpecs);
     } catch (e) {
       console.error("Error formatting specifications:", e);
-      // Use a safe fallback
       formData.set("specifications", JSON.stringify([]));
     }
 
@@ -341,7 +569,7 @@ export default function ProductsPage() {
       formData.set("keyFeatures", JSON.stringify(sanitizeArray(editKeyFeatures)));
       formData.set("tags", JSON.stringify(sanitizeArray(editTags)));
       formData.set("videos", JSON.stringify(
-        editVideos.map((video, index) => {
+        editVideos.filter(video => video && video.trim() !== "").map((video, index) => {
           if (typeof video === 'string') {
             return {
               url: video,
@@ -351,7 +579,7 @@ export default function ProductsPage() {
             };
           }
           return video;
-        }).filter(Boolean)
+        })
       ));
       
     } catch (e) {
@@ -369,28 +597,14 @@ export default function ProductsPage() {
     formData.set("isBestSeller", String(Boolean(isBestSeller)));
     formData.set("isNewArrival", String(Boolean(isNewArrival)));
 
-    // Handle document types if any documents were uploaded or existing
-    if (Object.keys(documentTypes).length > 0) {
-      // Filter out any document types with empty type values
-      const validDocTypes = Object.keys(documentTypes)
-        .filter(fileName => documentTypes[fileName].trim() !== '')
-        .map(fileName => ({
-          name: fileName,
-          type: documentTypes[fileName],
-        }));
-        
-      if (validDocTypes.length > 0) {
-        formData.set("documentTypes", JSON.stringify(validDocTypes));
-        console.log("Sending document types:", validDocTypes);
-      }
-    }
-
     // Add shipping info
     formData.set("shippingInfo", JSON.stringify(shippingInfo));
 
     console.log("Edit form data being sent:");
     for (let [key, value] of formData.entries()) {
-      console.log(key, value);
+      if (key !== 'specifications') { // Don't log huge specifications object
+        console.log(key, typeof value === 'string' && value.length > 100 ? value.substring(0, 100) + '...' : value);
+      }
     }
 
     setLoading(true)
@@ -400,8 +614,8 @@ export default function ProductsPage() {
       })
       setIsEditDialogOpen(false)
       clearEditForm()
-      const prodRes = await api.get('/api/products/admin/all')
-      setProducts(prodRes.data.products || prodRes.data)
+      const prodRes = await api.get<{ success: boolean; products: any[] }>('/api/products/admin/all')
+      setProducts(prodRes.data.products || (prodRes.data as any))
     } catch (err: any) {
       console.error("Product update error:", err);
       console.error("Error response:", err?.response?.data);
@@ -421,10 +635,10 @@ export default function ProductsPage() {
       console.log("Delete response:", deleteResponse.data)
       
       console.log("Refetching products...")
-      const prodRes = await api.get('/api/products/admin/all')
+      const prodRes = await api.get<{ success: boolean; products: any[] }>('/api/products/admin/all')
       console.log("Fetched products after deletion:", prodRes.data)
       
-      const newProducts = prodRes.data.products || prodRes.data
+      const newProducts = prodRes.data.products || (prodRes.data as any)
       console.log("Setting new products:", newProducts.length, "products")
       setProducts(newProducts)
       
@@ -468,183 +682,14 @@ export default function ProductsPage() {
   const populateEditForm = (product: any) => {
     console.log("Populating edit form with product:", product);
     
+    // Set the product which will trigger useEffect to populate the form
     setEditProduct(product);
     
-    // Basic fields
-    setEditName(product.name || "");
-    setEditDescription(product.description || "");
-    setEditPrice(product.price?.toString() || "");
-    setEditOriginalPrice(product.originalPrice?.toString() || "");
-    setEditStock(product.stock?.toString() || "");
-    setEditViewCount(product.viewCount?.toString() || "0");
-    
-    // Marketing flags
-    console.log("Setting marketing flags:", { 
-      isFeatured: product.isFeatured, 
-      isBestSeller: product.isBestSeller, 
-      isNewArrival: product.isNewArrival 
-    });
-    
-    // Category and brand - handle both object and string formats
-    setEditCategory(typeof product.category === 'object' ? product.category?._id : product.category || "");
-    setEditSubCategory(typeof product.subCategory === 'object' ? product.subCategory?._id : product.subCategory || "");
-    setEditBrand(typeof product.brand === 'object' ? product.brand?._id : product.brand || "");
-
-    // Arrays (keyFeatures, tags, videos)
-    const parseArrayField = (field: any): string[] => {
-      if (!field) return [];
-      if (Array.isArray(field)) return field.map(item => item?.toString() || '');
-      if (typeof field === "string") {
-        try {
-          const parsed = JSON.parse(field);
-          return Array.isArray(parsed) ? parsed.map(item => item?.toString() || '') : [field];
-        } catch {
-          return field ? [field] : [];
-        }
-      }
-      return [];
-    };
-
-    // Marketing flags - handle boolean values with proper fallbacks
-    setIsFeatured(Boolean(product.isFeatured));
-    setIsBestSeller(Boolean(product.isBestSeller));
-    setIsNewArrival(Boolean(product.isNewArrival));
-
-    // Images - ensure we're handling the array correctly
-    const images = Array.isArray(product.images) ? product.images : 
-                  typeof product.images === 'string' ? [product.images] : [];
-
-    // Handle arrays
-    const keyFeatures = parseArrayField(product.keyFeatures);
-    const tags = parseArrayField(product.tags);
-    const videos = parseArrayField(product.videos);
-
-    // Set both edit and parsed states for consistency
-    setEditKeyFeatures(keyFeatures);
-    setEditTags(tags);
-    setEditVideos(videos);
-    setParsedKeyFeatures(keyFeatures);
-    setParsedTags(tags);
-    setParsedVideos(videos);
-
-    // Handle specifications
-    if (product.specifications) {
-      try {
-        let specs = product.specifications;
-        if (typeof specs === 'string') {
-          specs = JSON.parse(specs);
-        }
-        
-        // Ensure specs is an array and has proper structure
-        if (!Array.isArray(specs)) {
-          specs = [specs].filter(Boolean);
-        }
-
-        // Log the specifications data for debugging
-        console.log("Raw specifications:", specs);
-        
-        // Normalize the specifications structure
-        const normalizedSpecs = specs.map(group => ({
-          groupName: group.groupName || '',
-          items: Array.isArray(group.items) 
-            ? group.items.map(item => ({
-                name: item.name || '',
-                value: item.value || '',
-                unit: item.unit || ''
-              }))
-            : [{ name: '', value: '', unit: '' }]
-        }));
-        
-        setSpecifications(normalizedSpecs.length > 0 ? normalizedSpecs : [emptySpecGroup()]);
-        console.log("Setting specifications:", normalizedSpecs);
-      } catch (error) {
-        console.error("Error parsing specifications:", error);
-        setSpecifications([emptySpecGroup()]);
-      }
-    } else {
-      setSpecifications([emptySpecGroup()]);
-    }
-
-    // Handle shipping info
-    const defaultShippingInfo = {
-      freeShipping: false,
-      estimatedDelivery: "",
-      returnPolicy: "",
-      warrantyService: "",
-    };
-    
-    let shippingData = product.shippingInfo;
-    
-    try {
-      if (typeof shippingData === 'string') {
-        shippingData = JSON.parse(shippingData);
-      }
-      
-      // Ensure we have an object
-      shippingData = typeof shippingData === 'object' ? shippingData : {};
-      
-      // Create the final shipping info object with all fields properly handled
-      const finalShippingInfo = {
-        freeShipping: shippingData.freeShipping === true || shippingData.freeShipping === 'true' || false,
-        estimatedDelivery: shippingData.estimatedDelivery || "",
-        returnPolicy: shippingData.returnPolicy || "",
-        warrantyService: shippingData.warrantyService || "",
-      };
-      
-      console.log("Setting shipping info:", finalShippingInfo);
-      setShippingInfo(finalShippingInfo);
-      
-    } catch (error) {
-      console.error("Error parsing shipping info:", error);
-      setShippingInfo(defaultShippingInfo);
-    }
-
-    // Related products
-    setSelectedRelatedProducts(
-      Array.isArray(product.relatedProducts)
-        ? product.relatedProducts.map((p: any) => (typeof p === "object" ? p._id : p))
-        : []
-    );
-
-    // Document types and files
-    const documentTypesData: Record<string, string> = {};
-    if (product.documents || product.documentTypes) {
-      try {
-        // Handle documents array
-        let docs = product.documents;
-        if (typeof docs === 'string') {
-          docs = JSON.parse(docs);
-        }
-        if (Array.isArray(docs)) {
-          docs.forEach((doc: any) => {
-            if (doc.name || doc.fileName) {
-              documentTypesData[doc.name || doc.fileName] = doc.type || "";
-            }
-          });
-        }
-
-        // Handle documentTypes array
-        let docTypes = product.documentTypes;
-        if (typeof docTypes === 'string') {
-          docTypes = JSON.parse(docTypes);
-        }
-        if (Array.isArray(docTypes)) {
-          docTypes.forEach((doc: any) => {
-            if (doc.name) {
-              documentTypesData[doc.name] = doc.type || "";
-            }
-          });
-        }
-      } catch (error) {
-        console.error("Error parsing document data:", error);
-      }
-    }
-    
-    setDocumentTypes(documentTypesData);
-    setDocFiles([]);
-
-    console.log("State set. Opening dialog...");
-    setIsEditDialogOpen(true);
+    // Open dialog after a short delay to ensure state is set
+    setTimeout(() => {
+      console.log("Opening edit dialog...");
+      setIsEditDialogOpen(true);
+    }, 200);
   };
 
   // Function to clear edit form state
@@ -1273,7 +1318,7 @@ export default function ProductsPage() {
                     </select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="price">Price *</Label>
                     <Input
@@ -1284,6 +1329,18 @@ export default function ProductsPage() {
                       required
                       value={editPrice}
                       onChange={(e) => setEditPrice(e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="originalPrice">Original Price</Label>
+                    <Input
+                      id="originalPrice"
+                      name="originalPrice"
+                      type="number"
+                      step="0.01"
+                      value={editOriginalPrice}
+                      onChange={(e) => setEditOriginalPrice(e.target.value)}
                       placeholder="0.00"
                     />
                   </div>
@@ -1299,43 +1356,98 @@ export default function ProductsPage() {
                       placeholder="0"
                     />
                   </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label>Pricing Note</Label>
                     <p className="text-sm text-gray-500">Use the Offers page to manage special pricing and discounts.</p>
                   </div>
-                  <input type="hidden" name="viewCount" value={editProduct?.viewCount || "0"} />
+                  <div className="grid gap-2">
+                    <Label htmlFor="viewCount">View Count</Label>
+                    <Input
+                      id="viewCount"
+                      name="viewCount"
+                      type="number"
+                      value={editViewCount}
+                      onChange={(e) => setEditViewCount(e.target.value)}
+                      placeholder="0"
+                    />
+                  </div>
                 </div>
                 {/* Media */}
                 <div className="grid gap-2">
                   <Label htmlFor="images">Images</Label>
                   <Input id="images" name="images" type="file" accept="image/*" multiple />
+                  {editProduct?.images && editProduct.images.length > 0 && (
+                    <div className="mt-2">
+                      <Label className="text-sm text-gray-500">Current Images:</Label>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {editProduct.images.map((img: string, idx: number) => (
+                          <div key={idx} className="relative">
+                            <img 
+                              src={img} 
+                              alt={`Product image ${idx + 1}`} 
+                              className="w-16 h-16 object-cover rounded border"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="videos">Videos</Label>
-                  <div className="space-y-2">
-                    {editVideos.map((video, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <Input 
-                          value={video} 
-                          onChange={(e) => {
-                            const newVideos = [...editVideos];
-                            newVideos[idx] = e.target.value;
-                            setEditVideos(newVideos);
-                          }}
-                          placeholder="Video URL"
-                        />
-                        <Button 
-                          type="button" 
-                          variant="destructive" 
-                          onClick={() => setEditVideos(editVideos.filter((_, i) => i !== idx))}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button 
-                      type="button" 
+                  <Label>YouTube Videos</Label>
+                  <div className="border rounded-md p-4">
+                    <div className="mb-2 text-sm text-gray-500">
+                      Paste YouTube video URLs (e.g., https://www.youtube.com/watch?v=xxxxx or https://youtu.be/xxxxx)
+                    </div>
+                    <div className="space-y-2 mb-3">
+                      {editVideos.map((video, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <Input 
+                            value={video} 
+                            onChange={(e) => {
+                              const newVideos = [...editVideos];
+                              let url = e.target.value;
+                              // Convert youtu.be URLs to full format
+                              if (url.includes('youtu.be/')) {
+                                const id = url.split('youtu.be/')[1]?.split('?')[0];
+                                if (id) {
+                                  url = `https://www.youtube.com/watch?v=${id}`;
+                                }
+                              }
+                              // Extract video ID if full URL
+                              if (url.includes('youtube.com/watch?v=')) {
+                                const id = new URLSearchParams(url.split('?')[1]).get('v');
+                                if (id) {
+                                  url = `https://www.youtube.com/watch?v=${id}`;
+                                }
+                              }
+                              newVideos[idx] = url;
+                              setEditVideos(newVideos);
+                            }}
+                            placeholder="YouTube video URL"
+                          />
+                          <Button 
+                            type="button" 
+                            variant="destructive" 
+                            onClick={() => {
+                              const newVideos = editVideos.filter((_, i) => i !== idx);
+                              setEditVideos(newVideos);
+                            }}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      ))}
+                      {editVideos.length === 0 && (
+                        <p className="text-sm text-gray-500 text-center py-2">No videos added yet.</p>
+                      )}
+                    </div>
+                    <Button
+                      type="button"
                       onClick={() => setEditVideos([...editVideos, ""])}
+                      className="w-full"
                     >
                       <Plus size={16} className="mr-2" /> Add Video
                     </Button>
@@ -1344,30 +1456,39 @@ export default function ProductsPage() {
                 {/* Key Features */}
                 <div>
                   <Label>Key Features</Label>
-                  <div className="space-y-2">
-                    {editKeyFeatures.map((feature, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <Input 
-                          value={feature} 
-                          onChange={(e) => {
-                            const newFeatures = [...editKeyFeatures];
-                            newFeatures[idx] = e.target.value;
-                            setEditKeyFeatures(newFeatures);
-                          }}
-                          placeholder="Key feature"
-                        />
-                        <Button 
-                          type="button" 
-                          variant="destructive" 
-                          onClick={() => setEditKeyFeatures(editKeyFeatures.filter((_, i) => i !== idx))}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button 
-                      type="button" 
+                  <div className="border rounded-md p-4">
+                    {editKeyFeatures.length === 0 ? (
+                      <p className="text-sm text-gray-500 text-center py-2">No key features added yet.</p>
+                    ) : null}
+                    <div className="space-y-2 mb-3">
+                      {editKeyFeatures.map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <Input 
+                            value={feature} 
+                            onChange={(e) => {
+                              const newFeatures = [...editKeyFeatures];
+                              newFeatures[idx] = e.target.value;
+                              setEditKeyFeatures(newFeatures);
+                            }}
+                            placeholder="Key feature"
+                          />
+                          <Button 
+                            type="button" 
+                            variant="destructive" 
+                            onClick={() => {
+                              const newFeatures = editKeyFeatures.filter((_, i) => i !== idx);
+                              setEditKeyFeatures(newFeatures);
+                            }}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      type="button"
                       onClick={() => setEditKeyFeatures([...editKeyFeatures, ""])}
+                      className="w-full"
                     >
                       <Plus size={16} className="mr-2" /> Add Key Feature
                     </Button>
@@ -1376,30 +1497,39 @@ export default function ProductsPage() {
                 {/* Tags */}
                 <div>
                   <Label>Tags</Label>
-                  <div className="space-y-2">
-                    {editTags.map((tag, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <Input 
-                          value={tag} 
-                          onChange={(e) => {
-                            const newTags = [...editTags];
-                            newTags[idx] = e.target.value;
-                            setEditTags(newTags);
-                          }}
-                          placeholder="Tag"
-                        />
-                        <Button 
-                          type="button" 
-                          variant="destructive" 
-                          onClick={() => setEditTags(editTags.filter((_, i) => i !== idx))}
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </div>
-                    ))}
-                    <Button 
-                      type="button" 
+                  <div className="border rounded-md p-4">
+                    {editTags.length === 0 ? (
+                      <p className="text-sm text-gray-500 text-center py-2">No tags added yet.</p>
+                    ) : null}
+                    <div className="space-y-2 mb-3">
+                      {editTags.map((tag, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <Input 
+                            value={tag} 
+                            onChange={(e) => {
+                              const newTags = [...editTags];
+                              newTags[idx] = e.target.value;
+                              setEditTags(newTags);
+                            }}
+                            placeholder="Tag"
+                          />
+                          <Button 
+                            type="button" 
+                            variant="destructive" 
+                            onClick={() => {
+                              const newTags = editTags.filter((_, i) => i !== idx);
+                              setEditTags(newTags);
+                            }}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    <Button
+                      type="button"
                       onClick={() => setEditTags([...editTags, ""])}
+                      className="w-full"
                     >
                       <Plus size={16} className="mr-2" /> Add Tag
                     </Button>
@@ -1521,6 +1651,34 @@ export default function ProductsPage() {
                 {/* Documents */}
                 <div className="grid gap-2">
                   <Label htmlFor="documents">Documents (PDFs, etc.)</Label>
+                  
+                  {/* Show existing documents */}
+                  {editProduct?.documents && editProduct.documents.length > 0 && (
+                    <div className="mb-4">
+                      <Label className="text-sm text-gray-500">Current Documents:</Label>
+                      <div className="space-y-2 mt-2">
+                        {editProduct.documents.map((doc: any, idx: number) => (
+                          <div key={idx} className="flex items-center gap-2 p-2 border rounded-md bg-gray-50">
+                            <div className="flex-1">
+                              <p className="font-medium text-sm">{doc.name}</p>
+                              <p className="text-xs text-gray-500">
+                                Type: {doc.type || 'Unknown'} • Size: {doc.size || 'Unknown'} KB
+                              </p>
+                            </div>
+                            <a 
+                              href={doc.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-500 hover:text-blue-700 text-xs"
+                            >
+                              View
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
                   <Input 
                     id="documents" 
                     name="documents" 
@@ -1538,7 +1696,7 @@ export default function ProductsPage() {
                   />
                   {Object.keys(documentTypes).length > 0 && (
                     <div className="space-y-2">
-                      <Label>Document Types</Label>
+                      <Label>Document Types for New Uploads</Label>
                       {Object.keys(documentTypes).map((fileName) => (
                         <div key={fileName} className="flex gap-2 items-center">
                           <span className="text-sm flex-1 truncate">{fileName}</span>

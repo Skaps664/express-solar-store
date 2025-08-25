@@ -35,6 +35,7 @@ const navigation = [
   { name: "CMS", href: "/admin/cms", icon: FileText },
   { name: "User Management", href: "/admin/user-management", icon: Users },
   { name: "Blog", href: "/admin/blog", icon: FileText },
+  { name: "Blog Categories", href: "/admin/blog/categories", icon: Tag },
   { name: "Customers", href: "/admin/customers", icon: Users },
   { name: "Role Management", href: "/admin/roles", icon: Users },
   { name: "Website Settings", href: "/admin/website-settings", icon: Settings },

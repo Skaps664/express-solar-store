@@ -64,7 +64,7 @@ const generateNavItems = (categories: Category[]) => {
 	const additionalItems = [
 		{ name: "Insurance", href: "/insurance" },
 		{ name: "Installment Plans", href: "/installments" },
-		{ name: "Blogs", href: "/blogs" },
+		{ name: "Blogs", href: "/blog" },
 		{ name: "Contact", href: "/contact" },
 	]
 	return [...baseItems, ...categoryItems, ...additionalItems]
@@ -73,7 +73,7 @@ const generateNavItems = (categories: Category[]) => {
 const departmentNavItems = [
 	{ name: "Insurance", href: "/insurance" },
 	{ name: "Installment Plans", href: "/installments" },
-	{ name: "Blogs", href: "/blogs" },
+	{ name: "Blogs", href: "/blog" },
 	{ name: "Contact", href: "/contact" },
 ]
 
@@ -110,9 +110,6 @@ export default function Header({ user }: HeaderProps) {
 	const [activeProducts, setActiveProducts] = useState<Product[]>([]);
 	const [expandedMobileCategory, setExpandedMobileCategory] = useState<number | null>(null)
 	const [searchTerm, setSearchTerm] = useState("")
-	const [location, setLocation] = useState("Islamabad")
-	const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-	const [cities, setCities] = useState(["Islamabad", "Karachi", "Lahore", "Peshawar", "Quetta"])
 	const [categoryData, setCategoryData] = useState<Category[]>([])
 	const [loading, setLoading] = useState(true)
 	const menuRef = useRef<HTMLDivElement | null>(null)
@@ -334,11 +331,6 @@ export default function Header({ user }: HeaderProps) {
 		setDropdownOpen(false)
 		router.push("/auth")
 	}
-
-	const handleLocationChange = (city: string) => {
-		setLocation(city)
-		setIsDropdownOpen(false)
-	}
 	
 	return (
 		<header className="sticky top-0 z-50 bg-white">
@@ -362,31 +354,12 @@ export default function Header({ user }: HeaderProps) {
 							</div>
 						</Link>
 
-						<div
-							className="hidden md:flex items-center gap-2 bg-[#0e4a8a] hover:bg-[#0a3d7a] rounded-full px-4 py-1 cursor-pointer relative"
-							onClick={() => setIsDropdownOpen((prev) => !prev)}
-						>
+						<div className="hidden md:flex items-center gap-2 bg-[#0e4a8a] rounded-full px-4 py-1">
 							<MapPin className="h-5 w-5 text-white" />
 							<div className="flex flex-col">
-								<span className="text-xs text-white/80">I'm here</span>
-								<span className="text-sm font-medium text-white">{location}</span>
+								<span className="text-xs text-white/80">I'm here in</span>
+								<span className="text-sm font-medium text-white">Pakistan</span>
 							</div>
-							<ChevronDown className="h-4 w-4 text-white/80" />
-
-							{isDropdownOpen && (
-								<div className="absolute top-full left-0 bg-white shadow-lg rounded-lg mt-2 w-40">
-									{cities.map((city, index) => (
-										<Button
-											key={index}
-											variant="ghost"
-											className="w-full text-left px-4 py-2 hover:bg-gray-100"
-											onClick={() => handleLocationChange(city)}
-										>
-											{city}
-										</Button>
-									))}
-								</div>
-							)}
 						</div>
 					</div>
 

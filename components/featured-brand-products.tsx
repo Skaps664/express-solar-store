@@ -4,9 +4,6 @@ import Link from "next/link"
 import { Heart, Plus } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
-import { client } from "../lib/sanity"
-
-
 
 type HeadingData = {
   featuredBrandsHeading: {
@@ -15,69 +12,122 @@ type HeadingData = {
   }
 }
 
-export default function FeaturedBrandProducts() {
+type HomePromotion = {
+  id: string
+  title: string
+  subtitle: string
+  selectedBrand: {
+    value: string
+    label: string
+    brand: any
+  }
+  tagline: string
+  mainText: string
+  buttonText: string
+  redirectLink: string
+  featuredProducts: any[]
+  images: {
+    desktop: string
+    mobile: string
+  }
+  isActive: boolean
+}
 
+export default function FeaturedBrandProducts() {
   const [headingData, setHeadingData] = useState<HeadingData | null>(null)
+  const [homePromotion, setHomePromotion] = useState<HomePromotion | null>(null)
 
   useEffect(() => {
+    // Fetch heading data (keep existing logic if you have Sanity for other content)
     const fetchHeading = async () => {
       try {
-        const data: HeadingData = await client.fetch(
-          `*[_type == "homePageContent"][0]{
-    featuredBrandsHeading{
-      title,
-      subtext
-    }
-  }`
-        );
-        setHeadingData(data);
+        // If you have sanity client for other content, keep this
+        // const data: HeadingData = await client.fetch(...)
+        // For now, we'll use the promotion data
+        const promotion = localStorage.getItem('homePromotion')
+        if (promotion) {
+          const promotionData = JSON.parse(promotion)
+          console.log('Home promotion data:', promotionData)
+          console.log('Featured products in promotion:', promotionData.featuredProducts)
+          setHomePromotion(promotionData)
+        }
       } catch (error) {
-        console.error("Failed to fetch Sanity heading:", error);
+        console.error("Failed to fetch data:", error)
       }
-    };
+    }
 
-    fetchHeading();
+    fetchHeading()
   }, [])
 
-
-  const products = [
+  // Fallback products if no promotion is set
+  const fallbackProducts = [
     {
       id: "jinko-400w-panel",
       name: "JinkoSolar ProSeries 400W Mono Solar Panel with Half-Cell Technology",
       price: 125000,
-      image: "/11.png?height=180&width=180",
+      image: "/11.png",
     },
     {
-      id: "jinko-370w-panel",
+      id: "jinko-370w-panel", 
       name: "JinkoSolar Original 370W Mono Solar Panel with Optimized Cell Design",
       price: 95000,
-      image: "/12.png?height=180&width=180",
+      image: "/12.png",
     },
     {
       id: "jinko-450w-panel",
-      name: "JinkoSolar ProSeries 450W XL Mono Solar Panel with Bifacial Technology",
+      name: "JinkoSolar ProSeries 450W XL Mono Solar Panel with Bifacial Technology", 
       price: 150000,
-      image: "/13.png?height=180&width=180",
+      image: "/13.png",
     },
     {
       id: "jinko-380w-panel",
       name: "JinkoSolar EcoSeries 380W Mono Solar Panel with Advanced Technology",
       price: 110000,
-      image: "/11.png?height=180&width=180",
+      image: "/11.png",
     },
   ]
 
   // Format price in PKR with commas
-  const formatPrice = (price : any) => {
+  const formatPrice = (price: any) => {
     return `PKR ${price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
+  }
+
+  // Use promotion data if available, otherwise fallback
+  const displayTitle = homePromotion?.title || headingData?.featuredBrandsHeading?.title || "Power up!"
+  const displaySubtitle = homePromotion?.subtitle || headingData?.featuredBrandsHeading?.subtext || "Panels, inverters & much more."
+  const brandLink = homePromotion?.redirectLink || "/brand/jinko"
+  const desktopImage = homePromotion?.images?.desktop || "/q15.jpg"
+  const mobileImage = homePromotion?.images?.mobile || "/eighteen.jpg"
+  
+  // Use promotion products if available, otherwise fallback
+  const products = homePromotion?.featuredProducts?.map(p => {
+    const product = p.product || {}
+    const imageUrl = product.images?.[0] || product.image || "/placeholder.svg"
+    
+    // Debug logging for image issues
+    if (imageUrl === "/placeholder.svg") {
+      console.warn('Product missing image:', product.name, 'Product data:', product)
+    }
+    
+    return {
+      id: product._id || p.value,
+      name: product.name || "Product",
+      price: product.price || 0,
+      image: imageUrl // Use first image from images array
+    }
+  }) || fallbackProducts
+
+  // Only show if promotion is active or if no promotion is set (fallback)
+  if (homePromotion && !homePromotion.isActive) {
+    return null
   }
 
   return (
     <div className="my-12">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold">{headingData?.featuredBrandsHeading?.title || "Power uup!"}</h2>
-          <p className="text-gray-600">{headingData?.featuredBrandsHeading?.subtext || "Pannels, inverters & much more."}</p>
+          <h2 className="text-2xl font-bold">{displayTitle}</h2>
+          <p className="text-gray-600">{displaySubtitle}</p>
         </div>
         <Link href="/store" className="text-[#1a5ca4] hover:underline font-medium">
           View all
@@ -89,31 +139,30 @@ export default function FeaturedBrandProducts() {
         {/* Brand promotion first on mobile */}
         <div className="mb-6">
   <Link
-    href="/brand/jinko"
+    href={brandLink}
     className="rounded-lg overflow-hidden relative group hover:shadow-lg transition-all block h-full"
   >
     {/* Background image covering entire card */}
     <div className="absolute inset-0 z-0 ">
       <Image
-        src="/eighteen.jpg"
-        alt="JinkoSolar Panel"
+        src={mobileImage}
+        alt="Brand promotion"
         fill
         className="object-cover group-hover:scale-105 transition-transform duration-300"
       />
       {/* Semi-transparent overlay for better text visibility */}
-      <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/10 to-white/30"></div>
+      <div className="absolute inset-0 "></div>
     </div>
 
     {/* Content */}
     <div className="p-6 h-full flex flex-col relative z-10">
-      <div className="mb-2 text-sm font-semibold text-white">Get it fast</div>
-      <h2 className="text-3xl font-bold text-white mb-4">
-        Solar <br />
-        Panels
+      {/* <div className="mb-2 text-sm font-semibold text-white">{homePromotion?.selectedBrand?.label || "Featured Brand"}</div> */}
+      {/* <h2 className="text-3xl font-bold text-white mb-4">
+        {homePromotion?.selectedBrand?.brand?.name || "Solar Products"}
       </h2>
       <button className="bg-white text-black hover:bg-gray-50 px-4 py-2 rounded-full text-sm font-medium w-fit">
         Shop now
-      </button>
+      </button> */}
     </div>
   </Link>
 </div>
@@ -128,11 +177,15 @@ export default function FeaturedBrandProducts() {
               <Link href={`/product/${product.id}`} className="block group flex-1">
                 <div className="h-32 bg-gray-100 rounded-md flex items-center justify-center mb-2 overflow-hidden">
                   <Image
-                    src={product.image || "/placeholder.svg"}
+                    src={product.image}
                     alt={product.name}
                     width={120}
                     height={120}
                     className="object-contain group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      console.error('Image failed to load:', product.image)
+                      e.currentTarget.src = '/placeholder.svg'
+                    }}
                   />
                 </div>
                 <div className="pr-6 pb-8">
@@ -162,11 +215,15 @@ export default function FeaturedBrandProducts() {
               <Link href={`/product/${product.id}`} className="block group">
                 <div className="h-48 bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">
                   <Image
-                    src={product.image || "/placeholder.svg"}
+                    src={product.image}
                     alt={product.name}
                     width={180}
                     height={180}
                     className="object-contain group-hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      console.error('Image failed to load:', product.image)
+                      e.currentTarget.src = '/placeholder.svg'
+                    }}
                   />
                 </div>
                 <div className="mb-2">
@@ -186,32 +243,31 @@ export default function FeaturedBrandProducts() {
 
         {/* Right side - Brand promotion (35% width) */}
         <Link
-  href="/brand/jinko"
+  href={brandLink}
   className="h-[400px] w-[400px] rounded-lg overflow-hidden relative group hover:shadow-lg transition-all"
 >
   {/* Background image covering entire card */}
   <div className="absolute inset-0 z-0">
     <Image
-      src="/q15.jpg"
-      alt="JinkoSolar Panel"
+      src={desktopImage}
+      alt="Brand promotion"
       fill
       className="object-cover group-hover:scale-105 transition-transform duration-300"
     />
     {/* Semi-transparent overlay for better text visibility */}
-    {/* <div className="absolute inset-0  from-white/30 via-white/10 to-white/30"></div> */}
+    <div className="absolute inset-0 "></div>
   </div>
 
   {/* Content */}
-  <div className="p-6 h-full flex flex-col relative z-10">
-    {/* <div className="mb-2 text-sm font-semibold text-[#1a5ca4]">Get it fast</div>
+  {/* <div className="p-6 h-full flex flex-col relative z-10">
+    <div className="mb-2 text-sm font-semibold text-[#1a5ca4]">{homePromotion?.selectedBrand?.label || "Featured Brand"}</div>
     <h2 className="text-3xl font-bold text-[#1a5ca4] mb-4">
-      Solar <br />
-      Panels
-    </h2> */}
-    {/* <button className="mt-48 bg-white text-black hover:bg-gray-50 px-4 py-2 rounded-full text-sm font-medium w-fit">
+      {homePromotion?.selectedBrand?.brand?.name || "Solar Products"}
+    </h2>
+    <button className="mt-48 bg-white text-black hover:bg-gray-50 px-4 py-2 rounded-full text-sm font-medium w-fit">
       Shop now
-    </button> */}
-  </div>
+    </button>
+  </div> */}
 </Link>
       </div>
     </div>

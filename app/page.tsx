@@ -47,13 +47,15 @@ export default function Home() {
       
       {/* Secondary Promotional Grid */}
       {/* <PromotionalGrid /> */}
-      <FeaturedBrands />
+      {/* <FeaturedBrands /> */}
+
+      {/* Solar Benefits Section */}
+      <SolarBenefits />
 
       {/* Flash Deals Section */}
       <NewArrivals />
 
-      {/* Solar Benefits Section */}
-      <SolarBenefits />
+      
 
       {/* Top Brands Section */}
       <TopBrands />

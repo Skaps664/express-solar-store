@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Heart, ShoppingCart, ChevronRight } from "lucide-react";
+import { ShoppingCart, ChevronRight } from "lucide-react";
 import ProductSpecifications from "@/components/product-specifications";
 import ProductResources from "@/components/product-resources";
 import ProductReviews from "@/components/reviews/product-reviews";
@@ -295,19 +295,41 @@ export default function ProductClientSection({ id }: { id: string }) {
       {/* Product Overview */}
       <div className="flex flex-col lg:flex-row gap-8 mb-12">
         {/* Product Images */}
-        <div className="w-full lg:w-1/2 flex flex-row gap-4">
-          {/* Thumbnails on the left */}
-          <div className="flex flex-col gap-4">
-            {product.images.slice(0, 4).map((image: string, index: number) => (
-              <div
-                key={index}
-                className={`border border-gray-200 rounded-lg overflow-hidden w-20 h-20 bg-gray-100 flex items-center justify-center cursor-pointer ${selectedImageIndex === index ? "ring-2 ring-[#1a5ca4]" : ""}`}
-                onClick={() => setSelectedImageIndex(index)}
-              >
+        <div className="w-full lg:w-1/2">
+          {/* Desktop Layout: thumbnails on left, main image on right */}
+          <div className="hidden lg:flex flex-row gap-4">
+            {/* Thumbnails on the left for desktop */}
+            <div className="flex flex-col gap-4">
+              {product.images.slice(0, 4).map((image: string, index: number) => (
+                <div
+                  key={index}
+                  className={`border border-gray-200 rounded-lg overflow-hidden w-20 h-20 bg-gray-100 flex items-center justify-center cursor-pointer ${selectedImageIndex === index ? "ring-2 ring-[#1a5ca4]" : ""}`}
+                  onClick={() => setSelectedImageIndex(index)}
+                >
+                  <img
+                    src={image}
+                    alt={`${product.name} ${index + 1}`}
+                    className="max-h-full max-w-full object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = "none";
+                      if (target.nextSibling) {
+                        (target.nextSibling as HTMLElement).style.display = "flex";
+                      }
+                    }}
+                  />
+                  <div className="text-gray-400 hidden w-full h-full items-center justify-center text-center p-2 text-xs">[{image}]</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Main image on the right for desktop */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden mb-4 flex-1">
+              <div className="bg-gray-100 flex items-center justify-center" style={{ height: "24rem" }}>
                 <img
-                  src={image}
-                  alt={`${product.name} ${index + 1}`}
-                  className="max-h-full max-w-full object-contain"
+                  src={product.images[selectedImageIndex]}
+                  alt={product.name}
+                  className="max-h-full object-contain"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = "none";
@@ -316,27 +338,55 @@ export default function ProductClientSection({ id }: { id: string }) {
                     }
                   }}
                 />
-                <div className="text-gray-400 hidden w-full h-full items-center justify-center text-center p-2 text-xs">[{image}]</div>
+                <div className="text-gray-400 hidden w-full h-full items-center justify-center text-center p-4">[{product.images[selectedImageIndex]}]</div>
               </div>
-            ))}
+            </div>
           </div>
 
-          {/* Main image on the right */}
-          <div className="border border-gray-200 rounded-lg overflow-hidden mb-4 flex-1">
-            <div className="bg-gray-100 flex items-center justify-center" style={{ height: "24rem" }}>
-              <img
-                src={product.images[selectedImageIndex]}
-                alt={product.name}
-                className="max-h-full object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = "none";
-                  if (target.nextSibling) {
-                    (target.nextSibling as HTMLElement).style.display = "flex";
-                  }
-                }}
-              />
-              <div className="text-gray-400 hidden w-full h-full items-center justify-center text-center p-4">[{product.images[selectedImageIndex]}]</div>
+          {/* Mobile Layout: main image on top, thumbnails below */}
+          <div className="lg:hidden">
+            {/* Main image for mobile */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden mb-4">
+              <div className="bg-gray-100 flex items-center justify-center" style={{ height: "20rem" }}>
+                <img
+                  src={product.images[selectedImageIndex]}
+                  alt={product.name}
+                  className="max-h-full object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                    if (target.nextSibling) {
+                      (target.nextSibling as HTMLElement).style.display = "flex";
+                    }
+                  }}
+                />
+                <div className="text-gray-400 hidden w-full h-full items-center justify-center text-center p-4">[{product.images[selectedImageIndex]}]</div>
+              </div>
+            </div>
+
+            {/* Thumbnails below main image for mobile */}
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {product.images.slice(0, 4).map((image: string, index: number) => (
+                <div
+                  key={index}
+                  className={`border border-gray-200 rounded-lg overflow-hidden w-16 h-16 bg-gray-100 flex items-center justify-center cursor-pointer flex-shrink-0 ${selectedImageIndex === index ? "ring-2 ring-[#1a5ca4]" : ""}`}
+                  onClick={() => setSelectedImageIndex(index)}
+                >
+                  <img
+                    src={image}
+                    alt={`${product.name} ${index + 1}`}
+                    className="max-h-full max-w-full object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = "none";
+                      if (target.nextSibling) {
+                        (target.nextSibling as HTMLElement).style.display = "flex";
+                      }
+                    }}
+                  />
+                  <div className="text-gray-400 hidden w-full h-full items-center justify-center text-center p-1 text-xs">[{image}]</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -456,17 +506,14 @@ export default function ProductClientSection({ id }: { id: string }) {
           
           {/* Action Buttons */}
           <div className="flex flex-col gap-4">
-            {/* Cart and Wishlist Buttons */}
+            {/* Cart Button */}
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
-                className="flex-1 bg-[#1a5ca4] hover:bg-[#0e4a8a]"
+                className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a]"
                 onClick={handleAddToCart}
                 disabled={!product.inStock}
               >
                 <ShoppingCart className="mr-2 h-5 w-5" /> Add to Cart
-              </Button>
-              <Button variant="outline" className="flex-1">
-                <Heart className="mr-2 h-5 w-5" /> Add to Wishlist
               </Button>
             </div>
           </div>

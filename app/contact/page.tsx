@@ -15,8 +15,7 @@ export default function ContactPage() {
             <Mail className="h-6 w-6 text-amber-600" />
           </div>
           <h3 className="font-bold mb-2">Email</h3>
-          <p className="text-gray-600">info@solarexpress.com</p>
-          <p className="text-gray-600">support@solarexpress.com</p>
+          <p className="text-gray-600">solarexpk@gmail.com</p>
         </div>
 
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center text-center">
@@ -24,8 +23,7 @@ export default function ContactPage() {
             <Phone className="h-6 w-6 text-amber-600" />
           </div>
           <h3 className="font-bold mb-2">Phone</h3>
-          <p className="text-gray-600">+1 (888) 123-4567</p>
-          <p className="text-gray-600">+1 (888) 765-4321</p>
+          <p className="text-gray-600">+92 3330505000</p>
         </div>
 
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center text-center">
@@ -33,8 +31,9 @@ export default function ContactPage() {
             <MapPin className="h-6 w-6 text-amber-600" />
           </div>
           <h3 className="font-bold mb-2">Address</h3>
-          <p className="text-gray-600">123 Solar Way</p>
-          <p className="text-gray-600">Renewable City, 12345</p>
+          <p className="text-gray-600">Chowk, Safroon energy office, McDonalds HBK, Achini</p>
+          <p className="text-gray-600">Peshawar Ring Rd., near Habib Metro Politan Bank</p>
+          <p className="text-gray-600">Hayatabad, Peshawar, 25000</p>
         </div>
 
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center text-center">

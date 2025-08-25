@@ -194,11 +194,38 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
     );
   }
   
-  // Debug info
-  console.log('Original Resources:', resources);
-  console.log('Final Resources:', finalResources);
-  console.log('Videos:', videos);
-  console.log('Selected Video:', selectedVideo);
+  // Function to get document URL through backend proxy
+  const getDocumentUrl = (cloudinaryUrl: string): string => {
+    console.log('Processing Cloudinary URL:', cloudinaryUrl);
+    
+    try {
+      // Extract the public ID from the Cloudinary URL
+      // URL format: https://res.cloudinary.com/dcgcxw70o/raw/upload/v1754914983/products/documents/1754914982963_EP-5_EP-11_Updated.pdf
+      const urlParts = cloudinaryUrl.split('/');
+      const uploadIndex = urlParts.findIndex(part => part === 'upload');
+      
+      if (uploadIndex === -1) {
+        console.error('Invalid Cloudinary URL format:', cloudinaryUrl);
+        return cloudinaryUrl; // fallback to original URL
+      }
+      
+      // Get everything after /upload/ (including version if present)
+      const publicIdWithPath = urlParts.slice(uploadIndex + 1).join('/');
+      
+      // Remove version number if present (starts with 'v' followed by numbers)
+      const publicId = publicIdWithPath.replace(/^v\d+\//, '');
+      
+      console.log('Extracted public ID:', publicId);
+      
+      const backendUrl = `${process.env.NEXT_PUBLIC_API_BASE}/api/products/document/${publicId}`;
+      console.log('Document URL through backend:', backendUrl);
+      
+      return backendUrl;
+    } catch (error) {
+      console.error('Error processing document URL:', error);
+      return cloudinaryUrl; // fallback to original URL
+    }
+  };
   
   return (
     <div>
@@ -302,7 +329,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
                         className="w-full mt-3 flex items-center justify-center"
                         asChild
                       >
-                        <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                        <a href={getDocumentUrl(resource.url)} target="_blank" rel="noopener noreferrer">
                           Download <ExternalLink size={16} className="ml-1" />
                         </a>
                       </Button>
@@ -346,7 +373,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
                         className="w-full mt-3 flex items-center justify-center"
                         asChild
                       >
-                        <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                        <a href={getDocumentUrl(resource.url)} target="_blank" rel="noopener noreferrer">
                           Download <ExternalLink size={16} className="ml-1" />
                         </a>
                       </Button>

@@ -41,26 +41,28 @@ export default function ProductClientSection({ id }: { id: string }) {
   const { user } = useAuth();
   const { addToCart } = useCart();
 
-  // Memoized values
-  const resourceArray = useMemo(() => {
-    console.log('Building resourceArray from product:', product);
-    if (!product) return [];
-    
-    const resources: Array<{
-      type: 'document' | 'video';
-      id: string;
-      name?: string;
-      title?: string;
-      description?: string;
-      fileType?: string;
-      duration?: string;
-      views?: string;
-      url: string;
-    }> = [];
+    // Memoized values
+    const resourceArray = useMemo(() => {
+      console.log('Building resourceArray from product:', product);
+      if (!product) return [];
+      
+      const resources: Array<{
+        type: 'document' | 'video' | 'blog';
+        id: string;
+        name?: string;
+        title?: string;
+        description?: string;
+        fileType?: string;
+        duration?: string;
+        views?: string;
+        url?: string;
+        slug?: string;
+        excerpt?: any;
+        featuredImage?: any;
+        publishedAt?: string;
+      }> = [];
 
-    console.log('Initial resources array:', resources);
-
-    // Handle videos
+      console.log('Initial resources array:', resources);    // Handle videos
     if (product.videos && Array.isArray(product.videos)) {
       product.videos.forEach((video: any, index: number) => {
         if (typeof video === 'string') {
@@ -87,22 +89,64 @@ export default function ProductClientSection({ id }: { id: string }) {
       });
     }
 
-    // Handle documents
-    console.log('Processing documents:', product.documents);
-    if (product.documents && Array.isArray(product.documents)) {
-      product.documents.forEach((doc: any, index: number) => {
-        console.log('Processing document:', doc);
-        if (doc && doc.url) {
-          const documentResource = {
-            type: "document" as const,
-            id: doc.id || `doc_${index}`,
-            name: doc.name || "Untitled Document",
-            fileType: doc.fileType || doc.type || "pdf",
-            url: doc.url,
-            description: doc.description || `Document ${index + 1}`
+      // Handle documents
+      console.log('Processing documents:', product.documents);
+      if (product.documents && Array.isArray(product.documents)) {
+        product.documents.forEach((doc: any, index: number) => {
+          console.log('Processing document:', doc);
+          if (doc && doc.url) {
+            const documentResource = {
+              type: "document" as const,
+              id: doc.id || `doc_${index}`,
+              name: doc.name || "Untitled Document",
+              fileType: doc.fileType || doc.type || "pdf",
+              url: doc.url,
+              description: doc.description || `Document ${index + 1}`
+            };
+            console.log('Created document resource:', documentResource);
+            resources.push(documentResource);
+          }
+        });
+      }
+
+      // Handle blogs
+      console.log('Processing blogs:', product.relatedBlogs);
+      if (product.relatedBlogs && Array.isArray(product.relatedBlogs)) {
+        product.relatedBlogs.forEach((blog: any, index: number) => {
+          console.log('Processing blog:', blog);
+          if (blog && blog.slug) {
+            const blogResource = {
+              type: "blog" as const,
+              id: blog._id || `blog_${index}`,
+              title: blog.title?.en || blog.title || "Untitled Blog",
+              slug: blog.slug,
+              excerpt: blog.excerpt,
+              description: blog.excerpt?.en || blog.excerpt || `Blog ${index + 1}`,
+              featuredImage: blog.featuredImage,
+              publishedAt: blog.publishedAt
+            };
+            console.log('Created blog resource:', blogResource);
+            resources.push(blogResource);
+          }
+        });
+      }    // Handle blogs
+    console.log('Processing blogs:', product.relatedBlogs);
+    if (product.relatedBlogs && Array.isArray(product.relatedBlogs)) {
+      product.relatedBlogs.forEach((blog: any, index: number) => {
+        console.log('Processing blog:', blog);
+        if (blog && blog.slug) {
+          const blogResource = {
+            type: "blog" as const,
+            id: blog._id || `blog_${index}`,
+            title: blog.title?.en || blog.title || "Untitled Blog",
+            slug: blog.slug,
+            excerpt: blog.excerpt,
+            description: blog.excerpt?.en || blog.excerpt || `Blog ${index + 1}`,
+            featuredImage: blog.featuredImage,
+            publishedAt: blog.publishedAt
           };
-          console.log('Created document resource:', documentResource);
-          resources.push(documentResource);
+          console.log('Created blog resource:', blogResource);
+          resources.push(blogResource);
         }
       });
     }
@@ -119,6 +163,7 @@ export default function ProductClientSection({ id }: { id: string }) {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+        console.log('Fetching product details from:', `${API_BASE}/api/products/${id}`);
         const response = await fetch(`${API_BASE}/api/products/${id}`);
         const data = await response.json();
         if (data.success && data.product) {
@@ -156,8 +201,11 @@ export default function ProductClientSection({ id }: { id: string }) {
 
           console.log("Product data received:", data.product);
           
+          console.log('Raw product data:', data.product);
+          console.log('Related blogs:', data.product.relatedBlogs);
+          
           setProduct({
-            _id: data.product._id, // Adding the _id field which was missing!
+            _id: data.product._id,
             name: data.product.name,
             brand: data.product.brand?.name,
             brandSlug: data.product.brand?.slug,
@@ -172,6 +220,9 @@ export default function ProductClientSection({ id }: { id: string }) {
             rating: data.product.reviews?.rating || 0,
             reviewCount: data.product.reviews?.count || 0,
             relatedProducts: data.product.relatedProducts,
+            relatedBlogs: Array.isArray(data.product.relatedBlogs) ? data.product.relatedBlogs.filter(blog => 
+              blog && blog.status === 'published' && blog.isActive
+            ) : [],
             videos: data.product.videos,
             documents: transformedDocuments,
           });

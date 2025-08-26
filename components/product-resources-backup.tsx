@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useState } from 'react';
 import React from 'react';
@@ -16,18 +16,10 @@ type Resource = {
   views?: string;
   url?: string;
   slug?: string;
-  excerpt?: {
-    en: string;
-    ur: string;
-    ps: string;
-  } | string;
+  excerpt?: string;
   featuredImage?: {
     url: string;
-    alt?: {
-      en: string;
-      ur: string;
-      ps: string;
-    };
+    alt?: any;
   };
   publishedAt?: string;
 };
@@ -157,44 +149,9 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
       console.error('Invalid resource:', resource);
       return false;
     }
-    if (!resource.type || !resource.id) {
+    if (!resource.type || !resource.url || !resource.id) {
       console.error('Resource missing required fields:', resource);
       return false;
-    }
-    
-    // Additional type-specific validation
-    if (resource.type === 'document' && !resource.url) {
-      console.error('Document resource missing URL:', resource);
-      return false;
-    }
-    if (resource.type === 'video' && !resource.url) {
-      console.error('Video resource missing URL:', resource);
-      return false;
-    }
-    if (resource.type === 'blog') {
-      if (!resource.slug) {
-        console.error('Blog resource missing slug:', resource);
-        return false;
-      }
-      if (!resource.title) {
-        console.error('Blog resource missing title:', resource);
-        return false;
-      }
-      // Check for valid title structure (string or localized object)
-      if (typeof resource.title !== 'string' && (!resource.title?.en && !resource.title?.ur && !resource.title?.ps)) {
-        console.error('Blog resource has invalid title format:', resource);
-        return false;
-      }
-      // Check for valid excerpt structure
-      if (resource.excerpt && typeof resource.excerpt !== 'string' && (!resource.excerpt?.en && !resource.excerpt?.ur && !resource.excerpt?.ps)) {
-        console.error('Blog resource has invalid excerpt format:', resource);
-        return false;
-      }
-      // Validate featuredImage if present
-      if (resource.featuredImage && (!resource.featuredImage.url || typeof resource.featuredImage.url !== 'string')) {
-        console.error('Blog resource has invalid featuredImage format:', resource);
-        return false;
-      }
     }
     return true;
   }) : [];
@@ -382,7 +339,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
                         className="w-full mt-3 flex items-center justify-center"
                         asChild
                       >
-                        <a href={getDocumentUrl(resource.url || '')} target="_blank" rel="noopener noreferrer">
+                        <a href={getDocumentUrl(resource.url)} target="_blank" rel="noopener noreferrer">
                           Download <ExternalLink size={16} className="ml-1" />
                         </a>
                       </Button>
@@ -396,7 +353,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
         <TabsContent value="blogs" className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {blogs.map((resource: Resource, index: number) => (
-              <Link key={`blogs-${resource.id || index}`} href={`/blog/${resource.slug}`}>
+              <Link key={resource.id || `blog-${index}`} href={`/blogs/${resource.slug}`}>
                 <div className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-start">
                     <div className="rounded-full p-2 bg-green-100 text-green-600 mr-3">
@@ -441,26 +398,16 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
             {finalResources.map((resource: Resource, index: number) => {
               if (resource.type === 'blog') {
                 return (
-                  <Link key={`all-${resource.id}`} href={`/blog/${resource.slug}`}>
+                  <Link key={resource.id} href={`/blogs/${resource.slug}`}>
                     <div className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
                       <div className="flex items-start">
                         <div className="rounded-full p-2 bg-green-100 text-green-600 mr-3">
                           <BookOpen size={20} />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-medium mb-1 line-clamp-2">
-                            {typeof resource.title === 'string' 
-                              ? resource.title 
-                              : resource.title?.en || resource.title?.ur || resource.title?.ps || 'Untitled Blog'
-                            }
-                          </h4>
-                          {(resource.excerpt || resource.description) && (
-                            <p className="text-sm text-gray-600 mb-2 line-clamp-3">
-                              {typeof resource.excerpt === 'string' 
-                                ? resource.excerpt 
-                                : resource.excerpt?.en || resource.excerpt?.ur || resource.excerpt?.ps || resource.description || ''
-                              }
-                            </p>
+                          <h4 className="font-medium mb-1 line-clamp-2">{resource.title || 'Untitled Blog'}</h4>
+                          {resource.excerpt && (
+                            <p className="text-sm text-gray-600 mb-2 line-clamp-3">{typeof resource.excerpt === 'string' ? resource.excerpt : (resource.excerpt as any)?.en || resource.description}</p>
                           )}
                           <div className="flex items-center text-xs text-gray-500 mt-2">
                             <Calendar size={12} className="mr-1" />
@@ -480,7 +427,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
 
               return (
                 <div 
-                  key={`all-${resource.id}`}
+                  key={resource.id}
                   className={`border rounded-lg p-4 hover:shadow-md ${
                     resource.type === 'video' ? 'cursor-pointer' : ''
                   }`}
@@ -494,40 +441,39 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
                       <h4 className="font-medium mb-1">
                         {resource.type === 'document' ? (resource.name || 'Untitled Document') : (resource.title || 'Untitled Video')}
                       </h4>
-                      {resource.description && (
-                        <p className="text-sm text-gray-600 mb-2">{resource.description}</p>
-                      )}
-                      {resource.type === 'document' && resource.fileType && (
-                        <span className="bg-gray-100 px-2 py-1 rounded mr-2 text-xs">
-                          {resource.fileType.toUpperCase()}
-                        </span>
-                      )}
-                      {resource.type === 'document' ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full mt-3 flex items-center justify-center"
-                          asChild
-                        >
-                          <a href={getDocumentUrl(resource.url || '')} target="_blank" rel="noopener noreferrer">
-                            Download <ExternalLink size={16} className="ml-1" />
-                          </a>
-                        </Button>
-                      ) : (
-                        <div className="flex items-center justify-between mt-2">
-                          <div className="text-xs text-gray-400 truncate flex-1 mr-2">
-                            {resource.url}
-                          </div>
-                          <div className="text-xs text-blue-600 font-medium whitespace-nowrap">
-                            Click to watch
-                          </div>
+                    {resource.description && (
+                      <p className="text-sm text-gray-600 mb-2">{resource.description}</p>
+                    )}
+                    {resource.type === 'document' && resource.fileType && (
+                      <span className="bg-gray-100 px-2 py-1 rounded mr-2 text-xs">
+                        {resource.fileType.toUpperCase()}
+                      </span>
+                    )}
+                    {resource.type === 'document' ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full mt-3 flex items-center justify-center"
+                        asChild
+                      >
+                        <a href={getDocumentUrl(resource.url || '')} target="_blank" rel="noopener noreferrer">
+                          Download <ExternalLink size={16} className="ml-1" />
+                        </a>
+                      </Button>
+                    ) : (
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="text-xs text-gray-400 truncate flex-1 mr-2">
+                          {resource.url}
                         </div>
-                      )}
-                    </div>
+                        <div className="text-xs text-blue-600 font-medium whitespace-nowrap">
+                          Click to watch
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </TabsContent>
       </Tabs>

@@ -152,7 +152,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
   ];
   
   // Ensure resources is an array and validate each resource
-  const finalResources = Array.isArray(resources) ? resources.filter(resource => {
+  const validatedResources = Array.isArray(resources) ? resources.filter(resource => {
     if (!resource || typeof resource !== 'object') {
       console.error('Invalid resource:', resource);
       return false;
@@ -198,6 +198,12 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
     }
     return true;
   }) : [];
+  
+  // Remove duplicates based on id and type
+  const finalResources = validatedResources.filter((resource, index, array) => {
+    const firstIndex = array.findIndex(r => r.id === resource.id && r.type === resource.type);
+    return firstIndex === index;
+  });
   
   const documents = finalResources.filter(resource => resource.type === 'document');
   const videos = finalResources.filter(resource => resource.type === 'video');
@@ -251,6 +257,12 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
     console.log('Processing Cloudinary URL:', cloudinaryUrl);
     
     try {
+      // Check if it's already a Cloudinary URL
+      if (!cloudinaryUrl.includes('cloudinary.com')) {
+        console.log('Not a Cloudinary URL, using as-is:', cloudinaryUrl);
+        return cloudinaryUrl;
+      }
+      
       // Extract the public ID from the Cloudinary URL
       // URL format: https://res.cloudinary.com/dcgcxw70o/raw/upload/v1754914983/products/documents/1754914982963_EP-5_EP-11_Updated.pdf
       const urlParts = cloudinaryUrl.split('/');
@@ -261,15 +273,17 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
         return cloudinaryUrl; // fallback to original URL
       }
       
-      // Get everything after /upload/ (including version if present)
-      const publicIdWithPath = urlParts.slice(uploadIndex + 1).join('/');
+      // Get everything after /upload/
+      const pathAfterUpload = urlParts.slice(uploadIndex + 1).join('/');
       
-      // Remove version number if present (starts with 'v' followed by numbers)
-      const publicId = publicIdWithPath.replace(/^v\d+\//, '');
+      // Remove version number if present (starts with 'v' followed by numbers and a slash)
+      const publicId = pathAfterUpload.replace(/^v\d+\//, '');
       
       console.log('Extracted public ID:', publicId);
+      console.log('Path after upload:', pathAfterUpload);
       
-      const backendUrl = `${process.env.NEXT_PUBLIC_API_BASE}/api/products/document/${publicId}`;
+      // The backend expects the full public ID including the folder structure
+      const backendUrl = `${process.env.NEXT_PUBLIC_API_BASE}/api/products/document/${encodeURIComponent(publicId)}`;
       console.log('Document URL through backend:', backendUrl);
       
       return backendUrl;
@@ -451,14 +465,14 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
                           <h4 className="font-medium mb-1 line-clamp-2">
                             {typeof resource.title === 'string' 
                               ? resource.title 
-                              : resource.title?.en || resource.title?.ur || resource.title?.ps || 'Untitled Blog'
+                              : (resource.title as any)?.en || (resource.title as any)?.ur || (resource.title as any)?.ps || 'Untitled Blog'
                             }
                           </h4>
                           {(resource.excerpt || resource.description) && (
                             <p className="text-sm text-gray-600 mb-2 line-clamp-3">
                               {typeof resource.excerpt === 'string' 
                                 ? resource.excerpt 
-                                : resource.excerpt?.en || resource.excerpt?.ur || resource.excerpt?.ps || resource.description || ''
+                                : (resource.excerpt as any)?.en || (resource.excerpt as any)?.ur || (resource.excerpt as any)?.ps || resource.description || ''
                               }
                             </p>
                           )}

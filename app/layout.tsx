@@ -10,6 +10,8 @@ import { FloatingCartButton } from "@/components/floating-cart-button"
 import { ToastProvider } from "@/components/ui/toast"
 import { QueryProvider } from "@/providers/QueryProvider"
 import { ErrorBoundary } from '@/components/error-boundary'
+import { Analytics } from '@vercel/analytics/next';
+
 
 export const metadata = {
   title: "Solar Express - Renewable Energy Products",
@@ -35,6 +37,7 @@ export default function RootLayout({
                     <Toaster position="top-center" />
                     <Header />
                     <main className="min-h-screen">{children}</main>
+                    <Analytics />
                     <Footer />
                     <FloatingCartButton />
                   </AnalyticsProvider>

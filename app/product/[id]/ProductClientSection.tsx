@@ -167,10 +167,14 @@ export default function ProductClientSection({ id }: { id: string }) {
         const response = await fetch(`${API_BASE}/api/products/${id}`);
         const data = await response.json();
         if (data.success && data.product) {
-          // Track product view - wrapped in try/catch to prevent errors from breaking page load
+          // Track product view and add to recently viewed - wrapped in try/catch to prevent errors from breaking page load
           try {
             const analytics = await import('@/lib/analytics').then(mod => mod.default.getInstance());
             analytics.trackProductView(data.product._id, id, data.product.brand?._id);
+            
+            // Add to recently viewed products
+            const { addToRecentlyViewed } = await import('@/components/recently-viewed');
+            addToRecentlyViewed(data.product._id);
           } catch (analyticsError) {
             console.warn("Analytics tracking failed:", analyticsError);
             // Continue with page rendering even if analytics fails

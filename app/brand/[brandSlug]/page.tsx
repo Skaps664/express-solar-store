@@ -9,6 +9,7 @@ import InBrandAd from "@/components/inBrandAd"
 import { useState, use } from "react"
 import { useEffect} from "react"
 import { useBrandAnalytics } from "@/hooks/useAnalyticTracking"
+import AnalyticsClient from "@/lib/analytics"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
@@ -29,6 +30,12 @@ export default function BrandPage({ params }: BrandPageProps) {
   const [error, setError] = useState<string | null>(null)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [brandSlug, setBrandSlug] = useState<string>("")
+  
+  // Track product click
+  const handleProductClick = (productId: string, productSlug: string) => {
+    const analytics = AnalyticsClient.getInstance()
+    analytics.trackProductClick(productId, productSlug)
+  }
 
   // Get brandSlug from params using use()
   useEffect(() => {
@@ -277,7 +284,7 @@ export default function BrandPage({ params }: BrandPageProps) {
 
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {allProducts.map((product) => (
-              <Link key={product._id} href={`/product/${product.slug}`}>
+              <Link key={product._id} href={`/product/${product.slug}`} onClick={() => handleProductClick(product._id, product.slug)}>
                 <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors">
                   <div className="h-32 sm:h-48 bg-gray-100 relative">
                     <Image 
@@ -340,7 +347,7 @@ export default function BrandPage({ params }: BrandPageProps) {
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {/* Show custom featured products if available from settings, otherwise show default featured products */}
             {(brand.pageSettings?.featuredProducts?.length > 0 ? brand.pageSettings.featuredProducts : featuredProducts).map((product) => (
-              <Link key={product._id} href={`/product/${product.slug}`}>
+              <Link key={product._id} href={`/product/${product.slug}`} onClick={() => handleProductClick(product._id, product.slug)}>
                 <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors">
                   <div className="h-32 sm:h-48 bg-gray-100 relative">
                     <Image 

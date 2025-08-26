@@ -170,7 +170,7 @@ export default function BlogPage() {
         const [blogsRes, categoriesRes, productsRes, brandsRes] = await Promise.all([
           api.get(`/api/blogs?status=all&_t=${timestamp}`),
           api.get('/api/blog-categories?includeInactive=true'),
-          api.get('/api/products'),
+          api.get('/api/products/admin/all'),
           api.get('/api/brands/admin/all')
         ])
 
@@ -242,32 +242,7 @@ export default function BlogPage() {
         toast.success('Blog created successfully')
       }
 
-      setIsAddDialogOpen(false)
-      setSelectedBlog(null)
-      setFormData({
-        title: { en: '', ur: '', ps: '' },
-        slug: '',
-        excerpt: { en: '', ur: '', ps: '' },
-        content: { en: '', ur: '', ps: '' },
-        featuredImage: {
-          url: '',
-          alt: { en: '', ur: '', ps: '' }
-        },
-        status: 'draft',
-        tags: [],
-        seo: {
-          metaTitle: { en: '', ur: '', ps: '' },
-          metaDescription: { en: '', ur: '', ps: '' },
-          keywords: [],
-          canonicalUrl: '',
-          focusKeyword: ''
-        },
-        isFeatured: false,
-        isSticky: false,
-        allowComments: true,
-        relatedProducts: [],
-        relatedBrands: []
-      })
+      handleCloseDialog()
       
       // Refresh blogs list with cache busting
       // Add a small delay to ensure backend has processed the changes
@@ -309,6 +284,44 @@ export default function BlogPage() {
   }
 
   // Edit blog
+  // Function to handle dialog closing and cleanup
+  const handleCloseDialog = () => {
+    setIsAddDialogOpen(false);
+    setSelectedBlog(null);
+    // Reset form data to default state
+    setFormData({
+      title: { en: '', ur: '', ps: '' },
+      slug: '',
+      excerpt: { en: '', ur: '', ps: '' },
+      content: { en: '', ur: '', ps: '' },
+      category: '',
+      status: 'draft',
+      featuredImage: {
+        url: '',
+        alt: { en: '', ur: '', ps: '' }
+      },
+      seo: {
+        metaTitle: { en: '', ur: '', ps: '' },
+        metaDescription: { en: '', ur: '', ps: '' },
+        keywords: [],
+        canonicalUrl: '',
+        focusKeyword: ''
+      },
+      isFeatured: false,
+      isSticky: false,
+      allowComments: true,
+      relatedProducts: [],
+      relatedBrands: []
+    });
+    // Clear focus issues
+    setTimeout(() => {
+      if (document.activeElement && document.activeElement !== document.body) {
+        (document.activeElement as HTMLElement).blur();
+      }
+      document.body.focus();
+    }, 100);
+  };
+
   const handleCreateNewBlog = () => {
     setSelectedBlog(null)
     setFormData({
@@ -384,10 +397,18 @@ export default function BlogPage() {
         focusKeyword: blog.seo?.focusKeyword || ''
       },
       tags: blog.tags || [],
-      relatedProducts: blog.relatedProducts || [],
-      relatedBrands: blog.relatedBrands || [],
-      primaryProduct: blog.primaryProduct || '',
-      primaryBrand: blog.primaryBrand || '',
+      relatedProducts: (blog.relatedProducts || []).map((product: any) => 
+        typeof product === 'object' && product._id ? product._id : product
+      ),
+      relatedBrands: (blog.relatedBrands || []).map((brand: any) => 
+        typeof brand === 'object' && brand._id ? brand._id : brand
+      ),
+      primaryProduct: typeof blog.primaryProduct === 'object' && (blog.primaryProduct as any)?._id 
+        ? (blog.primaryProduct as any)._id 
+        : blog.primaryProduct || '',
+      primaryBrand: typeof blog.primaryBrand === 'object' && (blog.primaryBrand as any)?._id 
+        ? (blog.primaryBrand as any)._id 
+        : blog.primaryBrand || '',
       category: typeof blog.category === 'object' ? blog.category._id : blog.category,
       status: blog.status || 'draft',
       isFeatured: blog.isFeatured || false,
@@ -772,7 +793,7 @@ export default function BlogPage() {
 
   return (
     <div className="space-y-8">
-      <WarningBanner />
+      {/* <WarningBanner /> */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Blog Management</h1>
@@ -806,14 +827,27 @@ export default function BlogPage() {
               </div>
             </DialogContent>
           </Dialog>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <Dialog 
+            open={isAddDialogOpen} 
+            onOpenChange={(open) => {
+              if (!open) {
+                handleCloseDialog();
+              } else {
+                setIsAddDialogOpen(true);
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button onClick={handleCreateNewBlog}>
                 <Plus className="mr-2 h-4 w-4" />
                 New Blog
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto">
+            <DialogContent 
+              className="sm:max-w-[1000px] max-h-[90vh] overflow-y-auto"
+              onPointerDownOutside={(e) => e.preventDefault()}
+              onInteractOutside={(e) => e.preventDefault()}
+            >
               <DialogHeader>
                 <DialogTitle>{selectedBlog ? 'Edit Blog Post' : 'Create New Blog Post'}</DialogTitle>
                 <DialogDescription>
@@ -1134,6 +1168,130 @@ export default function BlogPage() {
                         </SelectContent>
                       </Select>
                     </div>
+
+                    <Separator />
+
+                    <div className="grid gap-2">
+                      <Label>Related Products</Label>
+                      <p className="text-sm text-gray-600">Select multiple products that this blog relates to. The blog will appear in the Resources tab of these products.</p>
+                      <div className="grid gap-2">
+                        <Select
+                          onValueChange={(value) => {
+                            if (value !== 'none' && !formData.relatedProducts.includes(value)) {
+                              setFormData(prev => ({
+                                ...prev,
+                                relatedProducts: [...prev.relatedProducts, value]
+                              }))
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Add related products" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Select a product...</SelectItem>
+                            {products.filter(product => !formData.relatedProducts.includes(product._id)).map((product) => (
+                              <SelectItem key={product._id} value={product._id}>
+                                {product.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        
+                        {formData.relatedProducts.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {formData.relatedProducts.map((productId) => {
+                              const product = products.find(p => p._id === productId);
+                              if (!product) {
+                                console.warn(`Product with ID ${productId} not found`);
+                                // Remove invalid product ID from formData
+                                setTimeout(() => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    relatedProducts: prev.relatedProducts.filter(id => id !== productId)
+                                  }));
+                                }, 0);
+                                return null;
+                              }
+                              return (
+                                <Badge key={productId} variant="secondary" className="flex items-center gap-1">
+                                  {product.name}
+                                  <X 
+                                    size={14} 
+                                    className="cursor-pointer hover:text-red-500" 
+                                    onClick={() => setFormData(prev => ({
+                                      ...prev,
+                                      relatedProducts: prev.relatedProducts.filter(id => id !== productId)
+                                    }))}
+                                  />
+                                </Badge>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      <Label>Related Brands</Label>
+                      <p className="text-sm text-gray-600">Select multiple brands that this blog relates to.</p>
+                      <div className="grid gap-2">
+                        <Select
+                          onValueChange={(value) => {
+                            if (value !== 'none' && !formData.relatedBrands.includes(value)) {
+                              setFormData(prev => ({
+                                ...prev,
+                                relatedBrands: [...prev.relatedBrands, value]
+                              }))
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Add related brands" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Select a brand...</SelectItem>
+                            {brands.filter(brand => !formData.relatedBrands.includes(brand._id)).map((brand) => (
+                              <SelectItem key={brand._id} value={brand._id}>
+                                {brand.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        
+                        {formData.relatedBrands.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {formData.relatedBrands.map((brandId) => {
+                              const brand = brands.find(b => b._id === brandId);
+                              if (!brand) {
+                                console.warn(`Brand with ID ${brandId} not found`);
+                                // Remove invalid brand ID from formData
+                                setTimeout(() => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    relatedBrands: prev.relatedBrands.filter(id => id !== brandId)
+                                  }));
+                                }, 0);
+                                return null;
+                              }
+                              return (
+                                <Badge key={brandId} variant="secondary" className="flex items-center gap-1">
+                                  {brand.name}
+                                  <X 
+                                    size={14} 
+                                    className="cursor-pointer hover:text-red-500" 
+                                    onClick={() => setFormData(prev => ({
+                                      ...prev,
+                                      relatedBrands: prev.relatedBrands.filter(id => id !== brandId)
+                                    }))}
+                                  />
+                                </Badge>
+                              )
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
 
@@ -1182,7 +1340,7 @@ export default function BlogPage() {
               </Tabs>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                <Button variant="outline" onClick={handleCloseDialog}>
                   Cancel
                 </Button>
                 <Button onClick={handleSaveBlog}>

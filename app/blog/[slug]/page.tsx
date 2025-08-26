@@ -69,6 +69,22 @@ interface Blog {
     slug: string
     logo: string
   }>
+  primaryProduct?: {
+    _id: string
+    name: string
+    slug: string
+    images: string[]
+    price: number
+    originalPrice?: number
+    discountPercentage?: number
+  }
+  primaryBrand?: {
+    _id: string
+    name: string
+    slug: string
+    logo: string
+    description?: string
+  }
   seo: {
     metaTitle: {
       en: string
@@ -259,67 +275,155 @@ export default function BlogPost() {
 
       <Separator className="my-8" />
 
-      {/* Related Products */}
-      {blog.relatedProducts && blog.relatedProducts.length > 0 && (
+      {/* Primary and Related Products */}
+      {(blog.primaryProduct || (blog.relatedProducts && blog.relatedProducts.length > 0)) && (
         <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-4">Related Products</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {blog.relatedProducts.map((product) => (
-              <Card key={product._id}>
+          <h3 className="text-lg font-semibold mb-4">Featured Products</h3>
+          
+          {/* Primary Product */}
+          {blog.primaryProduct && (
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-3 text-blue-600">Primary Product</h4>
+              <Card className="border-blue-200">
                 <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    {product.image && (
+                  <div className="flex items-start space-x-4">
+                    {blog.primaryProduct.images?.[0] && (
                       <Image
-                        src={product.image}
-                        alt={product.name}
-                        width={60}
-                        height={60}
+                        src={blog.primaryProduct.images[0]}
+                        alt={blog.primaryProduct.name}
+                        width={80}
+                        height={80}
                         className="rounded-md"
                       />
                     )}
-                    <div>
-                      <h4 className="font-medium">{product.name}</h4>
-                      <Button asChild variant="link" className="p-0 h-auto">
-                        <Link href={`/products/${product.slug}`}>View Product</Link>
+                    <div className="flex-1">
+                      <h5 className="font-medium text-lg">{blog.primaryProduct.name}</h5>
+                      <div className="flex items-center space-x-2 mt-2">
+                        <span className="text-lg font-bold text-green-600">
+                          PKR {blog.primaryProduct.price?.toLocaleString()}
+                        </span>
+                        {blog.primaryProduct.originalPrice && blog.primaryProduct.originalPrice > blog.primaryProduct.price && (
+                          <>
+                            <span className="text-sm text-gray-500 line-through">
+                              PKR {blog.primaryProduct.originalPrice.toLocaleString()}
+                            </span>
+                            <Badge variant="destructive" className="text-xs">
+                              {blog.primaryProduct.discountPercentage}% OFF
+                            </Badge>
+                          </>
+                        )}
+                      </div>
+                      <Button asChild className="mt-3">
+                        <Link href={`/product/${blog.primaryProduct.slug}`}>View Product</Link>
                       </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {/* Related Products */}
+          {blog.relatedProducts && blog.relatedProducts.length > 0 && (
+            <div>
+              <h4 className="text-md font-medium mb-3">Related Products</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {blog.relatedProducts.map((product) => (
+                  <Card key={product._id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-3">
+                        {product.image && (
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            width={60}
+                            height={60}
+                            className="rounded-md"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h5 className="font-medium">{product.name}</h5>
+                          <Button asChild variant="link" className="p-0 h-auto text-left">
+                            <Link href={`/product/${product.slug}`}>View Product</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Related Brands */}
-      {blog.relatedBrands && blog.relatedBrands.length > 0 && (
+      {/* Primary and Related Brands */}
+      {(blog.primaryBrand || (blog.relatedBrands && blog.relatedBrands.length > 0)) && (
         <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-4">Related Brands</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {blog.relatedBrands.map((brand) => (
-              <Card key={brand._id}>
+          <h3 className="text-lg font-semibold mb-4">Featured Brands</h3>
+          
+          {/* Primary Brand */}
+          {blog.primaryBrand && (
+            <div className="mb-6">
+              <h4 className="text-md font-medium mb-3 text-blue-600">Primary Brand</h4>
+              <Card className="border-blue-200">
                 <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    {brand.logo && (
+                  <div className="flex items-start space-x-4">
+                    {blog.primaryBrand.logo && (
                       <Image
-                        src={brand.logo}
-                        alt={brand.name}
-                        width={60}
-                        height={60}
+                        src={blog.primaryBrand.logo}
+                        alt={blog.primaryBrand.name}
+                        width={80}
+                        height={80}
                         className="rounded-md"
                       />
                     )}
-                    <div>
-                      <h4 className="font-medium">{brand.name}</h4>
-                      <Button asChild variant="link" className="p-0 h-auto">
-                        <Link href={`/brands/${brand.slug}`}>View Brand</Link>
+                    <div className="flex-1">
+                      <h5 className="font-medium text-lg">{blog.primaryBrand.name}</h5>
+                      {blog.primaryBrand.description && (
+                        <p className="text-sm text-gray-600 mt-2">{blog.primaryBrand.description}</p>
+                      )}
+                      <Button asChild className="mt-3">
+                        <Link href={`/brands/${blog.primaryBrand.slug}`}>View Brand</Link>
                       </Button>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {/* Related Brands */}
+          {blog.relatedBrands && blog.relatedBrands.length > 0 && (
+            <div>
+              <h4 className="text-md font-medium mb-3">Related Brands</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {blog.relatedBrands.map((brand) => (
+                  <Card key={brand._id}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-3">
+                        {brand.logo && (
+                          <Image
+                            src={brand.logo}
+                            alt={brand.name}
+                            width={60}
+                            height={60}
+                            className="rounded-md"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h5 className="font-medium">{brand.name}</h5>
+                          <Button asChild variant="link" className="p-0 h-auto text-left">
+                            <Link href={`/brands/${brand.slug}`}>View Brand</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

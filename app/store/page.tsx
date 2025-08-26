@@ -4,6 +4,7 @@ import { useSearchParams, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import AnalyticsClient from "@/lib/analytics"
 import { Grid, List, SlidersHorizontal } from "lucide-react"
 import Link from "next/link"
 
@@ -46,6 +47,12 @@ function StorePage() {
   const [filters, setFilters] = useState<Filter[]>([])
   const [loading, setLoading] = useState(false)
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 20 })
+  
+  // Track product click
+  const handleProductClick = (productId: string, productSlug: string) => {
+    const analytics = AnalyticsClient.getInstance()
+    analytics.trackProductClick(productId, productSlug)
+  }
   const [filterState, setFilterState] = useState<Record<string, any>>({})
   const [sort, setSort] = useState("newest")
   const [limit, setLimit] = useState(20)
@@ -314,7 +321,7 @@ function StorePage() {
                   key={product._id || index}
                   className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden cursor-pointer"
                 >
-                  <Link href={`/product/${product.slug || product._id}`}>
+                  <Link href={`/product/${product.slug || product._id}`} onClick={() => handleProductClick(product._id, product.slug || product._id)}>
                     <div className="h-48 bg-gray-200 flex items-center justify-center">
                       <img
                         src={product.images?.[0] || "/placeholder.png"}

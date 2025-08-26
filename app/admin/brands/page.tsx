@@ -87,8 +87,8 @@ export default function BrandsPage() {
         console.error("Error fetching categories:", err)
       })
     
-    // Fetch products for home promotion
-    api.get('/api/products/')
+    // Fetch ALL products for home promotion using admin endpoint (without pagination)
+    api.get('/api/products/admin/all?limit=1000')
       .then(res => {
         // Handle both direct array and paginated response
         const responseData = res.data as any

@@ -35,61 +35,61 @@ export default function HomePromoGrid() {
     TopFullLeftBAnner: {
       image: "/q2.jpeg",
       text: "",
-      button: "Shop Now",
+      button: "",
       link: "/brand/jinko-solar"
     },
     BottomWideCenterBanner: {
       image: "/wer.jpg",
       text: "",
-      button: "Try SolarExpress+ for free",
+      button: "",
       link: "/services/installation"
     },
     FullRightTallBanner: {
       image: "/q1.jpeg",
       text: "",
-      button: "Shop now",
+      button: "",
       link: "/premium-solutions"
     },
     BottomLeftBanner: {
       image: "/q8.jpeg",
       text: "",
-      button: "Shop now",
+      button: "",
       link: "/summer-deals"
     },
     TopCenterLeftBAnner: {
       image: "/q7.jpeg",
       text: "",
-      button: "Shop now",
+      button: "",
       link: "/category/solar-panels"
     },
     TopCenterRightBAnner: {
       image: "/q17.jpg",
       text: "",
-      button: "Shop now",
+      button: "",
       link: "/flash-deals"
     },
     MobileTopWideBanner: {
       image: "/seventeen.jpg",
       text: "",
-      button: "Explore Solutions",
+      button: "",
       link: "/premium-solutions"
     },
     MobileSecondWideBanner: {
       image: "/q6.jpeg",
       text: "",
-      button: "Shop Now",
+      button: "",
       link: "/flash-deals"
     },
     MobileBottomLeftBanner: {
       image: "/q9.jpeg",
       text: "",
-      button: "BUY NOW",
+      button: "",
       link: "/brand/jinko-solar"
     },
     MobileBottomRightBanner: {
       image: "/q7.jpeg",
       text: "",
-      button: "Browse All",
+      button: "",
       link: "/category/solar-panels"
     }
   }
@@ -309,7 +309,7 @@ export default function HomePromoGrid() {
           href={getBannerData('MobileTopWideBanner')?.link || "/premium-solutions"}
           className="block rounded-2xl overflow-hidden relative h-[220px] shadow-lg group"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/20 to-transparent z-10"></div>
+          <div className="absolute inset-0 "></div>
           <div className="absolute top-6 left-6 right-6 z-20">
             <div className="flex items-center gap-2 mb-3">
               {/* <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1">
@@ -326,9 +326,7 @@ export default function HomePromoGrid() {
               {getBannerData('MobileTopWideBanner')?.button && (
                 <span className="text-white font-semibold text-sm">{getBannerData('MobileTopWideBanner')?.button}</span>
               )}
-              <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs">→</span>
-              </div>
+              
             </div>
           </div>
           <Image
@@ -344,10 +342,10 @@ export default function HomePromoGrid() {
           href={getBannerData('MobileSecondWideBanner')?.link || "/flash-deals"}
           className="block rounded-2xl overflow-hidden relative h-[160px] shadow-lg group"
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent z-10"></div>
+          <div className="absolute inset-0 "></div>
           <div className="flex items-center justify-between h-full p-6 relative z-20">
             <div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 mb-3 inline-block">
+              <div className="rounded-full px-3 py-1 mb-3 inline-block">
                 {/* <span className="text-white text-xs font-bold">LIMITED TIME</span> */}
               </div>
               {getBannerData('MobileSecondWideBanner')?.text && (
@@ -376,7 +374,7 @@ export default function HomePromoGrid() {
           {/* Mobile Bottom Left Banner */}
           <Link
             href={getBannerData('MobileBottomLeftBanner')?.link || "/brand/jinko-solar"}
-            className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-xl overflow-hidden relative h-[180px] shadow-md group"
+            className=" rounded-xl overflow-hidden relative h-[180px] shadow-md group"
           >
             <div className="absolute inset-0 bg-black/20 z-10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             {getBannerData('MobileBottomLeftBanner')?.text && (
@@ -416,9 +414,9 @@ export default function HomePromoGrid() {
           {/* Mobile Bottom Right Banner */}
           <Link
             href={getBannerData('MobileBottomRightBanner')?.link || "/category/solar-panels"}
-            className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl overflow-hidden relative h-[180px] shadow-md group"
+            className=" rounded-xl overflow-hidden relative h-[180px] shadow-md group"
           >
-            <div className="absolute inset-0 bg-black/30 z-10"></div>
+            <div className="absolute inset-0 z-10"></div>
             <div className="absolute inset-0 p-4 flex flex-col justify-between z-20">
               <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 self-start">
                 {/* <span className="text-white text-xs font-semibold">1000+ OPTIONS</span> */}

@@ -515,32 +515,43 @@ export default function Header({ user }: HeaderProps) {
 
 										{activeCategory !== null && activeBrand !== null && (
 											<div className="w-2/4 bg-white p-4">
-												<h3 className="font-bold text-[#1a5ca4] mb-3">
-													{categoryData[activeCategory]?.brands[activeBrand]?.name} Products
-												</h3>
-												<div className="grid grid-cols-2 gap-2">
+												{/* Brand Name as Clickable Link */}
+												<Link 
+													href={categoryData[activeCategory]?.brands[activeBrand]?.url || '#'}
+													className="font-bold text-[#1a5ca4] text-lg mb-1 hover:text-[#f26522] transition-colors block"
+												>
+													{categoryData[activeCategory]?.brands[activeBrand]?.name}
+												</Link>
+												
+												{/* Click to view brand page text */}
+												<p className="text-xs text-gray-500 mb-3">Click to view brand page</p>
+												
+												{/* Products Grid - Limited to 4 items */}
+												<div className="grid grid-cols-2 gap-2 mb-4">
 													{activeProducts.length > 0 ? (
-														activeProducts.map((product, index) => (
+														activeProducts.slice(0, 4).map((product, index) => (
 															<Link
 																key={index}
 																href={`/product/${product.slug}`}
-																className="px-3 py-2 rounded hover:bg-gray-50 text-gray-700 hover:text-[#1a5ca4]"
+																className="px-3 py-2 rounded hover:bg-gray-50 text-gray-700 hover:text-[#1a5ca4] text-sm"
 															>
 																{product.name}
 															</Link>
 														))
 													) : (
-														<div className="text-gray-500 text-sm">No products found.</div>
+														<div className="text-gray-500 text-sm col-span-2">No products found.</div>
 													)}
 												</div>
+												
+												{/* View all products link */}
 												{categoryData[activeCategory]?.brands[activeBrand]?.url && (
-													<div className="mt-4 pt-3 border-t border-gray-200">
-														<a
+													<div className="pt-3 border-t border-gray-200">
+														<Link
 															href={categoryData[activeCategory].brands[activeBrand].url}
-															className="text-[#f26522] font-medium hover:underline"
+															className="text-[#f26522] font-medium hover:underline text-sm"
 														>
 															View all {categoryData[activeCategory].brands[activeBrand].name} products
-														</a>
+														</Link>
 													</div>
 												)}
 											</div>

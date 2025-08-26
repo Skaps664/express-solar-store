@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Heart, Plus } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useState } from "react"
+import AnalyticsClient from "@/lib/analytics"
 
 type HeadingData = {
   featuredBrandsHeading: {
@@ -36,6 +37,22 @@ type HomePromotion = {
 export default function FeaturedBrandProducts() {
   const [headingData, setHeadingData] = useState<HeadingData | null>(null)
   const [homePromotion, setHomePromotion] = useState<HomePromotion | null>(null)
+  
+  // Track product click
+  const handleProductClick = (productId: string, productSlug: string) => {
+    const analytics = AnalyticsClient.getInstance()
+    analytics.trackProductClick(productId, productSlug)
+  }
+  
+  // Track brand click
+  const handleBrandClick = () => {
+    if (homePromotion?.selectedBrand) {
+      const analytics = AnalyticsClient.getInstance()
+      const brandId = homePromotion.selectedBrand.value
+      const brandSlug = homePromotion.selectedBrand.brand?.slug || brandId
+      analytics.trackBrandClick(brandId, brandSlug)
+    }
+  }
 
   useEffect(() => {
     // Fetch heading data (keep existing logic if you have Sanity for other content)
@@ -63,24 +80,28 @@ export default function FeaturedBrandProducts() {
   const fallbackProducts = [
     {
       id: "jinko-400w-panel",
+      slug: "jinko-400w-panel",
       name: "JinkoSolar ProSeries 400W Mono Solar Panel with Half-Cell Technology",
       price: 125000,
       image: "/11.png",
     },
     {
       id: "jinko-370w-panel", 
+      slug: "jinko-370w-panel",
       name: "JinkoSolar Original 370W Mono Solar Panel with Optimized Cell Design",
       price: 95000,
       image: "/12.png",
     },
     {
       id: "jinko-450w-panel",
+      slug: "jinko-450w-panel",
       name: "JinkoSolar ProSeries 450W XL Mono Solar Panel with Bifacial Technology", 
       price: 150000,
       image: "/13.png",
     },
     {
       id: "jinko-380w-panel",
+      slug: "jinko-380w-panel",
       name: "JinkoSolar EcoSeries 380W Mono Solar Panel with Advanced Technology",
       price: 110000,
       image: "/11.png",
@@ -111,6 +132,7 @@ export default function FeaturedBrandProducts() {
     
     return {
       id: product._id || p.value,
+      slug: product.slug || product._id || p.value, // Use slug for routing
       name: product.name || "Product",
       price: product.price || 0,
       image: imageUrl // Use first image from images array
@@ -140,7 +162,8 @@ export default function FeaturedBrandProducts() {
         <div className="mb-6">
   <Link
     href={brandLink}
-    className="rounded-lg overflow-hidden relative group hover:shadow-lg transition-all block h-full"
+    className="rounded-lg overflow-hidden relative group hover:shadow-lg transition-all block h-40 sm:h-48"
+    onClick={handleBrandClick}
   >
     {/* Background image covering entire card */}
     <div className="absolute inset-0 z-0 ">
@@ -174,7 +197,7 @@ export default function FeaturedBrandProducts() {
               <button className="absolute top-2 right-2 z-10 text-gray-500 hover:text-red-500 bg-white rounded-full p-1">
                 <Heart size={16} />
               </button>
-              <Link href={`/product/${product.id}`} className="block group flex-1">
+              <Link href={`/product/${product.slug}`} className="block group flex-1" onClick={() => handleProductClick(product.id, product.slug)}>
                 <div className="h-32 bg-gray-100 rounded-md flex items-center justify-center mb-2 overflow-hidden">
                   <Image
                     src={product.image}
@@ -212,7 +235,7 @@ export default function FeaturedBrandProducts() {
               <button className="absolute top-2 right-2 z-10 text-gray-500 hover:text-red-500 bg-white rounded-full p-1">
                 <Heart size={20} />
               </button>
-              <Link href={`/product/${product.id}`} className="block group">
+              <Link href={`/product/${product.slug}`} className="block group" onClick={() => handleProductClick(product.id, product.slug)}>
                 <div className="h-48 bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">
                   <Image
                     src={product.image}
@@ -231,12 +254,16 @@ export default function FeaturedBrandProducts() {
                   <h3 className="text-sm line-clamp-2 group-hover:text-[#1a5ca4] transition-colors">{product.name}</h3>
                 </div>
               </Link>
-              <Link
-                href={`/cart/add/${product.id}`}
+              <button
                 className="mt-2 flex items-center justify-center w-8 h-8 border border-gray-300 rounded-full hover:bg-gray-100"
+                onClick={(e) => {
+                  e.preventDefault()
+                  // TODO: Implement add to cart functionality
+                  console.log('Add to cart clicked for product:', product.slug)
+                }}
               >
                 <Plus size={16} />
-              </Link>
+              </button>
             </div>
           ))}
         </div>
@@ -245,6 +272,7 @@ export default function FeaturedBrandProducts() {
         <Link
   href={brandLink}
   className="h-[400px] w-[400px] rounded-lg overflow-hidden relative group hover:shadow-lg transition-all"
+  onClick={handleBrandClick}
 >
   {/* Background image covering entire card */}
   <div className="absolute inset-0 z-0">

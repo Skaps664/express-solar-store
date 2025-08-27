@@ -216,6 +216,7 @@ export default function ProductClientSection({ id }: { id: string }) {
             category: data.product.category?.name || "Unknown Category",
             price: data.product.price,
             discountPrice: data.product.originalPrice,
+            stock: data.product.stock,
             inStock: data.product.stock > 0,
             description: data.product.description,
             features: data.product.keyFeatures,
@@ -261,6 +262,16 @@ export default function ProductClientSection({ id }: { id: string }) {
     console.log("Add to Cart button clicked");
     if (!product || !product._id) {
       console.error("Invalid product data");
+      return;
+    }
+    
+    // Check stock availability
+    if (!product.inStock || product.stock <= 0) {
+      toast({
+        title: "Product unavailable",
+        description: "This product is currently out of stock",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -476,8 +487,11 @@ export default function ProductClientSection({ id }: { id: string }) {
           <div className="mb-6">
             <div className="flex items-center gap-2">
               <span className="font-medium">Availability:</span>
-              {product.inStock ? (
-                <span className="text-green-600">In Stock</span>
+              {product.inStock && product.stock > 0 ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-green-600">In Stock</span>
+                  <span className="text-gray-500">({product.stock} available)</span>
+                </div>
               ) : (
                 <span className="text-red-600">Out of Stock</span>
               )}
@@ -521,30 +535,34 @@ export default function ProductClientSection({ id }: { id: string }) {
           </div>
 
           {/* Quantity Selector */}
-          <div className="mb-6">
-            <h3 className="font-bold mb-2">Quantity</h3>
-            <div className="flex items-center">
-              <button 
-                className="px-3 py-1 border rounded-l-md"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              >
-                -
-              </button>
-              <input 
-                type="number" 
-                value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-16 text-center border-y p-1"
-                min="1"
-              />
-              <button 
-                className="px-3 py-1 border rounded-r-md"
-                onClick={() => setQuantity(quantity + 1)}
-              >
-                +
-              </button>
+          {product.inStock && product.stock > 0 && (
+            <div className="mb-6">
+              <h3 className="font-bold mb-2">Quantity</h3>
+              <div className="flex items-center">
+                <button 
+                  className="px-3 py-1 border rounded-l-md hover:bg-gray-50"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                >
+                  -
+                </button>
+                <input 
+                  type="number" 
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, parseInt(e.target.value) || 1)))}
+                  className="w-16 text-center border-y p-1"
+                  min="1"
+                  max={product.stock}
+                />
+                <button 
+                  className="px-3 py-1 border rounded-r-md hover:bg-gray-50"
+                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                >
+                  +
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">Maximum {product.stock} items available</p>
             </div>
-          </div>
+          )}
           
           {/* Authentication Warning */}
           {!user && (
@@ -564,11 +582,21 @@ export default function ProductClientSection({ id }: { id: string }) {
             {/* Cart Button */}
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
-                className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a]"
+                className={`w-full ${
+                  product.inStock && product.stock > 0 
+                    ? "bg-[#1a5ca4] hover:bg-[#0e4a8a]" 
+                    : "bg-gray-400 cursor-not-allowed"
+                }`}
                 onClick={handleAddToCart}
-                disabled={!product.inStock}
+                disabled={!product.inStock || product.stock <= 0}
               >
-                <ShoppingCart className="mr-2 h-5 w-5" /> Add to Cart
+                {product.inStock && product.stock > 0 ? (
+                  <>
+                    <ShoppingCart className="mr-2 h-5 w-5" /> Add to Cart
+                  </>
+                ) : (
+                  "Sold Out"
+                )}
               </Button>
             </div>
           </div>

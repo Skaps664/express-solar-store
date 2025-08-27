@@ -109,6 +109,8 @@ export default function Header({ user }: HeaderProps) {
 	const [activeBrand, setActiveBrand] = useState<number | null>(null)
 	const [activeProducts, setActiveProducts] = useState<Product[]>([]);
 	const [expandedMobileCategory, setExpandedMobileCategory] = useState<number | null>(null)
+	const [productsCache, setProductsCache] = useState<Record<string, Product[]>>({})
+	const [loadingProducts, setLoadingProducts] = useState<Record<string, boolean>>({})
 	const [searchTerm, setSearchTerm] = useState("")
 	const [categoryData, setCategoryData] = useState<Category[]>([])
 	const [loading, setLoading] = useState(true)
@@ -218,6 +220,9 @@ export default function Header({ user }: HeaderProps) {
 				setIsMenuOpen(false)
 				setActiveCategory(null)
 				setActiveBrand(null)
+				// Clear cache when menu closes to free memory
+				setProductsCache({})
+				setLoadingProducts({})
 			}
 			if (mobileSidebarRef.current && !mobileSidebarRef.current.contains(event.target as Node) && isMobileMenuOpen) {
 				setIsMobileMenuOpen(false)
@@ -239,10 +244,51 @@ export default function Header({ user }: HeaderProps) {
 		return () => document.removeEventListener("mousedown", handleClick)
 	}, [dropdownOpen])
 
-	const handleCategoryHover = (index: number) => {
+	const handleCategoryHover = async (index: number) => {
 		setActiveCategory(index)
 		setActiveBrand(null)
-		setActiveProducts([])
+		// Don't clear activeProducts here - let it be handled by brand hover
+		// setActiveProducts([])
+		
+		// Prefetch products for all brands in this category
+		const category = categoryData[index];
+		if (category && category.brands) {
+			category.brands.forEach(async (brand, brandIndex) => {
+				const cacheKey = `${brand.slug}-${category.slug}`;
+				
+				// Skip if already cached or currently loading
+				if (productsCache[cacheKey] || loadingProducts[cacheKey]) {
+					return;
+				}
+				
+				// Mark as loading
+				setLoadingProducts(prev => ({ ...prev, [cacheKey]: true }));
+				
+				try {
+					const url = `${API_BASE}/api/brands/${brand.slug}/${category.slug}`;
+					const response = await fetch(url);
+					
+					if (response.ok) {
+						const products = await response.json();
+						let productList: Product[] = [];
+						
+						if (Array.isArray(products)) {
+							productList = products;
+						} else if (products.products && Array.isArray(products.products)) {
+							productList = products.products;
+						}
+						
+						// Cache the products
+						setProductsCache(prev => ({ ...prev, [cacheKey]: productList }));
+					}
+				} catch (error) {
+					console.error(`Failed to prefetch products for ${brand.name}:`, error);
+				} finally {
+					// Mark as not loading
+					setLoadingProducts(prev => ({ ...prev, [cacheKey]: false }));
+				}
+			});
+		}
 	}
 
 	const handleBrandHover = async (brandIndex: number) => {
@@ -250,12 +296,28 @@ export default function Header({ user }: HeaderProps) {
 		if (activeCategory !== null) {
 			const category = categoryData[activeCategory];
 			const brand = category.brands[brandIndex];
+			const cacheKey = `${brand.slug}-${category.slug}`;
+			
+			// Check if products are cached
+			if (productsCache[cacheKey]) {
+				setActiveProducts(productsCache[cacheKey]);
+				return;
+			}
+			
+			// Check if currently loading - don't clear products, just return
+			if (loadingProducts[cacheKey]) {
+				return; // Keep showing loading state
+			}
+			
 			console.log("Hovering over brand:", brand);
 			console.log("In category:", category);
 			
 			if (brand && category && brand.slug && category.slug) {
+				// Mark as loading and set products to special loading state
+				setLoadingProducts(prev => ({ ...prev, [cacheKey]: true }));
+				setActiveProducts([]); // This will trigger loading state in UI
+				
 				try {
-					// The order of parameters is important: brandSlug first, then categorySlug
 					const url = `${API_BASE}/api/brands/${brand.slug}/${category.slug}`;
 					console.log("Fetching products from:", url);
 					
@@ -266,17 +328,17 @@ export default function Header({ user }: HeaderProps) {
 						const products = await response.json();
 						console.log("Fetched products:", products);
 						
-						// Check if the response is an array or has a products property
+						let productList: Product[] = [];
 						if (Array.isArray(products)) {
-							setActiveProducts(products);
-							console.log(`Found ${products.length} products`);
+							productList = products;
 						} else if (products.products && Array.isArray(products.products)) {
-							setActiveProducts(products.products);
-							console.log(`Found ${products.products.length} products`);
-						} else {
-							console.error("Invalid products data structure:", products);
-							setActiveProducts([]);
+							productList = products.products;
 						}
+						
+						// Cache and set products
+						setProductsCache(prev => ({ ...prev, [cacheKey]: productList }));
+						setActiveProducts(productList);
+						console.log(`Found ${productList.length} products`);
 					} else {
 						console.error("Failed to fetch products. Status:", response.status);
 						setActiveProducts([]);
@@ -284,6 +346,8 @@ export default function Header({ user }: HeaderProps) {
 				} catch (error) {
 					console.error("Failed to fetch products", error);
 					setActiveProducts([]);
+				} finally {
+					setLoadingProducts(prev => ({ ...prev, [cacheKey]: false }));
 				}
 			} else {
 				console.error("Brand or category slug missing", { brand, category });
@@ -526,21 +590,46 @@ export default function Header({ user }: HeaderProps) {
 												{/* Click to view brand page text */}
 												<p className="text-xs text-gray-500 mb-3">Click to view brand page</p>
 												
-												{/* Products Grid - Limited to 4 items */}
+												{/* Products Grid - Limited to 4 items with loading state */}
 												<div className="grid grid-cols-2 gap-2 mb-4">
-													{activeProducts.length > 0 ? (
-														activeProducts.slice(0, 4).map((product, index) => (
-															<Link
-																key={index}
-																href={`/product/${product.slug}`}
-																className="px-3 py-2 rounded hover:bg-gray-50 text-gray-700 hover:text-[#1a5ca4] text-sm"
-															>
-																{product.name}
-															</Link>
-														))
-													) : (
-														<div className="text-gray-500 text-sm col-span-2">No products found.</div>
-													)}
+														{(() => {
+															const category = categoryData[activeCategory];
+															const brand = category?.brands[activeBrand];
+															
+															if (!brand) {
+																return null; // Don't show anything if no brand is selected
+															}
+															
+															const cacheKey = `${brand.slug}-${category.slug}`;
+															const isLoading = loadingProducts[cacheKey];
+															
+															if (isLoading) {
+																return (
+																	<div className="col-span-2 flex items-center justify-center py-4">
+																		<div className="flex items-center gap-2 text-gray-500">
+																			<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#1a5ca4]"></div>
+																			<span className="text-sm">Loading products...</span>
+																		</div>
+																	</div>
+																);
+															}
+															
+															if (activeProducts.length > 0) {
+																return activeProducts.slice(0, 4).map((product, index) => (
+																	<Link
+																		key={index}
+																		href={`/product/${product.slug}`}
+																		className="px-3 py-2 rounded hover:bg-gray-50 text-gray-700 hover:text-[#1a5ca4] text-sm"
+																	>
+																		{product.name}
+																	</Link>
+																));
+															}
+															
+															return (
+																<div className="text-gray-500 text-sm col-span-2">No products found.</div>
+															);
+														})()}
 												</div>
 												
 												{/* View all products link */}

@@ -289,7 +289,7 @@ const cartItems = cart
                   Get instant support and place your order directly through WhatsApp
                 </p>
                 <a
-                  href="https://wa.me/923259327819?text=Hi! I'm interested in ordering solar products from my cart. Can you help me complete my order?"
+                  href="https://wa.me/923330505000?text=Hi! I'm interested in ordering solar products from my cart. Can you help me complete my order?"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block"
@@ -314,7 +314,7 @@ const cartItems = cart
                   disabled={cart.length === 0 || checkoutLoading}
                   className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 text-lg font-medium transition-colors"
                 >
-                  {checkoutLoading ? "Processing..." : "Proceed to Checkout"}
+                  {checkoutLoading ? "Processing..." : "Proceed to Pay"}
                 </Button>
               </div>
 

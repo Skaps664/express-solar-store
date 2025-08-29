@@ -35,7 +35,7 @@ export default function FeaturedPromoCards() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Solar Panels Card */}
-        <Link href="/category/solar-panels" className="group">
+        <Link href="/store?category=solar-panels" className="group">
           <div className="bg-blue-50 rounded-lg overflow-hidden relative h-[280px] md:h-[350px] hover:shadow-lg transition-all">
             <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-between z-10">
               <div>
@@ -57,7 +57,7 @@ export default function FeaturedPromoCards() {
         </Link>
 
         {/* Inverters Card */}
-        <Link href="/category/inverters" className="group">
+        <Link href="/store?category=inverter" className="group">
           <div className="bg-green-50 rounded-lg overflow-hidden relative h-[280px] md:h-[350px] hover:shadow-lg transition-all">
             <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-between z-10">
               <div>
@@ -79,7 +79,7 @@ export default function FeaturedPromoCards() {
         </Link>
 
         {/* Batteries Card */}
-        <Link href="/category/batteries" className="group">
+        <Link href="/store?category=battery" className="group">
           <div className="bg-amber-50 rounded-lg overflow-hidden relative h-[280px] md:h-[350px] hover:shadow-lg transition-all">
             <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-between z-10">
               <div>
@@ -100,7 +100,7 @@ export default function FeaturedPromoCards() {
           </div>
         </Link>
 
-        <Link href="/category/accessories" className="group">
+        <Link href="/store?category=accessories" className="group">
           <div className="bg-blue-50 rounded-lg overflow-hidden relative h-[280px] md:h-[350px] hover:shadow-lg transition-all">
             <div className="absolute inset-0 p-4 md:p-6 flex flex-col justify-between z-10">
               <div>

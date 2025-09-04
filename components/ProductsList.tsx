@@ -37,8 +37,8 @@ interface ProductsListProps {
 export function ProductsList({ category, brand }: ProductsListProps) {
   const { user } = useAuth();
   const [search, setSearch] = useState('');
-  const [sortBy, setSortBy] = useState('');
-  const [priceRange, setPriceRange] = useState('');
+  const [sortBy, setSortBy] = useState('default');
+  const [priceRange, setPriceRange] = useState('all');
 
   const {
     data,
@@ -56,8 +56,8 @@ export function ProductsList({ category, brand }: ProductsListProps) {
         ...(category && { category }),
         ...(brand && { brand }),
         ...(search && { search }),
-        ...(sortBy && { sort: sortBy }),
-        ...(priceRange && { priceRange }),
+        ...(sortBy && sortBy !== 'default' && { sort: sortBy }),
+        ...(priceRange && priceRange !== 'all' && { priceRange }),
       });
 
       const { data } = await api.get<ProductsResponse>(`/api/products?${params}`);
@@ -118,7 +118,7 @@ export function ProductsList({ category, brand }: ProductsListProps) {
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Default</SelectItem>
+            <SelectItem value="default">Default</SelectItem>
             <SelectItem value="price_asc">Price: Low to High</SelectItem>
             <SelectItem value="price_desc">Price: High to Low</SelectItem>
             <SelectItem value="rating">Highest Rated</SelectItem>
@@ -131,7 +131,7 @@ export function ProductsList({ category, brand }: ProductsListProps) {
             <SelectValue placeholder="Price range" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Prices</SelectItem>
+            <SelectItem value="all">All Prices</SelectItem>
             <SelectItem value="0-100">$0 - $100</SelectItem>
             <SelectItem value="100-500">$100 - $500</SelectItem>
             <SelectItem value="500-1000">$500 - $1,000</SelectItem>

@@ -6,8 +6,7 @@ import { ChevronRight, Filter, ChevronDown  } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import InBrandAd from "@/components/inBrandAd"
-import { useState, use } from "react"
-import { useEffect} from "react"
+import { useState, useEffect } from "react"
 import { useBrandAnalytics } from "@/hooks/useAnalyticTracking"
 import AnalyticsClient from "@/lib/analytics"
 
@@ -41,13 +40,15 @@ export default function BrandPage({ params }: BrandPageProps) {
     analytics.trackProductClick(productId, productSlug)
   }
 
-  // Get brandSlug from params using use()
+  // Get brandSlug from params - Next.js 15 compatible
   useEffect(() => {
-    async function getBrandSlug() {
+    async function getParams() {
       const resolvedParams = await params
-      setBrandSlug(resolvedParams.brandSlug)
+      if (resolvedParams?.brandSlug) {
+        setBrandSlug(resolvedParams.brandSlug)
+      }
     }
-    getBrandSlug()
+    getParams()
   }, [params])
 
   useEffect(() => {
@@ -220,9 +221,8 @@ export default function BrandPage({ params }: BrandPageProps) {
           <Image 
               src={brand.banner || '/default-brand-banner.jpg'} 
               alt={`${brand.name} Banner`} 
-              layout="fill"
-              objectFit="cover"
-              objectPosition="center"
+              fill
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
               priority
           />
         </div>
@@ -232,9 +232,8 @@ export default function BrandPage({ params }: BrandPageProps) {
           <Image 
               src={brand.banner || '/default-brand-banner.jpg'} 
               alt={`${brand.name} Mobile Banner`} 
-              layout="fill"
-              objectFit="cover"
-              objectPosition="center"
+              fill
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
               priority
           />
         </div>
@@ -250,8 +249,8 @@ export default function BrandPage({ params }: BrandPageProps) {
           <Image 
             src={brand.logo || '/default-brand-logo.png'}
             alt={`${brand.name} Logo`}
-            layout="fill"
-            objectFit="contain"
+            fill
+            style={{ objectFit: 'contain' }}
             className="p-2 sm:p-4"
           />
         </div>
@@ -283,7 +282,6 @@ export default function BrandPage({ params }: BrandPageProps) {
           <TabsTrigger value="support" className="text-xs sm:text-sm">Support & Warranty</TabsTrigger>
         </TabsList>
 
-
         {/* All Products Tab */}
         <TabsContent value="all" className="pt-6">
           <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
@@ -302,7 +300,6 @@ export default function BrandPage({ params }: BrandPageProps) {
               </Button>
             </div>
             
-
             {/* Dynamic filters sidebar - Hidden on mobile by default, shown when toggled */}
             {(showMobileFilters || (typeof window !== 'undefined' && window.innerWidth >= 1024)) && (
               <div className="w-full lg:w-1/4">
@@ -387,12 +384,13 @@ export default function BrandPage({ params }: BrandPageProps) {
                         )}
                       </div>
                     ))}
-                  <Button 
-                    className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-sm"
-                    onClick={() => setShowMobileFilters(false)}
-                  >
-                    Apply Filters
-                  </Button>
+                    <Button 
+                      className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-sm"
+                      onClick={() => setShowMobileFilters(false)}
+                    >
+                      Apply Filters
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -427,36 +425,35 @@ export default function BrandPage({ params }: BrandPageProps) {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-            {allProducts.map((product) => (
-              <Link key={product._id} href={`/product/${product.slug}`} onClick={() => handleProductClick(product._id, product.slug)}>
-                <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors">
-                  <div className="h-32 sm:h-48 bg-gray-100 relative">
-                    <Image 
-                      src={product.images?.[0] || '/default-product.jpg'}
-                      alt={product.name}
-                      layout="fill"
-                      objectFit="contain"
-                    />
-                  </div>
-                  <div className="p-2 sm:p-4">
-                    <h3 className="font-medium mb-2 line-clamp-2 text-xs sm:text-sm h-8 sm:h-12">{product.name}</h3>
-                    <div className="flex items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
-                      {product.originalPrice && product.originalPrice < product.price ? (
-                        <>
-                          <span className="text-[#1a5ca4] font-bold text-xs sm:text-sm">{formatPrice(product.originalPrice)}</span>
-                          <span className="text-gray-500 line-through text-xs">{formatPrice(product.price)}</span>
-                        </>
-                      ) : (
-                        <span className="text-[#1a5ca4] font-bold text-xs sm:text-sm">{formatPrice(product.price)}</span>
-                      )}
+                {allProducts.map((product) => (
+                  <Link key={product._id} href={`/product/${product.slug}`} onClick={() => handleProductClick(product._id, product.slug)}>
+                    <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors">
+                      <div className="h-32 sm:h-48 bg-gray-100 relative">
+                        <Image 
+                          src={product.images?.[0] || '/default-product.jpg'}
+                          alt={product.name}
+                          fill
+                          style={{ objectFit: 'contain' }}
+                        />
+                      </div>
+                      <div className="p-2 sm:p-4">
+                        <h3 className="font-medium mb-2 line-clamp-2 text-xs sm:text-sm h-8 sm:h-12">{product.name}</h3>
+                        <div className="flex items-center gap-1 sm:gap-2 mb-2 sm:mb-3">
+                          {product.originalPrice && product.originalPrice < product.price ? (
+                            <>
+                              <span className="text-[#1a5ca4] font-bold text-xs sm:text-sm">{formatPrice(product.originalPrice)}</span>
+                              <span className="text-gray-500 line-through text-xs">{formatPrice(product.price)}</span>
+                            </>
+                          ) : (
+                            <span className="text-[#1a5ca4] font-bold text-xs sm:text-sm">{formatPrice(product.price)}</span>
+                          )}
+                        </div>
+                        <Button className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-xs sm:text-sm py-1 sm:py-2">Add to Cart</Button>
+                      </div>
                     </div>
-                    <Button className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-xs sm:text-sm py-1 sm:py-2">Add to Cart</Button>
-                  </div>
-                </div>
-              </Link>
-            ))}
-            
-          </div>
+                  </Link>
+                ))}
+              </div>
 
               {/* Pagination */}
               <div className="flex justify-center mt-6 sm:mt-8">
@@ -478,16 +475,13 @@ export default function BrandPage({ params }: BrandPageProps) {
                   </Button>
                 </div>
               </div>
-              </div>
             </div>
           </div>
         </TabsContent>
 
-        {/* Featured Products Tab */
+        {/* Featured Products Tab */}
         <TabsContent value="featured" className="pt-6">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Featured Products from {brand.name}</h2>
-
-          
           
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {/* Show custom featured products if available from settings, otherwise show default featured products */}
@@ -498,8 +492,8 @@ export default function BrandPage({ params }: BrandPageProps) {
                     <Image 
                       src={product.images?.[0] || '/default-product.jpg'}
                       alt={product.name}
-                      layout="fill"
-                      objectFit="contain"
+                      fill
+                      style={{ objectFit: 'contain' }}
                     />
                   </div>
                   <div className="p-2 sm:p-4">
@@ -520,6 +514,7 @@ export default function BrandPage({ params }: BrandPageProps) {
               </Link>
             ))}
           </div>
+          
           {/* Display active promotions for featured tab */}
           {brand.pageSettings?.activePromotions?.filter(promo => promo.displayTab === 'featured').map((promo) => (
             <div key={promo._id} className="my-8 group">
@@ -528,8 +523,8 @@ export default function BrandPage({ params }: BrandPageProps) {
                   <Image 
                     src={promo.imageUrl}
                     alt={promo.title}
-                    layout="fill"
-                    objectFit="cover"
+                    fill
+                    style={{ objectFit: 'cover' }}
                     className="transition-transform duration-300 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
@@ -560,13 +555,9 @@ export default function BrandPage({ params }: BrandPageProps) {
           ))}
         </TabsContent>
 
-        
-
         {/* About Tab */}
         <TabsContent value="about" className="pt-6">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">About {brand.name}</h2>
-
-          
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             <div>
@@ -596,8 +587,8 @@ export default function BrandPage({ params }: BrandPageProps) {
               <Image 
                 src={brand.thumbnail}
                 alt={`${brand.name} Story`}
-                layout="fill"
-                objectFit="cover"
+                fill
+                style={{ objectFit: 'cover' }}
                 className="rounded-lg"
               />
             </div>
@@ -640,6 +631,7 @@ export default function BrandPage({ params }: BrandPageProps) {
               )}
             </div>
           </div>
+          
           {/* Display active promotions for about tab */}
           {brand.pageSettings?.activePromotions?.filter(promo => promo.displayTab === 'about' || promo.displayTab === 'all').map((promo) => (
             <div key={promo._id} className="my-8 group">
@@ -648,8 +640,8 @@ export default function BrandPage({ params }: BrandPageProps) {
                   <Image 
                     src={promo.imageUrl}
                     alt={promo.title}
-                    layout="fill"
-                    objectFit="cover"
+                    fill
+                    style={{ objectFit: 'cover' }}
                     className="transition-transform duration-300 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
@@ -683,8 +675,6 @@ export default function BrandPage({ params }: BrandPageProps) {
         {/* Support Tab */}
         <TabsContent value="support" className="pt-6">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">{brand.name} Support</h2>
-
-          
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
             <div className="p-4 sm:p-6 border border-gray-200 rounded-lg shadow-sm">
@@ -747,6 +737,7 @@ export default function BrandPage({ params }: BrandPageProps) {
               )}
             </div>
           </div>
+          
           {/* Display active promotions for support tab */}
           {brand.pageSettings?.activePromotions?.filter(promo => promo.displayTab === 'support' || promo.displayTab === 'all').map((promo) => (
             <div key={promo._id} className="my-8 group">
@@ -755,8 +746,8 @@ export default function BrandPage({ params }: BrandPageProps) {
                   <Image 
                     src={promo.imageUrl}
                     alt={promo.title}
-                    layout="fill"
-                    objectFit="cover"
+                    fill
+                    style={{ objectFit: 'cover' }}
                     className="transition-transform duration-300 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
@@ -787,7 +778,6 @@ export default function BrandPage({ params }: BrandPageProps) {
           ))}
         </TabsContent>
       </Tabs>
-      
     </div>
   )
 }

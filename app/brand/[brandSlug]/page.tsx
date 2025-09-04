@@ -30,6 +30,10 @@ export default function BrandPage({ params }: BrandPageProps) {
   const [error, setError] = useState<string | null>(null)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [brandSlug, setBrandSlug] = useState<string>("")
+  const [filters, setFilters] = useState<any[]>([])
+  const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({})
+  const [sortBy, setSortBy] = useState("featured")
+  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 20 })
   
   // Track product click
   const handleProductClick = (productId: string, productSlug: string) => {
@@ -84,26 +88,15 @@ export default function BrandPage({ params }: BrandPageProps) {
           analytics.trackBrandView(brandData._id, brandSlug);
         }
 
-        // Fetch all products for this brand - this is a separate API call
-        console.log(`Fetching all products for brand ${brandSlug}`)
-        const productsResponse = await fetch(`${API_BASE}/api/brands/${brandSlug}/products`)
-        console.log('Products response status:', productsResponse.status)
-        
-        if (productsResponse.ok) {
-          const productsData = await productsResponse.json()
-          console.log('Products data fetched:', productsData)
-          
-          if (productsData.success) {
-            setAllProducts(productsData.products || [])
-            console.log(`Found ${productsData.products?.length || 0} products for this brand`)
-          } else {
-            console.error('Failed to get products:', productsData.message)
-            setAllProducts([])
-          }
-        } else {
-          console.error('Error fetching products, status:', productsResponse.status)
-          setAllProducts([])
+        // Fetch brand page filters
+        const filtersResponse = await fetch(`${API_BASE}/api/products/filters/brand`)
+        if (filtersResponse.ok) {
+          const filtersData = await filtersResponse.json()
+          setFilters(filtersData.filters || [])
         }
+
+        // Fetch all products for this brand - this is a separate API call
+        fetchBrandProducts()
       } catch (err) {
         console.error("Error fetching brand data:", err)
         setError("Failed to load brand data.")
@@ -113,6 +106,90 @@ export default function BrandPage({ params }: BrandPageProps) {
     }
     fetchBrandData()
   }, [brandSlug])
+
+  // Fetch brand products with filters
+  const fetchBrandProducts = async () => {
+    try {
+      const params = new URLSearchParams()
+      params.append('brand', brandSlug)
+      params.append('sort', sortBy)
+      params.append('page', String(pagination.page))
+      params.append('limit', String(pagination.limit))
+
+      // Add applied filters
+      Object.entries(appliedFilters).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== false) {
+          if (Array.isArray(value)) {
+            value.forEach(v => params.append(key, v))
+          } else {
+            params.append(key, String(value))
+          }
+        }
+      })
+
+      console.log(`Fetching all products for brand ${brandSlug}`)
+      const productsResponse = await fetch(`${API_BASE}/api/products?${params.toString()}`)
+      console.log('Products response status:', productsResponse.status)
+      
+      if (productsResponse.ok) {
+        const productsData = await productsResponse.json()
+        console.log('Products data fetched:', productsData)
+        
+        if (productsData.success) {
+          setAllProducts(productsData.products || [])
+          setPagination(productsData.pagination || { page: 1, pages: 1, total: 0, limit: 20 })
+          console.log(`Found ${productsData.products?.length || 0} products for this brand`)
+        } else {
+          console.error('Failed to get products:', productsData.message)
+          setAllProducts([])
+        }
+      } else {
+        console.error('Error fetching products, status:', productsResponse.status)
+        setAllProducts([])
+      }
+    } catch (error) {
+      console.error('Error in fetchBrandProducts:', error)
+      setAllProducts([])
+    }
+  }
+
+  // Handle filter change
+  const handleFilterChange = (field: string, value: any) => {
+    setAppliedFilters(prev => ({
+      ...prev,
+      [field]: value === "" ? undefined : value
+    }))
+    setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  // Special handler for category filter change - needs to reload filters
+  const handleCategoryFilterChange = (newCategory: string | undefined) => {
+    // Update the filter state
+    handleFilterChange('category', newCategory)
+    
+    // Clear other filters since they might not be applicable to the new category
+    setAppliedFilters({ category: newCategory })
+    
+    // Fetch new filters for the selected category or keep brand filters
+    const filterCategory = newCategory ? newCategory : 'brand'
+    fetch(`${API_BASE}/api/products/filters/${filterCategory}`)
+      .then((res) => res.json())
+      .then((data) => setFilters(data.filters || []))
+      .catch(err => console.error('Error fetching filters:', err))
+  }
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setAppliedFilters({})
+    setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  // Fetch products when filters or sort change
+  useEffect(() => {
+    if (brandSlug) {
+      fetchBrandProducts()
+    }
+  }, [appliedFilters, sortBy, pagination.page])
 
   if (loading) {
     return <div className="py-16 text-center text-muted-foreground">Loading brand information...</div>
@@ -226,42 +303,96 @@ export default function BrandPage({ params }: BrandPageProps) {
             </div>
             
 
-            {/* Categories sidebar - Hidden on mobile by default, shown when toggled */}
+            {/* Dynamic filters sidebar - Hidden on mobile by default, shown when toggled */}
             {(showMobileFilters || (typeof window !== 'undefined' && window.innerWidth >= 1024)) && (
               <div className="w-full lg:w-1/4">
                 <div className="border border-gray-200 rounded-lg p-4 shadow-sm">
-                  <h3 className="font-bold mb-4 text-sm sm:text-base">Categories</h3>
-                  <ul className="space-y-2">
-                    {brand.productCategories?.map((category, index) => (
-                      <li key={index}>
-                        <a href="#" className="text-gray-700 hover:text-[#1a5ca4] text-sm">
-                          {category.name}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <h3 className="font-bold mt-6 mb-4 text-sm sm:text-base">Price Range</h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center">
-                      <input type="checkbox" id="price1" className="mr-2" />
-                      <label htmlFor="price1" className="text-sm">Under PKR 30,000</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input type="checkbox" id="price2" className="mr-2" />
-                      <label htmlFor="price2" className="text-sm">PKR 30,000 - 40,000</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input type="checkbox" id="price3" className="mr-2" />
-                      <label htmlFor="price3" className="text-sm">PKR 40,000 - 50,000</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input type="checkbox" id="price4" className="mr-2" />
-                      <label htmlFor="price4" className="text-sm">Over PKR 50,000</label>
-                    </div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-bold text-sm sm:text-base">Filters</h3>
+                    {Object.keys(appliedFilters).length > 0 && (
+                      <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-xs">
+                        Clear All
+                      </Button>
+                    )}
                   </div>
 
-                  <Button className="w-full mt-4 bg-[#1a5ca4] hover:bg-[#0e4a8a] text-sm">Apply Filters</Button>
+                  {/* Dynamic filters based on configuration */}
+                  <div className="space-y-6">
+                    {filters.map((filter) => (
+                      <div key={filter.field}>
+                        {filter.type === 'select' && (
+                          <div>
+                            <h4 className="font-medium mb-2 text-sm">{filter.label}</h4>
+                            <select 
+                              className="w-full border rounded p-2 text-sm"
+                              value={appliedFilters[filter.field] || ''}
+                              onChange={(e) => {
+                                // Use special handler for category filter
+                                if (filter.field === 'category') {
+                                  handleCategoryFilterChange(e.target.value || undefined)
+                                } else {
+                                  handleFilterChange(filter.field, e.target.value)
+                                }
+                              }}
+                            >
+                              <option value="">All {filter.label}s</option>
+                              {filter.options?.map((option) => (
+                                <option key={option} value={option}>
+                                  {option}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {filter.type === 'range' && (
+                          <div>
+                            <h4 className="font-medium mb-2 text-sm">{filter.label}</h4>
+                            <div className="flex gap-2">
+                              <input
+                                type="number"
+                                placeholder="Min"
+                                className="flex-1 border rounded p-2 text-sm"
+                                value={appliedFilters[`${filter.field}_min`] || ''}
+                                onChange={(e) => handleFilterChange(`${filter.field}_min`, e.target.value || undefined)}
+                                min={filter.min}
+                                max={filter.max}
+                                step={filter.step}
+                              />
+                              <input
+                                type="number"
+                                placeholder="Max"
+                                className="flex-1 border rounded p-2 text-sm"
+                                value={appliedFilters[`${filter.field}_max`] || ''}
+                                onChange={(e) => handleFilterChange(`${filter.field}_max`, e.target.value || undefined)}
+                                min={filter.min}
+                                max={filter.max}
+                                step={filter.step}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {filter.type === 'boolean' && (
+                          <div className="flex items-center">
+                            <input 
+                              type="checkbox" 
+                              id={filter.field} 
+                              className="mr-2"
+                              checked={appliedFilters[filter.field] || false}
+                              onChange={(e) => handleFilterChange(filter.field, e.target.checked)}
+                            />
+                            <label htmlFor={filter.field} className="text-sm">{filter.label}</label>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  <Button 
+                    className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-sm"
+                    onClick={() => setShowMobileFilters(false)}
+                  >
+                    Apply Filters
+                  </Button>
                 </div>
               </div>
             )}
@@ -269,15 +400,28 @@ export default function BrandPage({ params }: BrandPageProps) {
             <div className="w-full lg:w-3/4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-6 gap-2">
                 <div>
-                  <span className="text-gray-600 text-sm">Showing 1-{Math.min(allProducts.length, 8)} of {allProducts.length} products</span>
+                  <span className="text-gray-600 text-sm">
+                    Showing 1-{Math.min(allProducts.length, pagination.limit)} of {pagination.total} products
+                  </span>
+                  {Object.keys(appliedFilters).length > 0 && (
+                    <span className="text-sm text-blue-600 ml-2">
+                      ({Object.keys(appliedFilters).length} filter{Object.keys(appliedFilters).length > 1 ? 's' : ''} applied)
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">Sort by:</span>
-                  <select className="border rounded p-1 text-sm">
-                    <option>Featured</option>
-                    <option>Price: Low to High</option>
-                    <option>Price: High to Low</option>
-                    <option>Newest</option>
+                  <select 
+                    className="border rounded p-1 text-sm"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                  >
+                    <option value="featured">Featured</option>
+                    <option value="newest">Newest</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                    <option value="popularity">Most Popular</option>
+                    <option value="top_selling">Best Selling</option>
                   </select>
                 </div>
               </div>
@@ -334,11 +478,12 @@ export default function BrandPage({ params }: BrandPageProps) {
                   </Button>
                 </div>
               </div>
+              </div>
             </div>
           </div>
         </TabsContent>
 
-        {/* Featured Products Tab */}
+        {/* Featured Products Tab */
         <TabsContent value="featured" className="pt-6">
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Featured Products from {brand.name}</h2>
 

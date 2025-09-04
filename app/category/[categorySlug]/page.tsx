@@ -1,0 +1,732 @@
+"use client"
+
+import React, { useState, useEffect, Suspense } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Slider } from "@/components/ui/slider"
+import AnalyticsClient from "@/lib/analytics"
+import { Grid, List, SlidersHorizontal, Filter, X, ChevronRight, Star, ShoppingCart, Heart } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+
+interface CategoryPageProps {
+  params: Promise<{ categorySlug: string }>
+}
+
+interface Filter {
+  field: string;
+  label: string;
+  type: "select" | "range" | "boolean";
+  options?: string[];
+  min?: number;
+  max?: number;
+  step?: number;
+}
+
+interface Product {
+  _id: string;
+  slug: string;
+  name: string;
+  price: number;
+  originalPrice?: number;
+  images: string[];
+  brand: {
+    name: string;
+    slug: string;
+  };
+  category: {
+    name: string;
+    slug: string;
+  };
+  reviews: {
+    rating: number;
+    count: number;
+  };
+  stock: number;
+  isFeatured: boolean;
+  isBestSeller: boolean;
+  isNewArrival: boolean;
+}
+
+// Format price in PKR with commas
+const formatPrice = (price: number) => {
+  return `PKR ${price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
+}
+
+// Get category display info
+const getCategoryInfo = (slug: string) => {
+  const categoryMap = {
+    'inverters': {
+      title: '🔌 Solar Inverters',
+      description: 'Convert DC power from solar panels to AC power for your home or business',
+      icon: '🔌',
+      apiSlug: 'inverter' // Map frontend route to backend category
+    },
+    'solar-panels': {
+      title: '☀️ Solar Panels',
+      description: 'High-efficiency solar panels from leading manufacturers worldwide',
+      icon: '☀️',
+      apiSlug: 'solar-panels'
+    },
+    'batteries': {
+      title: '🔋 Solar Batteries',
+      description: 'Energy storage solutions for backup power and energy independence',
+      icon: '🔋',
+      apiSlug: 'battery' // Map frontend route to backend category
+    },
+    'tools': {
+      title: '🛠 Solar Tools',
+      description: 'Professional installation and testing tools for solar systems',
+      icon: '🛠',
+      apiSlug: 'tools'
+    },
+    'accessories': {
+      title: '🔧 Solar Accessories',
+      description: 'Mounting systems, cables, connectors and protection devices',
+      icon: '🔧',
+      apiSlug: 'accessories'
+    }
+  }
+  return categoryMap[slug as keyof typeof categoryMap] || {
+    title: 'Products',
+    description: 'Browse our wide selection of solar products',
+    icon: '🔆',
+    apiSlug: slug
+  }
+}
+
+function CategoryPageContent({ params }: CategoryPageProps) {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const { categorySlug } = React.use(params) as { categorySlug: string }
+
+  const [products, setProducts] = useState<Product[]>([])
+  const [filters, setFilters] = useState<Filter[]>([])
+  const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({})
+  const [loading, setLoading] = useState(false)
+  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 20 })
+  const [sortBy, setSortBy] = useState("newest")
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
+
+  const categoryInfo = getCategoryInfo(categorySlug)
+  const backendSlug = categoryInfo.apiSlug
+
+  // Track product click
+  const handleProductClick = (productId: string, productSlug: string) => {
+    const analytics = AnalyticsClient.getInstance()
+    analytics.trackProductClick(productId, productSlug)
+  }
+
+  // Fetch filters for the category
+  useEffect(() => {
+    async function fetchFilters() {
+      try {
+        const response = await fetch(`${API_BASE}/api/products/filters/${backendSlug}`)
+        const data = await response.json()
+        if (data.success) {
+          setFilters(data.filters || [])
+        }
+      } catch (error) {
+        console.error('Error fetching filters:', error)
+      }
+    }
+    fetchFilters()
+  }, [backendSlug])
+
+  // Fetch products
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true)
+      try {
+        const params = new URLSearchParams()
+        params.append('category', backendSlug)
+        params.append('sort', sortBy)
+        params.append('page', String(pagination.page))
+        params.append('limit', String(pagination.limit))
+
+        // Add applied filters
+        Object.entries(appliedFilters).forEach(([key, value]) => {
+          if (value !== undefined && value !== '' && value !== false) {
+            if (Array.isArray(value)) {
+              value.forEach(v => params.append(key, v))
+            } else {
+              params.append(key, String(value))
+            }
+          }
+        })
+
+        const response = await fetch(`${API_BASE}/api/products?${params.toString()}`)
+        const data = await response.json()
+
+        if (data.success) {
+          setProducts(data.products || [])
+          setPagination(data.pagination || { page: 1, pages: 1, total: 0, limit: 20 })
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [backendSlug, appliedFilters, sortBy, pagination.page, pagination.limit])
+
+  // Handle filter change
+  const handleFilterChange = (field: string, value: any) => {
+    setAppliedFilters(prev => ({
+      ...prev,
+      [field]: value === "" || value === undefined ? undefined : value
+    }))
+    setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setAppliedFilters({})
+    setPagination(prev => ({ ...prev, page: 1 }))
+  }
+
+  // Remove specific filter
+  const removeFilter = (field: string) => {
+    setAppliedFilters(prev => {
+      const newFilters = { ...prev }
+      delete newFilters[field]
+      return newFilters
+    })
+  }
+
+  // Render filter component
+  const renderFilter = (filter: Filter) => {
+    const value = appliedFilters[filter.field]
+
+    switch (filter.type) {
+      case 'select':
+        return (
+          <div key={filter.field} className="space-y-2">
+            <label className="text-sm font-medium">{filter.label}</label>
+            <Select value={value || 'all'} onValueChange={(val) => handleFilterChange(filter.field, val === 'all' ? undefined : val)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={`Select ${filter.label}`} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All {filter.label}s</SelectItem>
+                {filter.options?.map(option => (
+                  <SelectItem key={option} value={option}>{option}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )
+
+      case 'range':
+        return (
+          <div key={filter.field} className="space-y-2">
+            <label className="text-sm font-medium">{filter.label}</label>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  placeholder="Min"
+                  value={appliedFilters[`${filter.field}_min`] || ''}
+                  onChange={(e) => handleFilterChange(`${filter.field}_min`, e.target.value || undefined)}
+                  className="flex-1"
+                />
+                <Input
+                  type="number"
+                  placeholder="Max"
+                  value={appliedFilters[`${filter.field}_max`] || ''}
+                  onChange={(e) => handleFilterChange(`${filter.field}_max`, e.target.value || undefined)}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+          </div>
+        )
+
+      case 'boolean':
+        return (
+          <div key={filter.field} className="flex items-center space-x-2">
+            <Checkbox
+              id={filter.field}
+              checked={value || false}
+              onCheckedChange={(checked) => handleFilterChange(filter.field, checked)}
+            />
+            <label htmlFor={filter.field} className="text-sm font-medium">{filter.label}</label>
+          </div>
+        )
+
+      default:
+        return null
+    }
+  }
+
+  // Count active filters
+  const activeFilterCount = Object.keys(appliedFilters).filter(key => 
+    appliedFilters[key] !== undefined && appliedFilters[key] !== '' && appliedFilters[key] !== false
+  ).length
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm mb-6">
+        <Link href="/" className="text-gray-500 hover:text-[#1a5ca4]">Home</Link>
+        <ChevronRight className="h-4 w-4 text-gray-400" />
+        <Link href="/store" className="text-gray-500 hover:text-[#1a5ca4]">Store</Link>
+        <ChevronRight className="h-4 w-4 text-gray-400" />
+        <span className="text-[#1a5ca4]">{categoryInfo.title}</span>
+      </div>
+
+      {/* Category Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold mb-4 text-[#1a5ca4]">
+          {categoryInfo.title}
+        </h1>
+        <p className="text-gray-600 text-lg">{categoryInfo.description}</p>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Mobile Filter Button */}
+        <div className="lg:hidden">
+          <Button
+            onClick={() => setShowMobileFilters(true)}
+            className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-white flex items-center justify-center gap-2"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
+          </Button>
+        </div>
+
+        {/* Mobile Filter Modal */}
+        {showMobileFilters && (
+          <div className="lg:hidden fixed inset-0 z-50 bg-black bg-opacity-50">
+            <div className="fixed inset-x-0 bottom-0 bg-white rounded-t-2xl max-h-[80vh] overflow-hidden">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h2 className="text-xl font-bold">Filter Products</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowMobileFilters(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="overflow-y-auto max-h-[60vh] p-4 space-y-6">
+                {filters.map(renderFilter)}
+              </div>
+              <div className="p-4 border-t bg-white">
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={clearAllFilters}>
+                    Clear All
+                  </Button>
+                  <Button
+                    className="flex-1 bg-[#1a5ca4] hover:bg-[#0e4a8a]"
+                    onClick={() => setShowMobileFilters(false)}
+                  >
+                    Apply Filters
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Desktop Filters Sidebar */}
+        <div className="hidden lg:block w-1/4">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Filters</h2>
+                {activeFilterCount > 0 && (
+                  <Button variant="ghost" size="sm" onClick={clearAllFilters}>
+                    Clear All
+                  </Button>
+                )}
+              </div>
+
+              {/* Active Filters */}
+              {activeFilterCount > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium mb-2">Active Filters:</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {Object.entries(appliedFilters).map(([key, value]) => {
+                      if (value && value !== '' && value !== false) {
+                        const filter = filters.find(f => f.field === key || key.startsWith(f.field))
+                        const label = filter?.label || key
+                        return (
+                          <Badge key={key} variant="secondary" className="text-xs">
+                            {label}: {String(value)}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-auto p-0 ml-1"
+                              onClick={() => removeFilter(key)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        )
+                      }
+                      return null
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-6">
+                {filters.map(renderFilter)}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Products Section */}
+        <div className="flex-1">
+          {/* Toolbar */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 p-4 border rounded-lg bg-gray-50">
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">
+                {pagination.total} products found
+              </span>
+              {activeFilterCount > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} applied
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">Sort:</span>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest</SelectItem>
+                    <SelectItem value="price_asc">Price: Low to High</SelectItem>
+                    <SelectItem value="price_desc">Price: High to Low</SelectItem>
+                    <SelectItem value="popularity">Most Popular</SelectItem>
+                    <SelectItem value="top_selling">Best Selling</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Products Grid/List */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1a5ca4] mx-auto mb-4"></div>
+                <p className="text-gray-600">Loading products...</p>
+              </div>
+            </div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">😔</div>
+              <h3 className="text-xl font-bold mb-2">No products found</h3>
+              <p className="text-gray-600 mb-4">Try adjusting your filters or search terms</p>
+              <Button onClick={clearAllFilters}>Clear All Filters</Button>
+            </div>
+          ) : (
+            <>
+              <div className={
+                viewMode === 'grid' 
+                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                  : "space-y-4"
+              }>
+                {products.map((product) => (
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    viewMode={viewMode}
+                    onProductClick={handleProductClick}
+                  />
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {pagination.pages > 1 && (
+                <div className="flex justify-center mt-8">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      disabled={pagination.page === 1}
+                      onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
+                    >
+                      Previous
+                    </Button>
+                    {Array.from({ length: Math.min(pagination.pages, 5) }, (_, i) => {
+                      const page = i + 1
+                      return (
+                        <Button
+                          key={page}
+                          variant={pagination.page === page ? "default" : "outline"}
+                          onClick={() => setPagination(prev => ({ ...prev, page }))}
+                          className={pagination.page === page ? "bg-[#1a5ca4]" : ""}
+                        >
+                          {page}
+                        </Button>
+                      )
+                    })}
+                    <Button
+                      variant="outline"
+                      disabled={pagination.page === pagination.pages}
+                      onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Product Card Component
+function ProductCard({ 
+  product, 
+  viewMode, 
+  onProductClick 
+}: { 
+  product: Product
+  viewMode: 'grid' | 'list'
+  onProductClick: (id: string, slug: string) => void 
+}) {
+  const discountPercentage = product.originalPrice && product.originalPrice > product.price
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    : 0
+
+  if (viewMode === 'list') {
+    return (
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+        <CardContent className="p-0">
+          <div className="flex">
+            <div className="w-48 h-32 relative flex-shrink-0">
+              <Image
+                src={product.images?.[0] || '/placeholder-product.jpg'}
+                alt={product.name}
+                fill
+                className="object-contain"
+              />
+              {product.isNewArrival && (
+                <Badge className="absolute top-2 left-2 bg-green-500">New</Badge>
+              )}
+              {product.isBestSeller && (
+                <Badge className="absolute top-2 right-2 bg-orange-500">Best Seller</Badge>
+              )}
+              {discountPercentage > 0 && (
+                <Badge className="absolute bottom-2 left-2 bg-red-500">
+                  -{discountPercentage}%
+                </Badge>
+              )}
+            </div>
+            <div className="flex-1 p-4">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <p className="text-xs text-gray-500 mb-1">{product.brand.name}</p>
+                  <Link
+                    href={`/product/${product.slug}`}
+                    onClick={() => onProductClick(product._id, product.slug)}
+                    className="font-medium hover:text-[#1a5ca4] line-clamp-2"
+                  >
+                    {product.name}
+                  </Link>
+                </div>
+                <Button variant="ghost" size="sm">
+                  <Heart className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-3 w-3 ${
+                        i < Math.floor(product.reviews?.rating || 0)
+                          ? 'text-yellow-400 fill-current'
+                          : 'text-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-xs text-gray-500">
+                  ({product.reviews?.count || 0} reviews)
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-bold text-[#1a5ca4]">
+                    {formatPrice(product.price)}
+                  </span>
+                  {product.originalPrice && product.originalPrice > product.price && (
+                    <span className="text-sm text-gray-500 line-through">
+                      {formatPrice(product.originalPrice)}
+                    </span>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  className="bg-[#1a5ca4] hover:bg-[#0e4a8a]"
+                  disabled={product.stock === 0}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-1" />
+                  {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                </Button>
+              </div>
+              
+              {product.stock <= 5 && product.stock > 0 && (
+                <p className="text-xs text-orange-600 mt-2">
+                  Only {product.stock} left in stock!
+                </p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow group">
+      <CardContent className="p-0">
+        <div className="relative">
+          <div className="aspect-square relative">
+            <Image
+              src={product.images?.[0] || '/placeholder-product.jpg'}
+              alt={product.name}
+              fill
+              className="object-contain group-hover:scale-105 transition-transform"
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Heart className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {product.isNewArrival && (
+            <Badge className="absolute top-2 left-2 bg-green-500">New</Badge>
+          )}
+          {product.isBestSeller && (
+            <Badge className="absolute top-8 left-2 bg-orange-500">Best Seller</Badge>
+          )}
+          {discountPercentage > 0 && (
+            <Badge className="absolute bottom-2 left-2 bg-red-500">
+              -{discountPercentage}%
+            </Badge>
+          )}
+        </div>
+
+        <div className="p-4">
+          <p className="text-xs text-gray-500 mb-1">{product.brand.name}</p>
+          <Link
+            href={`/product/${product.slug}`}
+            onClick={() => onProductClick(product._id, product.slug)}
+            className="font-medium hover:text-[#1a5ca4] line-clamp-2 mb-2 block"
+          >
+            {product.name}
+          </Link>
+
+          <div className="flex items-center gap-1 mb-2">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`h-3 w-3 ${
+                  i < Math.floor(product.reviews?.rating || 0)
+                    ? 'text-yellow-400 fill-current'
+                    : 'text-gray-300'
+                }`}
+              />
+            ))}
+            <span className="text-xs text-gray-500 ml-1">
+              ({product.reviews?.count || 0})
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg font-bold text-[#1a5ca4]">
+              {formatPrice(product.price)}
+            </span>
+            {product.originalPrice && product.originalPrice > product.price && (
+              <span className="text-sm text-gray-500 line-through">
+                {formatPrice(product.originalPrice)}
+              </span>
+            )}
+          </div>
+
+          <Button
+            className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a]"
+            disabled={product.stock === 0}
+          >
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+          </Button>
+
+          {product.stock <= 5 && product.stock > 0 && (
+            <p className="text-xs text-orange-600 mt-2 text-center">
+              Only {product.stock} left!
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+export default function CategoryPage({ params }: CategoryPageProps) {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-3/4 mb-8"></div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="hidden md:block">
+              <div className="h-96 bg-gray-200 rounded"></div>
+            </div>
+            <div className="md:col-span-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="h-64 bg-gray-200 rounded"></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <CategoryPageContent params={params} />
+    </Suspense>
+  )
+}

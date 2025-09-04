@@ -162,7 +162,7 @@ export default function Header({ user }: HeaderProps) {
 									icon: getDefaultIcon(category.slug),
 									color: "bg-blue-100",
 									iconColor: "text-[#1a5ca4]",
-									route: `/store?category=${category.slug}`,
+									route: `/category/${category.slug}`,
 									brands: brands.map((brand: any) => ({
 										name: brand.name,
 										slug: brand.slug,
@@ -179,7 +179,7 @@ export default function Header({ user }: HeaderProps) {
 									icon: getDefaultIcon(category.slug),
 									color: "bg-blue-100",
 									iconColor: "text-[#1a5ca4]",
-									route: `/store?category=${category.slug}`,
+									route: `/category/${category.slug}`,
 									brands: [],
 								});
 							}
@@ -191,7 +191,7 @@ export default function Header({ user }: HeaderProps) {
 								icon: getDefaultIcon(category.slug),
 								color: "bg-blue-100",
 								iconColor: "text-[#1a5ca4]",
-								route: `/store?category=${category.slug}`,
+								route: `/category/${category.slug}`,
 								brands: [],
 							});
 						}

@@ -117,7 +117,8 @@ export default function BlogPost() {
     const fetchBlog = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`/api/blogs/${slug}`)
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? ""
+  const response = await fetch(`${API_BASE}/api/blogs/${slug}`)
         if (response.ok) {
           const data = await response.json()
           setBlog(data.blog)

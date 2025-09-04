@@ -64,6 +64,7 @@ interface BlogCategory {
 }
 
 export default function BlogPage() {
+  const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? ""
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [featuredBlogs, setFeaturedBlogs] = useState<Blog[]>([])
   const [categories, setCategories] = useState<BlogCategory[]>([])
@@ -80,15 +81,15 @@ export default function BlogPage() {
       try {
         setLoading(true)
         
-        // Fetch featured blogs
-        const featuredResponse = await fetch(`/api/blogs/featured?limit=3`)
+  // Fetch featured blogs
+  const featuredResponse = await fetch(`${API_BASE}/api/blogs/featured?limit=3`)
         if (featuredResponse.ok) {
           const featuredData = await featuredResponse.json()
           setFeaturedBlogs(featuredData.blogs || [])
         }
 
         // Fetch categories
-        const categoriesResponse = await fetch('/api/blog-categories?active=true')
+  const categoriesResponse = await fetch(`${API_BASE}/api/blog-categories?active=true`)
         if (categoriesResponse.ok) {
           const categoriesData = await categoriesResponse.json()
           setCategories(categoriesData.categories || [])
@@ -117,7 +118,7 @@ export default function BlogPage() {
       if (searchTerm) params.set('search', searchTerm)
       if (selectedCategory && selectedCategory !== "all") params.set('category', selectedCategory)
 
-      const response = await fetch(`/api/blogs?${params}`)
+  const response = await fetch(`${API_BASE}/api/blogs?${params}`)
       if (response.ok) {
         const data = await response.json()
         setBlogs(data.blogs || [])

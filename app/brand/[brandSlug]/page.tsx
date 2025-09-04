@@ -30,6 +30,7 @@ export default function BrandPage({ params }: BrandPageProps) {
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [brandSlug, setBrandSlug] = useState<string>("")
   const [filters, setFilters] = useState<any[]>([])
+  const [defaultFilters, setDefaultFilters] = useState<any[]>([])
   const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({})
   const [sortBy, setSortBy] = useState("featured")
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 20 })
@@ -94,6 +95,8 @@ export default function BrandPage({ params }: BrandPageProps) {
         if (filtersResponse.ok) {
           const filtersData = await filtersResponse.json()
           setFilters(filtersData.filters || [])
+          // keep a copy of the default filters so we can restore category selector later
+          setDefaultFilters(filtersData.filters || [])
         }
 
         // Fetch all products for this brand - this is a separate API call
@@ -175,7 +178,18 @@ export default function BrandPage({ params }: BrandPageProps) {
     const filterCategory = newCategory ? newCategory : 'brand'
     fetch(`${API_BASE}/api/products/filters/${filterCategory}`)
       .then((res) => res.json())
-      .then((data) => setFilters(data.filters || []))
+      .then((data) => {
+        let newFilters = data.filters || []
+        // If the returned filters do not include a category selector, prepend the default category filter
+        const hasCategory = newFilters.some((f: any) => f.field === 'category')
+        if (!hasCategory) {
+          const defaultCategoryFilter = defaultFilters.find((f: any) => f.field === 'category')
+          if (defaultCategoryFilter) {
+            newFilters = [defaultCategoryFilter, ...newFilters]
+          }
+        }
+        setFilters(newFilters)
+      })
       .catch(err => console.error('Error fetching filters:', err))
   }
 

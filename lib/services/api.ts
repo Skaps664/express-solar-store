@@ -6,7 +6,9 @@ interface ApiResponse {
   [key: string]: any;
 }
 
-const baseURL = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3000';
+const RAW_API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || ''
+const baseURL = RAW_API_BASE ? RAW_API_BASE.replace(/\/$/, '') : ''
+const buildUrl = (path: string) => baseURL ? `${baseURL}${path.startsWith('/') ? path : `/${path}`}` : (path.startsWith('/') ? path : `/${path}`)
 
 // Token management for production cross-origin deployments
 export const getToken = () => {

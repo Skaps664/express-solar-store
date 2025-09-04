@@ -14,7 +14,11 @@ import { Grid, List, SlidersHorizontal, Filter, X, ChevronRight, Star, ShoppingC
 import Link from "next/link"
 import Image from "next/image"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+// Resolve API base safely. Prefer NEXT_PUBLIC_API_BASE, then NEXT_PUBLIC_API_URL.
+// If none set, use same-origin (empty string) so fetch('/api/...') works in production
+const RAW_API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || ''
+const API_BASE = RAW_API_BASE ? RAW_API_BASE.replace(/\/$/, '') : ''
+const buildUrl = (path: string) => API_BASE ? `${API_BASE}${path.startsWith('/') ? path : `/${path}`}` : (path.startsWith('/') ? path : `/${path}`)
 
 interface CategoryPageProps {
   params: Promise<{ categorySlug: string }>
@@ -129,7 +133,7 @@ function CategoryPageContent({ params }: CategoryPageProps) {
   useEffect(() => {
     async function fetchFilters() {
       try {
-        const response = await fetch(`${API_BASE}/api/products/filters/${backendSlug}`)
+  const response = await fetch(buildUrl(`/api/products/filters/${backendSlug}`))
         const data = await response.json()
         if (data.success) {
           setFilters(data.filters || [])
@@ -163,7 +167,7 @@ function CategoryPageContent({ params }: CategoryPageProps) {
           }
         })
 
-        const response = await fetch(`${API_BASE}/api/products?${params.toString()}`)
+  const response = await fetch(`${buildUrl(`/api/products`)}?${params.toString()}`)
         const data = await response.json()
 
         if (data.success) {

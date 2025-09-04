@@ -76,7 +76,11 @@ export default function BlogPreview() {
     const fetchFeaturedBlogs = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/blogs/featured?limit=3`)
+  const RAW_API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || ''
+  const API_BASE = RAW_API_BASE ? RAW_API_BASE.replace(/\/$/, '') : ''
+  const buildUrl = (path: string) => API_BASE ? `${API_BASE}${path.startsWith('/') ? path : `/${path}`}` : (path.startsWith('/') ? path : `/${path}`)
+
+  const response = await fetch(buildUrl(`/api/blogs/featured?limit=3`))
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)

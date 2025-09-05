@@ -3,7 +3,9 @@
 import { useCallback, useEffect } from 'react';
 import axios from 'axios';
 
-const ANALYTICS_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+// Safe API base resolution - avoid localhost fallback in production
+const rawBase = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE || ''
+const ANALYTICS_BASE_URL = rawBase ? rawBase.replace(/\/$/, '') : '';
 
 export function useAnalytics() {
   // Track page view

@@ -21,8 +21,9 @@ export class AnalyticsClient {
     }
     this.visitorId = visitorId;
     
-    // Set the base URL for API calls
-    this.baseUrl = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3000';
+    // Set the base URL for API calls - avoid localhost fallback in production
+    const rawBase = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || ''
+    this.baseUrl = rawBase ? rawBase.replace(/\/$/, '') : '';
   }
 
   public static getInstance(): AnalyticsClient {

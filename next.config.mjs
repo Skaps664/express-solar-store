@@ -17,10 +17,16 @@ const nextConfig = {
 
   // API rewrites to proxy to backend
   async rewrites() {
+    // Use environment variable for backend URL, fallback to localhost for development
+    const backendUrl =
+      process.env.NEXT_PUBLIC_API_BASE ||
+      process.env.BACKEND_URL ||
+      "http://localhost:3000";
+
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:3000/api/:path*",
+        destination: `${backendUrl}/api/:path*`,
       },
     ];
   },

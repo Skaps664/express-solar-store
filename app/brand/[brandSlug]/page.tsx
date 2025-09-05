@@ -131,7 +131,9 @@ export default function BrandPage({ params }: BrandPageProps) {
         }
       })
 
-      console.log(`Fetching all products for brand ${brandSlug}`)
+      console.log(`Fetching products for brand ${brandSlug} with filters:`, appliedFilters)
+      console.log(`API URL: ${API_BASE}/api/products?${params.toString()}`)
+      
       const productsResponse = await fetch(`${API_BASE}/api/products?${params.toString()}`)
       console.log('Products response status:', productsResponse.status)
       
@@ -142,7 +144,7 @@ export default function BrandPage({ params }: BrandPageProps) {
         if (productsData.success) {
           setAllProducts(productsData.products || [])
           setPagination(productsData.pagination || { page: 1, pages: 1, total: 0, limit: 20 })
-          console.log(`Found ${productsData.products?.length || 0} products for this brand`)
+          console.log(`Found ${productsData.products?.length || 0} products for this brand with current filters`)
         } else {
           console.error('Failed to get products:', productsData.message)
           setAllProducts([])
@@ -168,25 +170,43 @@ export default function BrandPage({ params }: BrandPageProps) {
 
   // Special handler for category filter change - needs to reload filters
   const handleCategoryFilterChange = (newCategory: string | undefined) => {
-    // Update the filter state
+    // Update the filter state with the actual category name (not slug)
+    // This is what gets sent to the products API for filtering
     handleFilterChange('category', newCategory)
     
     // Clear other filters since they might not be applicable to the new category
     setAppliedFilters({ category: newCategory })
     
-    // Fetch new filters for the selected category or keep brand filters
-    const filterCategory = newCategory ? newCategory : 'brand'
+    // Map category names to their actual slugs from your database
+    const categorySlugMap: { [key: string]: string } = {
+      'Inverters': 'inverters',
+      'Solar Panels': 'solar-panels', 
+      'Batteries': 'batteries',
+      'Tools': 'tools',
+      'Accessories': 'accessories'
+    }
+    
+    // Fetch new filter configuration for the selected category or keep brand filters
+    let filterCategory = 'brand' // Default to brand filters
+    if (newCategory && categorySlugMap[newCategory]) {
+      filterCategory = categorySlugMap[newCategory]
+    }
+    
+    console.log(`Category selected: "${newCategory}" -> fetching filters for: "${filterCategory}"`)
+    
     fetch(`${API_BASE}/api/products/filters/${filterCategory}`)
       .then((res) => res.json())
       .then((data) => {
         let newFilters = data.filters || []
-        // If the returned filters do not include a category selector, prepend the default category filter
-        const hasCategory = newFilters.some((f: any) => f.field === 'category')
-        if (!hasCategory) {
-          const defaultCategoryFilter = defaultFilters.find((f: any) => f.field === 'category')
-          if (defaultCategoryFilter) {
-            newFilters = [defaultCategoryFilter, ...newFilters]
-          }
+        console.log(`Fetched ${newFilters.length} filters for category: ${filterCategory}`)
+        
+        // Always include the category selector from defaultFilters
+        const defaultCategoryFilter = defaultFilters.find((f: any) => f.field === 'category')
+        if (defaultCategoryFilter) {
+          // Remove category filter if it exists in newFilters to avoid duplicates
+          newFilters = newFilters.filter((f: any) => f.field !== 'category')
+          // Add the category filter at the beginning
+          newFilters = [defaultCategoryFilter, ...newFilters]
         }
         setFilters(newFilters)
       })

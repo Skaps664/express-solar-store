@@ -49,6 +49,11 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
+  
+  // New states for dynamic category filters
+  const [selectedCategoryForAdd, setSelectedCategoryForAdd] = useState("")
+  const [categoryFilters, setCategoryFilters] = useState<any[]>([])
+  const [categoryFilterValues, setCategoryFilterValues] = useState<any>({})
   const [selectedBrand, setSelectedBrand] = useState("all")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -84,6 +89,45 @@ export default function ProductsPage() {
   const [editCategory, setEditCategory] = useState("");
   const [editSubCategory, setEditSubCategory] = useState("");
   const [editBrand, setEditBrand] = useState("");
+
+  // Function to fetch category filters
+  const fetchCategoryFilters = async (categorySlug: string) => {
+    if (!categorySlug) {
+      setCategoryFilters([])
+      setCategoryFilterValues({})
+      return
+    }
+    
+    try {
+      const response = await api.get(`/api/products/filters/${categorySlug}`)
+      if (response.data.success) {
+        const filters = response.data.filters || []
+        // Only show filters that are not basic fields (exclude brand, isFeatured, etc.)
+        const specificFilters = filters.filter((filter: any) => 
+          !['brand', 'isFeatured', 'isBestSeller', 'isNewArrival', 'price', 'rating'].includes(filter.field)
+        )
+        setCategoryFilters(specificFilters)
+        
+        // Initialize filter values
+        const initialValues: any = {}
+        specificFilters.forEach((filter: any) => {
+          if (filter.type === 'boolean') {
+            initialValues[filter.field] = false
+          } else if (filter.type === 'range') {
+            initialValues[`${filter.field}_min`] = ''
+            initialValues[`${filter.field}_max`] = ''
+          } else {
+            initialValues[filter.field] = ''
+          }
+        })
+        setCategoryFilterValues(initialValues)
+      }
+    } catch (error) {
+      console.error('Error fetching category filters:', error)
+      setCategoryFilters([])
+      setCategoryFilterValues({})
+    }
+  }
 
   // Fetch all data on mount
   useEffect(() => {
@@ -770,7 +814,26 @@ export default function ProductsPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="category">Category</Label>
-                  <select id="category" name="category" required className="border rounded p-2">
+                  <select 
+                    id="category" 
+                    name="category" 
+                    required 
+                    className="border rounded p-2"
+                    value={selectedCategoryForAdd}
+                    onChange={async (e) => {
+                      const categoryId = e.target.value
+                      setSelectedCategoryForAdd(categoryId)
+                      
+                      // Find category slug by ID to fetch filters
+                      const selectedCat = categories.find(cat => cat._id === categoryId)
+                      if (selectedCat?.slug) {
+                        await fetchCategoryFilters(selectedCat.slug)
+                      } else {
+                        setCategoryFilters([])
+                        setCategoryFilterValues({})
+                      }
+                    }}
+                  >
                     <option value="">Select category</option>
                     {categories.map((cat) => (
                       <option key={cat._id} value={cat._id}>{cat.name}</option>
@@ -812,6 +875,87 @@ export default function ProductsPage() {
                 </div>
                 <input type="hidden" name="viewCount" value="0" />
               </div>
+              
+              {/* Dynamic Category Filters */}
+              {categoryFilters.length > 0 && (
+                <div className="grid gap-4 p-4 border rounded-md bg-gray-50">
+                  <h3 className="text-lg font-semibold">Category-Specific Filters</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {categoryFilters.map((filter) => (
+                      <div key={filter.field} className="grid gap-2">
+                        <Label htmlFor={filter.field}>{filter.label}</Label>
+                        {filter.type === 'select' && (
+                          <select
+                            id={filter.field}
+                            name={filter.field}
+                            className="border rounded p-2"
+                            value={categoryFilterValues[filter.field] || ''}
+                            onChange={(e) => setCategoryFilterValues(prev => ({
+                              ...prev,
+                              [filter.field]: e.target.value
+                            }))}
+                          >
+                            <option value="">Select {filter.label}</option>
+                            {filter.options?.map((option: string) => (
+                              <option key={option} value={option}>{option}</option>
+                            ))}
+                          </select>
+                        )}
+                        {filter.type === 'boolean' && (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              id={filter.field}
+                              name={filter.field}
+                              checked={categoryFilterValues[filter.field] || false}
+                              onChange={(e) => setCategoryFilterValues(prev => ({
+                                ...prev,
+                                [filter.field]: e.target.checked
+                              }))}
+                            />
+                            <Label htmlFor={filter.field}>{filter.label}</Label>
+                          </div>
+                        )}
+                        {filter.type === 'range' && (
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input
+                              type="number"
+                              placeholder={`Min ${filter.label}`}
+                              min={filter.min}
+                              max={filter.max}
+                              step={filter.step}
+                              value={categoryFilterValues[`${filter.field}_min`] || ''}
+                              onChange={(e) => setCategoryFilterValues(prev => ({
+                                ...prev,
+                                [`${filter.field}_min`]: e.target.value
+                              }))}
+                            />
+                            <Input
+                              type="number"
+                              placeholder={`Max ${filter.label}`}
+                              min={filter.min}
+                              max={filter.max}
+                              step={filter.step}
+                              value={categoryFilterValues[`${filter.field}_max`] || ''}
+                              onChange={(e) => setCategoryFilterValues(prev => ({
+                                ...prev,
+                                [`${filter.field}_max`]: e.target.value
+                              }))}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Hidden input to send filter values */}
+                  <input
+                    type="hidden"
+                    name="categoryFilterValues"
+                    value={JSON.stringify(categoryFilterValues)}
+                  />
+                </div>
+              )}
+              
               {/* Media */}
               <div className="grid gap-2">
                 <Label htmlFor="images">Images</Label>

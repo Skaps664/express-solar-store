@@ -14,7 +14,9 @@ import { useAuth } from "@/context/AuthContext"
 import { useCart } from "@/context/CartContext"
 import { MiniCart } from "./mini-cart"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+const RAW_API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || ''
+const API_BASE = RAW_API_BASE ? RAW_API_BASE.replace(/\/$/, '') : ''
+const buildUrl = (path: string) => API_BASE ? `${API_BASE}${path.startsWith('/') ? path : `/${path}`}` : (path.startsWith('/') ? path : `/${path}`)
 
 interface Product {
 	_id: string;

@@ -14,7 +14,20 @@ import { Grid, List, SlidersHorizontal, Filter, X, ChevronRight, Star, ShoppingC
 import Link from "next/link"
 import Image from "next/image"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+// Runtime-safe API URL builder - evaluates environment at call time
+const buildApiUrl = (path: string) => {
+  // Check env vars at runtime to handle SSR/client differences
+  const rawBase = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || ''
+  const apiBase = rawBase ? rawBase.replace(/\/$/, '') : ''
+  
+  // If no API base is set, use same-origin (relative paths)
+  if (!apiBase) {
+    return path.startsWith('/') ? path : `/${path}`
+  }
+  
+  // Build full URL with API base
+  return `${apiBase}${path.startsWith('/') ? path : `/${path}`}`
+}
 
 interface CategoryPageProps {
   params: Promise<{ categorySlug: string }>
@@ -60,45 +73,52 @@ const formatPrice = (price: number) => {
   return `PKR ${price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`
 }
 
-// Get category display info
-const getCategoryInfo = (slug: string) => {
-  const categoryMap = {
-    'inverters': {
-      title: '🔌 Solar Inverters',
-      description: 'Convert DC power from solar panels to AC power for your home or business',
-      icon: '🔌',
-      apiSlug: 'inverter' // Map frontend route to backend category
-    },
-    'solar-panels': {
-      title: '☀️ Solar Panels',
-      description: 'High-efficiency solar panels from leading manufacturers worldwide',
-      icon: '☀️',
-      apiSlug: 'solar-panels'
-    },
-    'batteries': {
-      title: '🔋 Solar Batteries',
-      description: 'Energy storage solutions for backup power and energy independence',
-      icon: '🔋',
-      apiSlug: 'battery' // Map frontend route to backend category
-    },
-    'tools': {
-      title: '🛠 Solar Tools',
-      description: 'Professional installation and testing tools for solar systems',
-      icon: '🛠',
-      apiSlug: 'tools'
-    },
-    'accessories': {
-      title: '🔧 Solar Accessories',
-      description: 'Mounting systems, cables, connectors and protection devices',
-      icon: '🔧',
-      apiSlug: 'accessories'
+// Get category display info dynamically from backend
+const fetchCategoryInfo = async (slug: string) => {
+  try {
+    const response = await fetch(`${buildApiUrl()}/api/category/${slug}`)
+    if (!response.ok) {
+      // If category not found by slug, try to find by name
+      const allCategoriesResponse = await fetch(`${buildApiUrl()}/api/category`)
+      if (allCategoriesResponse.ok) {
+        const allCategories = await allCategoriesResponse.json()
+        const category = allCategories.find((cat: any) => 
+          cat.name.toLowerCase().replace(/\s+/g, '-') === slug ||
+          cat.slug === slug ||
+          cat.name.toLowerCase() === slug.toLowerCase()
+        )
+        
+        if (category) {
+          return {
+            title: `� ${category.name}`,
+            description: category.description || `Browse our wide selection of ${category.name.toLowerCase()}`,
+            icon: '�',
+            apiSlug: category.slug || category.name,
+            category: category
+          }
+        }
+      }
+      throw new Error(`Category not found: ${slug}`)
     }
-  }
-  return categoryMap[slug as keyof typeof categoryMap] || {
-    title: 'Products',
-    description: 'Browse our wide selection of solar products',
-    icon: '🔆',
-    apiSlug: slug
+    
+    const category = await response.json()
+    return {
+      title: `� ${category.name}`,
+      description: category.description || `Browse our wide selection of ${category.name.toLowerCase()}`,
+      icon: '�',
+      apiSlug: category.slug || category.name,
+      category: category
+    }
+  } catch (error) {
+    console.error('Error fetching category info:', error)
+    // Fallback: use the slug as-is
+    return {
+      title: `🔌 ${slug.charAt(0).toUpperCase() + slug.slice(1)}`,
+      description: 'Browse our wide selection of solar products',
+      icon: '🔆',
+      apiSlug: slug,
+      category: null
+    }
   }
 }
 
@@ -115,9 +135,25 @@ function CategoryPageContent({ params }: CategoryPageProps) {
   const [sortBy, setSortBy] = useState("newest")
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [categoryInfo, setCategoryInfo] = useState<any>(null)
+  const [categoryError, setCategoryError] = useState<string | null>(null)
 
-  const categoryInfo = getCategoryInfo(categorySlug)
-  const backendSlug = categoryInfo.apiSlug
+  // Fetch category info from backend
+  useEffect(() => {
+    async function loadCategoryInfo() {
+      setCategoryError(null)
+      try {
+        const info = await fetchCategoryInfo(categorySlug)
+        setCategoryInfo(info)
+      } catch (error) {
+        console.error('Error loading category info:', error)
+        setCategoryError('Failed to load category information')
+      }
+    }
+    loadCategoryInfo()
+  }, [categorySlug])
+
+  const backendSlug = categoryInfo?.apiSlug || categorySlug
 
   // Track product click
   const handleProductClick = (productId: string, productSlug: string) => {
@@ -129,7 +165,7 @@ function CategoryPageContent({ params }: CategoryPageProps) {
   useEffect(() => {
     async function fetchFilters() {
       try {
-        const response = await fetch(`${API_BASE}/api/products/filters/${backendSlug}`)
+        const response = await fetch(buildApiUrl(`/api/products/filters/${backendSlug}`))
         const data = await response.json()
         if (data.success) {
           setFilters(data.filters || [])
@@ -163,7 +199,7 @@ function CategoryPageContent({ params }: CategoryPageProps) {
           }
         })
 
-        const response = await fetch(`${API_BASE}/api/products?${params.toString()}`)
+        const response = await fetch(`${buildApiUrl(`/api/products`)}?${params.toString()}`)
         const data = await response.json()
 
         if (data.success) {
@@ -282,15 +318,25 @@ function CategoryPageContent({ params }: CategoryPageProps) {
         <ChevronRight className="h-4 w-4 text-gray-400" />
         <Link href="/store" className="text-gray-500 hover:text-[#1a5ca4]">Store</Link>
         <ChevronRight className="h-4 w-4 text-gray-400" />
-        <span className="text-[#1a5ca4]">{categoryInfo.title}</span>
+        <span className="text-[#1a5ca4]">{categoryInfo?.title || categorySlug}</span>
       </div>
 
       {/* Category Header */}
       <div className="mb-8">
-        <h1 className="text-3xl md:text-4xl font-bold mb-4 text-[#1a5ca4]">
-          {categoryInfo.title}
-        </h1>
-        <p className="text-gray-600 text-lg">{categoryInfo.description}</p>
+        {categoryError ? (
+          <div className="text-red-600 p-4 border border-red-200 rounded bg-red-50">
+            Error: {categoryError}
+          </div>
+        ) : (
+          <>
+            <h1 className="text-3xl md:text-4xl font-bold mb-4 text-[#1a5ca4]">
+              {categoryInfo?.title || `${categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1)} Products`}
+            </h1>
+            <p className="text-gray-600 text-lg">
+              {categoryInfo?.description || 'Browse our wide selection of solar products'}
+            </p>
+          </>
+        )}
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">

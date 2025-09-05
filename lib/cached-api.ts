@@ -42,7 +42,12 @@ export const cachedApiService = {
       return cached;
     }
     
-    // Fetch from API
+  // Build API base. Support both NEXT_PUBLIC_API_BASE and NEXT_PUBLIC_API_URL for historical reasons.
+  const RAW_API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || ''
+  const API_BASE = RAW_API_BASE ? RAW_API_BASE.replace(/\/$/, '') : ''
+  const buildUrl = (path: string) => API_BASE ? `${API_BASE}${path.startsWith('/') ? path : `/${path}`}` : (path.startsWith('/') ? path : `/${path}`)
+
+  // Fetch from API
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
@@ -50,7 +55,7 @@ export const cachedApiService = {
       ...(sort && { sort })
     });
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/products?${params}`, {
+  const response = await fetch(`${buildUrl(`/api/products`)}?${params.toString()}`, {
       // Enable browser caching
       cache: 'force-cache',
       next: { revalidate: 300 } // 5 minutes
@@ -70,7 +75,11 @@ export const cachedApiService = {
     const cached = clientCache.get(cacheKey);
     if (cached) return cached;
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/brands`, {
+  const RAW_API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || ''
+  const API_BASE = RAW_API_BASE ? RAW_API_BASE.replace(/\/$/, '') : ''
+  const buildUrl = (path: string) => API_BASE ? `${API_BASE}${path.startsWith('/') ? path : `/${path}`}` : (path.startsWith('/') ? path : `/${path}`)
+
+  const response = await fetch(`${buildUrl(`/api/brands`)}`, {
       cache: 'force-cache',
       next: { revalidate: 600 } // 10 minutes - brands change less frequently
     });
@@ -87,7 +96,11 @@ export const cachedApiService = {
     const cached = clientCache.get(cacheKey);
     if (cached) return cached;
     
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/category`, {
+  const RAW_API_BASE = process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_API_URL || ''
+  const API_BASE = RAW_API_BASE ? RAW_API_BASE.replace(/\/$/, '') : ''
+  const buildUrl = (path: string) => API_BASE ? `${API_BASE}${path.startsWith('/') ? path : `/${path}`}` : (path.startsWith('/') ? path : `/${path}`)
+
+  const response = await fetch(`${buildUrl(`/api/category`)}`, {
       cache: 'force-cache',
       next: { revalidate: 1800 } // 30 minutes - categories rarely change
     });

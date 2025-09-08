@@ -97,6 +97,12 @@ export default function BrandPage({ params }: BrandPageProps) {
           setFilters(filtersData.filters || [])
           // keep a copy of the default filters so we can restore category selector later
           setDefaultFilters(filtersData.filters || [])
+          // Ensure the brand filter is pre-selected to the current brand page slug
+          setAppliedFilters(prev => {
+            // don't overwrite if user already set a brand filter
+            if (prev && prev.brand) return prev
+            return { ...prev, brand: brandSlug }
+          })
         }
 
         // Fetch all products for this brand - this is a separate API call
@@ -115,7 +121,9 @@ export default function BrandPage({ params }: BrandPageProps) {
   const fetchBrandProducts = async () => {
     try {
       const params = new URLSearchParams()
-      params.append('brand', brandSlug)
+        // Allow an explicit brand filter (from the filters UI) to override the page brand
+        const effectiveBrand = appliedFilters?.brand ?? brandSlug
+        if (effectiveBrand) params.append('brand', effectiveBrand)
       params.append('sort', sortBy)
       params.append('page', String(pagination.page))
       params.append('limit', String(pagination.limit))

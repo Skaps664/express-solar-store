@@ -15,10 +15,9 @@ import {
 import { cn } from "@/lib/utils"
 
 export function MiniCart() {
-  const { cart, cartTotal, loading, removeFromCart } = useCart()
+  const { cart = [], cartTotal = 0, loading = false, removeFromCart } = useCart()
   const [removing, setRemoving] = React.useState<string | null>(null)
-  
-  // Handle item removal
+
   const handleRemoveItem = async (itemId: string) => {
     setRemoving(itemId)
     try {
@@ -40,15 +39,12 @@ export function MiniCart() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent 
-        className="w-80 p-0" 
-        align="end"
-        sideOffset={8}
-      >
+
+      <PopoverContent className="w-80 p-0" align="end" sideOffset={8}>
         <div className="p-3 border-b">
           <div className="font-medium">Your Cart ({cart.length})</div>
         </div>
-        
+
         {loading ? (
           <div className="p-8 flex justify-center items-center">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -64,58 +60,56 @@ export function MiniCart() {
         ) : (
           <>
             <div className="max-h-[300px] overflow-auto py-2">
-              {cart.map((item) => (
-                <div key={item._id} className="flex items-center p-3 hover:bg-gray-50">
-                  <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden mr-3">
-                    {item.product.images && item.product.images[0] ? (
-                      <Image
-                        src={item.product.images[0]}
-                        alt={item.product.name}
-                        width={48}
-                        height={48}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
-                        No image
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <Link 
-                      href={`/product/${item.product._id}`}
-                      className="text-sm font-medium line-clamp-1 hover:underline"
-                    >
-                      {item.product.name}
-                    </Link>
-                    <div className="text-xs text-muted-foreground mt-0.5">
-                      {item.quantity} × {formatPrice(item.product.price)}
-                      {item.selectedVariant && (
-                        <span className="block">{item.selectedVariant}</span>
+              {cart.map((item) => {
+                const product = item.product ?? {}
+                const img = Array.isArray(product.images) && product.images.length ? product.images[0] : null
+                const productName = product?.name ?? item.name ?? "Product"
+                const productId = product?._id ?? product?.id ?? (typeof item.product === "string" ? item.product : "")
+                const unitPrice = item.price ?? product?.price ?? 0
+                const variantLabel = item.selectedVariant
+                  ? (typeof item.selectedVariant === "object"
+                      ? (item.selectedVariant["name"] || item.selectedVariant["label"] || JSON.stringify(item.selectedVariant))
+                      : String(item.selectedVariant))
+                  : null
+
+                return (
+                  <div key={item._id ?? productId} className="flex items-center p-3 hover:bg-gray-50">
+                    <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden mr-3">
+                      {img ? (
+                        <Image src={img} alt={productName} width={48} height={48} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">No image</div>
                       )}
                     </div>
+
+                    <div className="flex-1 min-w-0">
+                      <Link href={`/product/${productId}`} className="text-sm font-medium line-clamp-1 hover:underline">
+                        {productName}
+                      </Link>
+                      <div className="text-xs text-muted-foreground mt-0.5">
+                        {item.quantity} × {formatPrice(unitPrice)}
+                        {variantLabel && <span className="block">{variantLabel}</span>}
+                      </div>
+                    </div>
+
+                    <div className="ml-2">
+                      <button
+                        onClick={() => handleRemoveItem(item._id)}
+                        disabled={removing === item._id}
+                        className={cn(
+                          "text-gray-400 hover:text-red-500 p-1 rounded-full transition-colors",
+                          removing === item._id && "opacity-50 cursor-not-allowed"
+                        )}
+                        aria-label="Remove item"
+                      >
+                        {removing === item._id ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
-                  <div className="ml-2">
-                    <button
-                      onClick={() => handleRemoveItem(item._id)}
-                      disabled={removing === item._id}
-                      className={cn(
-                        "text-gray-400 hover:text-red-500 p-1 rounded-full transition-colors",
-                        removing === item._id && "opacity-50 cursor-not-allowed"
-                      )}
-                      aria-label="Remove item"
-                    >
-                      {removing === item._id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <X className="h-4 w-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
-            
+
             <div className="border-t p-3">
               <div className="flex justify-between mb-3 font-medium">
                 <span>Subtotal</span>

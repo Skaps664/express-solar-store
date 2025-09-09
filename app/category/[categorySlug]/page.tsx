@@ -90,9 +90,9 @@ const fetchCategoryInfo = async (slug: string) => {
         
         if (category) {
           return {
-            title: `� ${category.name}`,
+            title: `${category.name}`,
             description: category.description || `Browse our wide selection of ${category.name.toLowerCase()}`,
-            icon: '�',
+            icon: '',
             apiSlug: category.slug || category.name,
             category: category
           }
@@ -103,9 +103,9 @@ const fetchCategoryInfo = async (slug: string) => {
     
     const category = await response.json()
     return {
-      title: `� ${category.name}`,
+      title: `${category.name}`,
       description: category.description || `Browse our wide selection of ${category.name.toLowerCase()}`,
-      icon: '�',
+      icon: '',
       apiSlug: category.slug || category.name,
       category: category
     }
@@ -113,9 +113,9 @@ const fetchCategoryInfo = async (slug: string) => {
     console.error('Error fetching category info:', error)
     // Fallback: use the slug as-is
     return {
-      title: `🔌 ${slug.charAt(0).toUpperCase() + slug.slice(1)}`,
+      title: `${slug.charAt(0).toUpperCase() + slug.slice(1)}`,
       description: 'Browse our wide selection of solar products',
-      icon: '🔆',
+      icon: '',
       apiSlug: slug,
       category: null
     }

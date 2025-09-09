@@ -177,46 +177,67 @@ export default function BrandPage({ params }: BrandPageProps) {
   }
 
   // Special handler for category filter change - needs to reload filters
-  const handleCategoryFilterChange = (newCategory: string | undefined) => {
-    // Update the filter state with the actual category name (not slug)
-    // This is what gets sent to the products API for filtering
-    handleFilterChange('category', newCategory)
-    
+  const handleCategoryFilterChange = (newCategorySlug: string | undefined) => {
+    // Update the filter state with the actual category slug (not name)
+    handleFilterChange('category', newCategorySlug)
     // Clear other filters since they might not be applicable to the new category
-    setAppliedFilters({ category: newCategory })
-    
-    // Map category names to their actual slugs from your database
-    const categorySlugMap: { [key: string]: string } = {
-      'Inverters': 'inverters',
-      'Solar Panels': 'solar-panels', 
-      'Batteries': 'batteries',
-      'Tools': 'tools',
-      'Accessories': 'accessories'
-    }
-    
-    // Fetch new filter configuration for the selected category or keep brand filters
+    setAppliedFilters({ category: newCategorySlug })
+    // Fetch new filter configuration for the selected category
     let filterCategory = 'brand' // Default to brand filters
-    if (newCategory && categorySlugMap[newCategory]) {
-      filterCategory = categorySlugMap[newCategory]
+    if (newCategorySlug) {
+      filterCategory = newCategorySlug
     }
-    
-    console.log(`Category selected: "${newCategory}" -> fetching filters for: "${filterCategory}"`)
-    
+    console.log(`Category selected: "${newCategorySlug}" -> fetching filters for: "${filterCategory}"`)
     fetch(`${API_BASE}/api/products/filters/${filterCategory}`)
       .then((res) => res.json())
       .then((data) => {
+        console.log('Raw filters response for', filterCategory, data)
         let newFilters = data.filters || []
         console.log(`Fetched ${newFilters.length} filters for category: ${filterCategory}`)
-        
-        // Always include the category selector from defaultFilters
+
+        // Normalize category filter options to objects { name, slug }
+        const normalizeCategoryOptions = (opts: any[]) => {
+          return (opts || []).map((opt: any) => {
+            if (opt && typeof opt === 'object' && opt.slug) return opt
+            if (typeof opt === 'string') {
+              // simple slugify: lowercase, replace spaces with -, remove non-alphanum/-
+              const slug = opt.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+              return { name: opt, slug }
+            }
+            return opt
+          })
+        }
+
+        // Remove brand filter from category-specific filters
+        newFilters = newFilters.filter((f: any) => f.field !== 'brand')
+
+        // Normalize options on the incoming category filter (if any)
+        newFilters = newFilters.map((f: any) => {
+          if (f.field === 'category' && Array.isArray(f.options)) {
+            return { ...f, options: normalizeCategoryOptions(f.options) }
+          }
+          return f
+        })
+
+        // Always include the category selector from defaultFilters (ensure it's normalized)
         const defaultCategoryFilter = defaultFilters.find((f: any) => f.field === 'category')
         if (defaultCategoryFilter) {
+          const normalizedDefault = { ...defaultCategoryFilter }
+          if (Array.isArray(normalizedDefault.options)) {
+            normalizedDefault.options = normalizeCategoryOptions(normalizedDefault.options)
+          }
           // Remove category filter if it exists in newFilters to avoid duplicates
           newFilters = newFilters.filter((f: any) => f.field !== 'category')
           // Add the category filter at the beginning
-          newFilters = [defaultCategoryFilter, ...newFilters]
+          newFilters = [normalizedDefault, ...newFilters]
         }
-        setFilters(newFilters)
+
+        // If no category is selected, show only brand filters (but without brand field)
+        if (!newCategorySlug) {
+          setFilters(defaultFilters.filter((f: any) => f.field !== 'brand'))
+        } else {
+          setFilters(newFilters)
+        }
       })
       .catch(err => console.error('Error fetching filters:', err))
   }
@@ -357,75 +378,83 @@ export default function BrandPage({ params }: BrandPageProps) {
 
                   {/* Dynamic filters based on configuration */}
                   <div className="space-y-6">
-                    {filters.map((filter) => (
-                      <div key={filter.field}>
-                        {filter.type === 'select' && (
-                          <div>
-                            <h4 className="font-medium mb-2 text-sm">{filter.label}</h4>
-                            <select 
-                              className="w-full border rounded p-2 text-sm"
-                              value={appliedFilters[filter.field] || ''}
-                              onChange={(e) => {
-                                // Use special handler for category filter
-                                if (filter.field === 'category') {
-                                  handleCategoryFilterChange(e.target.value || undefined)
-                                } else {
-                                  handleFilterChange(filter.field, e.target.value)
-                                }
-                              }}
-                            >
-                              <option value="">All {filter.label}s</option>
-                              {filter.options?.map((option) => (
-                                <option key={option} value={option}>
-                                  {option}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
-
-                        {filter.type === 'range' && (
-                          <div>
-                            <h4 className="font-medium mb-2 text-sm">{filter.label}</h4>
-                            <div className="flex gap-2">
-                              <input
-                                type="number"
-                                placeholder="Min"
-                                className="flex-1 border rounded p-2 text-sm"
-                                value={appliedFilters[`${filter.field}_min`] || ''}
-                                onChange={(e) => handleFilterChange(`${filter.field}_min`, e.target.value || undefined)}
-                                min={filter.min}
-                                max={filter.max}
-                                step={filter.step}
-                              />
-                              <input
-                                type="number"
-                                placeholder="Max"
-                                className="flex-1 border rounded p-2 text-sm"
-                                value={appliedFilters[`${filter.field}_max`] || ''}
-                                onChange={(e) => handleFilterChange(`${filter.field}_max`, e.target.value || undefined)}
-                                min={filter.min}
-                                max={filter.max}
-                                step={filter.step}
-                              />
+                    {filters
+                      .filter(f => f.field !== 'brand')
+                      .map((filter) => (
+                        <div key={filter.field}>
+                          {filter.type === 'select' && (
+                            <div>
+                              <h4 className="font-medium mb-2 text-sm">{filter.label}</h4>
+                              <select 
+                                className="w-full border rounded p-2 text-sm"
+                                value={appliedFilters[filter.field] || ''}
+                                onChange={(e) => {
+                                  // Use special handler for category filter
+                                  if (filter.field === 'category') {
+                                    handleCategoryFilterChange(e.target.value || undefined)
+                                  } else {
+                                    handleFilterChange(filter.field, e.target.value)
+                                  }
+                                }}
+                              >
+                                <option value="">All {filter.label}s</option>
+                                {filter.options?.map((option) => (
+                                  filter.field === 'category' && typeof option === 'object' && option.slug ? (
+                                    <option key={option.slug} value={option.slug}>
+                                      {option.name}
+                                    </option>
+                                  ) : (
+                                    <option key={option} value={option}>
+                                      {option}
+                                    </option>
+                                  )
+                                ))}
+                              </select>
                             </div>
-                          </div>
-                        )}
+                          )}
 
-                        {filter.type === 'boolean' && (
-                          <div className="flex items-center">
-                            <input 
-                              type="checkbox" 
-                              id={filter.field} 
-                              className="mr-2"
-                              checked={appliedFilters[filter.field] || false}
-                              onChange={(e) => handleFilterChange(filter.field, e.target.checked)}
-                            />
-                            <label htmlFor={filter.field} className="text-sm">{filter.label}</label>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                          {filter.type === 'range' && (
+                            <div>
+                              <h4 className="font-medium mb-2 text-sm">{filter.label}</h4>
+                              <div className="flex gap-2">
+                                <input
+                                  type="number"
+                                  placeholder="Min"
+                                  className="flex-1 border rounded p-2 text-sm"
+                                  value={appliedFilters[`${filter.field}_min`] || ''}
+                                  onChange={(e) => handleFilterChange(`${filter.field}_min`, e.target.value || undefined)}
+                                  min={filter.min}
+                                  max={filter.max}
+                                  step={filter.step}
+                                />
+                                <input
+                                  type="number"
+                                  placeholder="Max"
+                                  className="flex-1 border rounded p-2 text-sm"
+                                  value={appliedFilters[`${filter.field}_max`] || ''}
+                                  onChange={(e) => handleFilterChange(`${filter.field}_max`, e.target.value || undefined)}
+                                  min={filter.min}
+                                  max={filter.max}
+                                  step={filter.step}
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                          {filter.type === 'boolean' && (
+                            <div className="flex items-center">
+                              <input 
+                                type="checkbox" 
+                                id={filter.field} 
+                                className="mr-2"
+                                checked={appliedFilters[filter.field] || false}
+                                onChange={(e) => handleFilterChange(filter.field, e.target.checked)}
+                              />
+                              <label htmlFor={filter.field} className="text-sm">{filter.label}</label>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     <Button 
                       className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-sm"
                       onClick={() => setShowMobileFilters(false)}

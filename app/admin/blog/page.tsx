@@ -321,6 +321,34 @@ export default function BlogPage() {
       }
       document.body.focus();
     }, 100);
+
+    // Also ensure any leftover TinyMCE dialogs/backdrops are removed and
+    // pointer-events on the body are restored. TinyMCE may append modal
+    // elements to the document body and sometimes they remain after
+    // closing, blocking clicks until a full refresh.
+    setTimeout(() => {
+      try {
+        // Try to close any open TinyMCE window manager dialogs
+        const win: any = window as any
+        if (win?.tinymce?.activeEditor?.windowManager) {
+          try {
+            win.tinymce.activeEditor.windowManager.close();
+          } catch (e) {
+            // ignore
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      // Remove common TinyMCE modal/backdrop nodes if they were left behind
+      document.querySelectorAll('.tox-dialog__backdrop, .tox-dialog, .tox-collection, .tox-collection__menu').forEach(el => {
+        try { el.parentNode?.removeChild(el); } catch (e) { /* ignore */ }
+      });
+
+      // Restore pointer events on body just in case
+      try { document.body.style.pointerEvents = 'auto'; } catch (e) { /* ignore */ }
+    }, 200);
   };
 
   const handleCreateNewBlog = () => {

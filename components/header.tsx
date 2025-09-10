@@ -413,7 +413,7 @@ export default function Header({ user }: HeaderProps) {
 						<Link href="/" className="flex items-center">
 							<div className="w-16 h-8 md:w-22 md:h-11 rounded-full flex items-center justify-center">
 								<img
-									src="/logo-crop.png"
+									src="/logo-crop.PNG"
 									alt="Solar Express Logo"
 									className="w-auto h-auto object-cover"
 								/>

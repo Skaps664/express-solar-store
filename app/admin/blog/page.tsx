@@ -171,7 +171,7 @@ export default function BlogPage() {
         const [blogsRes, categoriesRes, productsRes, brandsRes] = await Promise.all([
           api.get(`/api/blogs?status=all&_t=${timestamp}`),
           api.get('/api/blog-categories?includeInactive=true'),
-          api.get('/api/products/admin/all'),
+          api.get('/api/products/admin/all?limit=1000'),
           api.get('/api/brands/admin/all')
         ])
 
@@ -233,15 +233,22 @@ export default function BlogPage() {
         return
       }
 
-      if (selectedBlog) {
-        // Update existing blog
-        await api.put(`/api/blogs/${selectedBlog._id}`, formData)
-        toast.success('Blog updated successfully')
+      // Prepare payload: convert empty strings to null for primary fields
+      const blogData = {
+        ...formData,
+        primaryProduct: formData.primaryProduct === '' ? null : formData.primaryProduct,
+        primaryBrand: formData.primaryBrand === '' ? null : formData.primaryBrand,
+        relatedProducts: formData.relatedProducts || []
+      };
+
+      // If editing an existing blog, send PUT to /api/blogs/:id, else POST to create
+      let response
+      if (selectedBlog && selectedBlog._id) {
+        response = await api.put(`/api/blogs/${selectedBlog._id}`, blogData)
       } else {
-        // Create new blog
-        await api.post('/api/blogs', formData)
-        toast.success('Blog created successfully')
+        response = await api.post('/api/blogs', blogData)
       }
+      toast.success('Blog saved successfully')
 
       handleCloseDialog()
       
@@ -434,10 +441,10 @@ export default function BlogPage() {
       ),
       primaryProduct: typeof blog.primaryProduct === 'object' && (blog.primaryProduct as any)?._id 
         ? (blog.primaryProduct as any)._id 
-        : blog.primaryProduct || '',
+        : blog.primaryProduct || undefined,
       primaryBrand: typeof blog.primaryBrand === 'object' && (blog.primaryBrand as any)?._id 
         ? (blog.primaryBrand as any)._id 
-        : blog.primaryBrand || '',
+        : blog.primaryBrand || undefined,
       category: typeof blog.category === 'object' ? blog.category._id : blog.category,
       status: blog.status || 'draft',
       isFeatured: blog.isFeatured || false,
@@ -923,7 +930,7 @@ export default function BlogPage() {
                       <Label htmlFor="primaryProduct">Primary Product</Label>
                       <Select
                         value={formData.primaryProduct || 'none'}
-                        onValueChange={(value) => setFormData(prev => ({ ...prev, primaryProduct: value === 'none' ? undefined : value }))}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, primaryProduct: value === 'none' ? null : value }))}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select primary product (optional)" />

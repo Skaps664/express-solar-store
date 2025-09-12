@@ -365,7 +365,7 @@ export default function HomePromoGrid() {
             src={getImageSrc(getBannerData('MobileSecondWideBanner'), "/q6.jpeg")}
             alt={getBannerData('MobileSecondWideBanner')?.text || "Solar Flash Deals"}
             fill
-            className="object-cover opacity-30 group-hover:scale-105 transition-transform duration-500"
+            className="group-hover:scale-105 transition-transform duration-500"
           />
         </Link>
 

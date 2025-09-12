@@ -20,7 +20,7 @@ import MiniBottomSolarAd from "@/components/miniBottomSolarAd"
 
 export default function Home() {
   return (
-<div className="container mx-auto px-4 md:px-14 lg:px-16 pb-12">
+<div className="container mx-auto px-2 md:px-14 lg:px-16 pb-12">
       {/* New Banner Grid with Solar Images */}
       <HomePromoGrid />
 {/* <HomePromoGridV2/> */}

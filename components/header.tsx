@@ -407,11 +407,11 @@ export default function Header({ user }: HeaderProps) {
 				<PriceTicker />
 			</div>
 
-			<div className="bg-[#1a5ca4] py-3 md:px-14 lg:px-24">
-				<div className="container mx-auto flex items-center justify-between">
+			<div className="bg-[#1a5ca4] py-3 px-3 md:px-14 lg:px-24">
+				<div className="mx-auto w-full max-w-screen-xl px-0 md:px-4 flex items-center justify-between">
 					<div className="flex items-center gap-4 ">
 						<Link href="/" className="flex items-center">
-							<div className="w-16 h-8 md:w-22 md:h-11 rounded-full flex items-center justify-center">
+							<div className="w-16 h-8 md:w-22 md:h-11 ml-2 rounded-full flex items-center justify-center">
 								<img
 									src="/logo-crop.PNG"
 									alt="Solar Express Logo"
@@ -441,10 +441,10 @@ export default function Header({ user }: HeaderProps) {
 								/>
 								<Button
 									type="submit"
-									className="absolute right-0 top-0 h-full bg-[#f26522] hover:bg-[#e55511] rounded-l-none rounded-r-full"
+									className="absolute right-0 top-0 h-full bg-white hover:bg-[#f26522] rounded-l-none rounded-r-full"
 									size="icon"
 								>
-									<Search className="h-4 w-4" />
+									<Search className="h-4 w-4 text-[#1a5ca4]" />
 								</Button>
 							</div>
 						</form>
@@ -717,7 +717,7 @@ export default function Header({ user }: HeaderProps) {
 				</div>
 
 				<div className="py-3 px-2 border-b border-gray-200 bg-gray-50">
-					<h3 className="text-lg font-medium px-2 mb-2 text-[#1a5ca4]">Departments</h3>
+					<h3 className="text-lg font-medium px-2 mb-2 text-[#1a5ca4]">Categories</h3>
 					<div className="flex overflow-x-auto pb-2 hide-scrollbar">
 						{categoryData.map((category, index) => (
 							<Link

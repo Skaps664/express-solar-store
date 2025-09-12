@@ -6,6 +6,13 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* reset default body margin so full-bleed elements (like header) reach screen edges */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

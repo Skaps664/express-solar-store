@@ -16,7 +16,7 @@ const buttonVariants = cva(
           "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        ghost: "hover:bg-accent hover:text-accent-foreground px-0",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -25,7 +25,7 @@ const buttonVariants = cva(
         lg: "h-11 rounded-md px-8 [&_svg]:size-5",
         icon: "h-10 w-10 [&_svg]:size-4",
         // New size variant specifically for mobile menu with larger icon
-        mobileMenu: "h-12 w-12 [&_svg]:size-6",
+        mobileMenu: "h-12 w-12 [&_svg]:size-6 px-0",
       },
     },
     defaultVariants: {

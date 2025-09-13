@@ -412,11 +412,17 @@ export default function Header({ user }: HeaderProps) {
 				<div className="mx-auto w-full max-w-screen-xl px-0 md:px-4 flex items-center justify-between">
 					<div className="flex items-center gap-4 ">
 						<Link href="/" className="flex items-center">
-							<div className="w-14 h-7 md:w-22 md:h-11 ml-2 rounded-full flex items-center justify-center">
+							<div className="w-16 h-8 md:w-22 md:h-11 ml-2 rounded-full flex items-center justify-center">
+								{/* Mobile: show existing logo-new.png; md and up: show /logo-crop.PNG */}
 								<img
 									src="/logo-new.png"
 									alt="Solar Express Logo"
-									className="w-auto h-auto object-cover"
+									className="w-auto h-auto object-cover block md:hidden"
+								/>
+								<img
+									src="/logo-crop.PNG"
+									alt="Solar Express Logo"
+									className="w-auto h-auto object-cover hidden md:block"
 								/>
 							</div>
 						</Link>
@@ -674,8 +680,9 @@ export default function Header({ user }: HeaderProps) {
 				<div className="flex items-center justify-between p-4 bg-[#1a5ca4] text-white">
 					<div className="flex items-center gap-2">
 						<div className="w-12 h-6 rounded-full flex items-center justify-center">
+							{/* Use mobile logo here (mobile menu only) */}
 							<img
-							src="/logo-crop.PNG"
+								src="/logo-new.png"
 								alt="Solar Express Logo"
 								className="w-full h-full object-cover"
 							/>

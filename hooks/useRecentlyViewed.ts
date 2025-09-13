@@ -1,9 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import axios from 'axios'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+import { api } from '@/lib/services/api'
 
 interface Product {
   _id: string
@@ -37,12 +35,15 @@ export const useRecentlyViewed = () => {
         // Fetch product details for the recently viewed IDs
         const productPromises = recentlyViewedIds.slice(0, 8).map(async (productId: string) => {
           try {
-            const response = await axios.get(`${API_BASE_URL}/api/products/${productId}`, {
-              withCredentials: true
-            })
+            const response = await api.get(`/api/products/${productId}`)
             return (response.data as any).product
-          } catch (error) {
-            console.error(`Failed to fetch product ${productId}:`, error)
+          } catch (error: any) {
+            // If a product was removed or ID is invalid, skip it silently
+            if (error?.response?.status === 404) {
+              console.debug(`Recently viewed product ${productId} not found (404), skipping.`)
+            } else {
+              console.error(`Failed to fetch product ${productId}:`, error)
+            }
             return null
           }
         })
@@ -76,17 +77,19 @@ export const useRecentlyViewed = () => {
       // Refresh the recently viewed products
       const fetchProduct = async () => {
         try {
-          const response = await axios.get(`${API_BASE_URL}/api/products/${productId}`, {
-            withCredentials: true
-          })
+          const response = await api.get(`/api/products/${productId}`)
           const newProduct = (response.data as any).product
-          
+
           setRecentProducts(prev => {
             const filtered = prev.filter(p => p._id !== productId)
             return [newProduct, ...filtered].slice(0, 8)
           })
-        } catch (error) {
-          console.error('Error fetching new product for recently viewed:', error)
+        } catch (error: any) {
+          if (error?.response?.status === 404) {
+            console.debug(`Recently viewed product ${productId} not found when adding, skipping.`)
+          } else {
+            console.error('Error fetching new product for recently viewed:', error)
+          }
         }
       }
       

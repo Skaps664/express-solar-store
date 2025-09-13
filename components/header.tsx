@@ -88,16 +88,17 @@ interface HeaderProps {
 // Component that handles search params
 function SearchHandler({ searchTerm, setSearchTerm, pathname }: { searchTerm: string, setSearchTerm: (term: string) => void, pathname: string }) {
 	const searchParams = useSearchParams()
-	
 	useEffect(() => {
 		const searchParam = searchParams.get('search')
-		if (searchParam && searchParam !== searchTerm) {
+		if (searchParam) {
+			// If URL contains a search param, sync it to the header input
 			setSearchTerm(searchParam)
-		} else if (!searchParam && pathname !== '/store' && searchTerm) {
-			// Clear search term when not on store page and no search param
+		} else if (pathname !== '/store') {
+			// Clear search term only when navigating away from the store page
 			setSearchTerm('')
 		}
-	}, [searchParams, pathname, searchTerm, setSearchTerm])
+	// Intentionally omit `searchTerm` from deps so typing in the input doesn't re-run this effect
+	}, [searchParams, pathname, setSearchTerm])
 	
 	return null
 }
@@ -411,9 +412,9 @@ export default function Header({ user }: HeaderProps) {
 				<div className="mx-auto w-full max-w-screen-xl px-0 md:px-4 flex items-center justify-between">
 					<div className="flex items-center gap-4 ">
 						<Link href="/" className="flex items-center">
-							<div className="w-16 h-8 md:w-22 md:h-11 ml-2 rounded-full flex items-center justify-center">
+							<div className="w-14 h-7 md:w-22 md:h-11 ml-2 rounded-full flex items-center justify-center">
 								<img
-									src="/logo-crop.PNG"
+									src="/logo-new.png"
 									alt="Solar Express Logo"
 									className="w-auto h-auto object-cover"
 								/>

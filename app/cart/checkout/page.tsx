@@ -209,6 +209,30 @@ export default function CheckoutPage() {
                   </div>
                   
                   <div className="flex items-start space-x-3 p-3 border rounded-md mb-3">
+                    <RadioGroupItem value="Easypaisa" id="easypaisa" />
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="easypaisa" className="font-medium">
+                        Easypaisa
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Pay via Easypaisa mobile wallet. We'll confirm once we receive the payment.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start space-x-3 p-3 border rounded-md mb-3">
+                    <RadioGroupItem value="JazzCash" id="jazzcash" />
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="jazzcash" className="font-medium">
+                        JazzCash
+                      </Label>
+                      <p className="text-sm text-muted-foreground">
+                        Pay via JazzCash mobile wallet. We'll confirm once we receive the payment.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start space-x-3 p-3 border rounded-md mb-3">
                     <RadioGroupItem value="Cash on Delivery" id="cash-on-delivery" />
                     <div className="grid gap-1.5">
                       <Label htmlFor="cash-on-delivery" className="font-medium">
@@ -238,98 +262,156 @@ export default function CheckoutPage() {
                 />
               </CardContent>
             </Card>
-          </div>
-          
-          {/* Order Summary */}
-          <div>
-            <Card className="sticky top-20">
-              <CardHeader>
-                <CardTitle>Order Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Cart Items */}
-                <div className="space-y-3">
-                  {cart.map((item) => (
-                    <div key={item._id} className="flex items-center gap-3">
-                      <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md border">
-                        {item.image || (item.product?.images && item.product.images[0]) ? (
-                          <Image 
-                            src={item.image || item.product.images[0]} 
-                            alt={item.name || item.product.name}
-                            width={48}
-                            height={48}
-                            className="h-full w-full object-cover object-center"
-                          />
-                        ) : (
-                          <div className="h-full w-full bg-gray-100 flex items-center justify-center">
-                            <ShoppingCart className="h-6 w-6 text-gray-400" />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {item.name || item.product.name}
-                        </p>
-                        {item.selectedVariant && (
-                          <p className="text-xs text-muted-foreground">
-                            {item.selectedVariant}
+
+            {/* Payment Info Boxes (conditional) */}
+            {paymentMethod === "Cash on Delivery" && (
+              <div className="border-l-4 border-yellow-400 bg-yellow-50 p-4 rounded-md">
+                <h3 className="font-semibold mb-2">Important: Partial Advance Required for COD</h3>
+                <div className="whitespace-pre-line text-sm text-muted-foreground">
+{`Dear Customer,
+To secure and confirm your order, we kindly request a partial payment in advance.
+
+RS 500 for order amount below RS 10,000
+
+RS 1000 for order amount below RS 20,000
+
+RS 5000 for order amount below RS 30,000
+
+100% Advance payment above 50,000
+
+==> Full Payment for MPPTs and Inverters
+
+This ensures a smooth processing of your order and guarantees product availability. Thank you for your understanding.
+Best regards,
+solarexpress.pk
+
+Deposit your amount in the following bank account:
+Bank: 
+Account Title: 
+Account Number: 
+IBAN: 
+
+Note: This Payment is for Order Conformation. Your Order will be processed after payment.`}
+                </div>
+              </div>
+            )}
+
+            {(paymentMethod === "Bank Transfer" || paymentMethod === "Easypaisa" || paymentMethod === "JazzCash") && (
+              <div className="border-l-4 border-blue-400 bg-blue-50 p-4 rounded-md">
+                <h3 className="font-semibold mb-2">Payment Details</h3>
+                <p className="text-sm text-muted-foreground mb-2">Please deposit the payment using the details below and send the receipt via WhatsApp.</p>
+                <div className="grid grid-cols-1 gap-2 text-sm">
+                  <div>
+                    <p className="font-medium">Bank:</p>
+                    <p className="text-muted-foreground">&nbsp;</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Account Title:</p>
+                    <p className="text-muted-foreground">&nbsp;</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Account Number:</p>
+                    <p className="text-muted-foreground">&nbsp;</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">IBAN:</p>
+                    <p className="text-muted-foreground">&nbsp;</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            </div>
+
+            {/* Order Summary */}
+            <div>
+              <Card className="sticky top-20">
+                <CardHeader>
+                  <CardTitle>Order Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Cart Items */}
+                  <div className="space-y-3">
+                    {cart.map((item) => (
+                      <div key={item._id} className="flex items-center gap-3">
+                        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md border">
+                          {item.image || (item.product?.images && item.product.images[0]) ? (
+                            <Image 
+                              src={item.image || item.product.images[0]} 
+                              alt={item.name || item.product.name}
+                              width={48}
+                              height={48}
+                              className="h-full w-full object-cover object-center"
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-gray-100 flex items-center justify-center">
+                              <ShoppingCart className="h-6 w-6 text-gray-400" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {item.name || item.product.name}
                           </p>
-                        )}
-                        <p className="text-xs text-muted-foreground">
-                          {item.quantity} × {formatPrice(item.price || item.product.price)}
+                          {item.selectedVariant && (
+                            <p className="text-xs text-muted-foreground">
+                              {item.selectedVariant}
+                            </p>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            {item.quantity} × {formatPrice(item.price || item.product.price)}
+                          </p>
+                        </div>
+                        <p className="text-sm font-medium">
+                          {formatPrice((item.price || item.product.price) * item.quantity)}
                         </p>
                       </div>
-                      <p className="text-sm font-medium">
-                        {formatPrice((item.price || item.product.price) * item.quantity)}
-                      </p>
+                    ))}
+                  </div>
+                
+                  <Separator />
+                
+                  {/* Totals */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-sm">
+                      <p>Subtotal</p>
+                      <p className="font-medium">{formatPrice(cartTotal)}</p>
                     </div>
-                  ))}
-                </div>
-                
-                <Separator />
-                
-                {/* Totals */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <p>Subtotal</p>
-                    <p className="font-medium">{formatPrice(cartTotal)}</p>
+                    <div className="flex justify-between text-sm">
+                      <p>Shipping</p>
+                      <p className="font-medium">Free</p>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <p>Shipping</p>
-                    <p className="font-medium">Free</p>
+                
+                  <Separator />
+                
+                  <div className="flex justify-between font-medium">
+                    <p>Total</p>
+                    <p>{formatPrice(cartTotal)}</p>
                   </div>
-                </div>
                 
-                <Separator />
-                
-                <div className="flex justify-between font-medium">
-                  <p>Total</p>
-                  <p>{formatPrice(cartTotal)}</p>
-                </div>
-                
-                <Button 
-                  size="lg" 
-                  className="w-full mt-4"
-                  onClick={handleCheckout}
-                  disabled={isSubmitting || !selectedAddress || cart.length === 0}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <MessageCircle className="mr-2 h-5 w-5" />
-                      Place Order via WhatsApp
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
+                  <Button 
+                    size="lg" 
+                    className="w-full mt-4"
+                    onClick={handleCheckout}
+                    disabled={isSubmitting || !selectedAddress || cart.length === 0}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <MessageCircle className="mr-2 h-5 w-5" />
+                        Place Order
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
   )
 }

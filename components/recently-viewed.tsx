@@ -42,7 +42,7 @@ export default function RecentlyViewed() {
     )
   }
 
-  if (recentProducts.length === 0) {
+  if (!recentProducts || recentProducts.length === 0) {
     return null // Don't show section if no recently viewed products
   }
 
@@ -50,49 +50,56 @@ export default function RecentlyViewed() {
     <div className="my-8">
       <h2 className="text-2xl font-bold text-[#1a5ca4] mb-4">Recently Viewed</h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {recentProducts.map((product) => (
-          <Link
-            key={product._id}
-            href={`/product/${product.slug}`}
-            className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-sm transition-all group"
-            onClick={() => handleProductClick(product._id, product.slug)}
-          >
-            <div className="h-40 bg-gray-100 flex items-center justify-center">
-              <Image
-                src={product.images?.[0] || "/placeholder.svg"}
-                alt={product.name}
-                width={150}
-                height={150}
-                className="object-contain group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-            <div className="p-4">
-              <h3 className="font-medium text-sm mb-2 line-clamp-2 h-10 group-hover:text-[#1a5ca4] transition-colors">
-                {product.name}
-              </h3>
-              <div className="flex items-center gap-2 mb-3">
-                {product.originalPrice && product.discountPercentage ? (
-                  <>
-                    <span className="text-[#1a5ca4] font-bold">{formatPrice(product.price)}</span>
-                    <span className="text-gray-500 line-through text-sm">{formatPrice(product.originalPrice)}</span>
-                  </>
-                ) : (
-                  <span className="text-[#1a5ca4] font-bold">{formatPrice(product.price)}</span>
-                )}
-              </div>
-              <Button
-                className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] flex items-center justify-center gap-2"
-                onClick={(e) => {
-                  e.preventDefault()
-                  // Add to cart logic
-                  window.location.href = `/cart/add/${product.slug}`
-                }}
+        {recentProducts
+          .filter(Boolean)
+          .map((product) => {
+            // guard against malformed items
+            if (!product || !product._id || !product.slug) return null
+
+            return (
+              <Link
+                key={product._id}
+                href={`/product/${product.slug}`}
+                className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-sm transition-all group"
+                onClick={() => handleProductClick(product._id, product.slug)}
               >
-                <ShoppingCart className="h-4 w-4" /> Add to Cart
-              </Button>
-            </div>
-          </Link>
-        ))}
+                <div className="h-40 bg-gray-100 flex items-center justify-center">
+                  <Image
+                    src={product.images?.[0] || "/placeholder.svg"}
+                    alt={product.name || 'Product image'}
+                    width={150}
+                    height={150}
+                    className="object-contain group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-medium text-sm mb-2 line-clamp-2 h-10 group-hover:text-[#1a5ca4] transition-colors">
+                    {product.name || 'Untitled product'}
+                  </h3>
+                  <div className="flex items-center gap-2 mb-3">
+                    {product.originalPrice && product.discountPercentage ? (
+                      <>
+                        <span className="text-[#1a5ca4] font-bold">{formatPrice(product.price)}</span>
+                        <span className="text-gray-500 line-through text-sm">{formatPrice(product.originalPrice)}</span>
+                      </>
+                    ) : (
+                      <span className="text-[#1a5ca4] font-bold">{formatPrice(product.price)}</span>
+                    )}
+                  </div>
+                  <Button
+                    className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] flex items-center justify-center gap-2"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      // Add to cart logic
+                      if (product.slug) window.location.href = `/cart/add/${product.slug}`
+                    }}
+                  >
+                    <ShoppingCart className="h-4 w-4" /> Add to Cart
+                  </Button>
+                </div>
+              </Link>
+            )
+          })}
       </div>
     </div>
   )

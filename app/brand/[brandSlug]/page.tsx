@@ -33,7 +33,7 @@ export default function BrandPage({ params }: BrandPageProps) {
   const [defaultFilters, setDefaultFilters] = useState<any[]>([])
   const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({})
   const [sortBy, setSortBy] = useState("featured")
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 20 })
+  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 12 })
   
   // Track product click
   const handleProductClick = (productId: string, productSlug: string) => {
@@ -125,8 +125,8 @@ export default function BrandPage({ params }: BrandPageProps) {
         const effectiveBrand = appliedFilters?.brand ?? brandSlug
         if (effectiveBrand) params.append('brand', effectiveBrand)
       params.append('sort', sortBy)
-      params.append('page', String(pagination.page))
-      params.append('limit', String(pagination.limit))
+        params.append('page', String(pagination.page))
+      params.append('limit', String(pagination.limit || 12))
 
       // Add applied filters
       Object.entries(appliedFilters).forEach(([key, value]) => {
@@ -151,7 +151,7 @@ export default function BrandPage({ params }: BrandPageProps) {
         
         if (productsData.success) {
           setAllProducts(productsData.products || [])
-          setPagination(productsData.pagination || { page: 1, pages: 1, total: 0, limit: 20 })
+          setPagination(productsData.pagination || { page: 1, pages: 1, total: 0, limit: 12 })
           console.log(`Found ${productsData.products?.length || 0} products for this brand with current filters`)
         } else {
           console.error('Failed to get products:', productsData.message)
@@ -253,7 +253,11 @@ export default function BrandPage({ params }: BrandPageProps) {
     if (brandSlug) {
       fetchBrandProducts()
     }
-  }, [appliedFilters, sortBy, pagination.page])
+  }, [appliedFilters, sortBy, pagination.page, pagination.limit])
+
+  // Compute start/end indexes for the current page display
+  const startIndex = (pagination.page - 1) * (pagination.limit || 12) + 1
+  const endIndex = startIndex + allProducts.length - 1
 
   if (loading) {
     return <div className="py-16 text-center text-muted-foreground">Loading brand information...</div>
@@ -380,7 +384,7 @@ export default function BrandPage({ params }: BrandPageProps) {
                   <div className="space-y-6">
                     {filters
                       .filter(f => f.field !== 'brand')
-                      .map((filter) => (
+                      .map((filter: any) => (
                         <div key={filter.field}>
                           {filter.type === 'select' && (
                             <div>
@@ -398,17 +402,17 @@ export default function BrandPage({ params }: BrandPageProps) {
                                 }}
                               >
                                 <option value="">All {filter.label}s</option>
-                                {filter.options?.map((option) => (
-                                  filter.field === 'category' && typeof option === 'object' && option.slug ? (
-                                    <option key={option.slug} value={option.slug}>
-                                      {option.name}
-                                    </option>
-                                  ) : (
-                                    <option key={option} value={option}>
-                                      {option}
+                                {filter.options?.map((option: any) => {
+                                  const isObj = option && typeof option === 'object'
+                                  const key = isObj ? option.slug || option.name : String(option)
+                                  const value = isObj ? option.slug || option.name : option
+                                  const label = isObj ? option.name || option.slug : String(option)
+                                  return (
+                                    <option key={key} value={value}>
+                                      {label}
                                     </option>
                                   )
-                                ))}
+                                })}
                               </select>
                             </div>
                           )}
@@ -496,7 +500,7 @@ export default function BrandPage({ params }: BrandPageProps) {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
-                {allProducts.map((product) => (
+                {allProducts.map((product: any) => (
                   <Link key={product._id} href={`/product/${product.slug}`} onClick={() => handleProductClick(product._id, product.slug)}>
                     <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors">
                       <div className="h-32 sm:h-48 bg-gray-100 relative">
@@ -529,19 +533,36 @@ export default function BrandPage({ params }: BrandPageProps) {
               {/* Pagination */}
               <div className="flex justify-center mt-6 sm:mt-8">
                 <div className="flex gap-1 sm:gap-2">
-                  <Button variant="outline" size="sm" disabled className="text-xs sm:text-sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={pagination.page === 1}
+                    onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+                    className="text-xs sm:text-sm"
+                  >
                     Previous
                   </Button>
-                  <Button variant="outline" size="sm" className="bg-[#1a5ca4] text-white text-xs sm:text-sm">
-                    1
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs sm:text-sm">
-                    2
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs sm:text-sm">
-                    3
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+                  {Array.from({ length: Math.min(pagination.pages || 1, 7) }, (_, i) => {
+                    const page = i + 1
+                    return (
+                      <Button
+                        key={page}
+                        variant={pagination.page === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPagination(prev => ({ ...prev, page }))}
+                        className="text-xs sm:text-sm"
+                      >
+                        {page}
+                      </Button>
+                    )
+                  })}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={pagination.page === pagination.pages}
+                    onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.pages || 1, prev.page + 1) }))}
+                    className="text-xs sm:text-sm"
+                  >
                     Next
                   </Button>
                 </div>
@@ -556,7 +577,7 @@ export default function BrandPage({ params }: BrandPageProps) {
           
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
             {/* Show custom featured products if available from settings, otherwise show default featured products */}
-            {(brand.pageSettings?.featuredProducts?.length > 0 ? brand.pageSettings.featuredProducts : featuredProducts).map((product) => (
+            {(brand.pageSettings?.featuredProducts?.length > 0 ? brand.pageSettings.featuredProducts : featuredProducts).map((product: any) => (
               <Link key={product._id} href={`/product/${product.slug}`} onClick={() => handleProductClick(product._id, product.slug)}>
                 <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors">
                   <div className="h-32 sm:h-48 bg-gray-100 relative">
@@ -587,7 +608,7 @@ export default function BrandPage({ params }: BrandPageProps) {
           </div>
           
           {/* Display active promotions for featured tab */}
-          {brand.pageSettings?.activePromotions?.filter(promo => promo.displayTab === 'featured').map((promo) => (
+          {brand.pageSettings?.activePromotions?.filter((promo: any) => promo.displayTab === 'featured').map((promo: any) => (
             <div key={promo._id} className="my-8 group">
               <div className="relative overflow-hidden rounded-lg shadow-lg transform transition-all duration-300 hover:scale-[1.01]">
                 <div className="relative h-[300px] md:h-[400px]">
@@ -669,7 +690,7 @@ export default function BrandPage({ params }: BrandPageProps) {
             <h3 className="text-lg sm:text-xl font-bold mb-4">Why Choose {brand.name}?</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
               {brand.pageSettings?.whyChooseReasons?.length > 0 ? (
-                brand.pageSettings.whyChooseReasons.map((reason, index) => (
+                brand.pageSettings.whyChooseReasons.map((reason: any, index: number) => (
                   <div key={index} className="p-4 border border-gray-200 rounded-lg shadow-sm">
                     <h4 className="font-bold mb-2 text-sm sm:text-base">{reason.title}</h4>
                     <p className="text-gray-700 text-sm sm:text-base">{reason.description}</p>
@@ -704,7 +725,7 @@ export default function BrandPage({ params }: BrandPageProps) {
           </div>
           
           {/* Display active promotions for about tab */}
-          {brand.pageSettings?.activePromotions?.filter(promo => promo.displayTab === 'about' || promo.displayTab === 'all').map((promo) => (
+          {brand.pageSettings?.activePromotions?.filter((promo: any) => promo.displayTab === 'about' || promo.displayTab === 'all').map((promo: any) => (
             <div key={promo._id} className="my-8 group">
               <div className="relative overflow-hidden rounded-lg shadow-lg transform transition-all duration-300 hover:scale-[1.01]">
                 <div className="relative h-[300px] md:h-[400px]">
@@ -775,7 +796,7 @@ export default function BrandPage({ params }: BrandPageProps) {
             <h3 className="text-lg sm:text-xl font-bold mb-4">Frequently Asked Questions</h3>
             <div className="space-y-4">
               {brand.pageSettings?.faqs?.length > 0 ? (
-                brand.pageSettings.faqs.map((faq, index) => (
+                brand.pageSettings.faqs.map((faq: any, index: number) => (
                   <div key={index} className="p-4 border border-gray-200 rounded-lg shadow-sm">
                     <h4 className="font-bold mb-2 text-sm sm:text-base">{faq.question}</h4>
                     <p className="text-gray-700 text-sm sm:text-base">{faq.answer}</p>
@@ -810,7 +831,7 @@ export default function BrandPage({ params }: BrandPageProps) {
           </div>
           
           {/* Display active promotions for support tab */}
-          {brand.pageSettings?.activePromotions?.filter(promo => promo.displayTab === 'support' || promo.displayTab === 'all').map((promo) => (
+          {brand.pageSettings?.activePromotions?.filter((promo: any) => promo.displayTab === 'support' || promo.displayTab === 'all').map((promo: any) => (
             <div key={promo._id} className="my-8 group">
               <div className="relative overflow-hidden rounded-lg shadow-lg transform transition-all duration-300 hover:scale-[1.01]">
                 <div className="relative h-[300px] md:h-[400px]">

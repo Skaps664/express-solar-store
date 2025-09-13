@@ -53,6 +53,7 @@ interface Order {
   orderNumber?: string
   status: string
   paymentStatus?: string
+  paymentMethod?: string
   totalAmount?: number
   createdAt: string
   customerInfo?: CustomerInfo
@@ -368,6 +369,7 @@ export default function OrdersPage() {
                     <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Payment</TableHead>
+                    <TableHead>Payment Method</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -398,9 +400,14 @@ export default function OrdersPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getPaymentStatusColor(order.paymentStatus || "pending")}>
-                          {order.paymentStatus || "Pending"}
-                        </Badge>
+                        <div className="flex flex-col items-start">
+                          <Badge className={getPaymentStatusColor(order.paymentStatus || "pending")}>
+                            {order.paymentStatus || "Pending"}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">{order.paymentMethod || "-"}</div>
                       </TableCell>
                       <TableCell>{new Date(order.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
@@ -465,6 +472,9 @@ export default function OrdersPage() {
                                           <option value="Failed">Failed</option>
                                           <option value="Refunded">Refunded</option>
                                         </select>
+                                      </div>
+                                      <div>
+                                        <strong>Payment Method:</strong> {order.paymentMethod || "N/A"}
                                       </div>
                                     </div>
                                     <div>

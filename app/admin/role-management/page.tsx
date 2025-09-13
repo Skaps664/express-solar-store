@@ -22,7 +22,7 @@ import { Search, Plus, Edit2, Trash2 } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { ScrollArea } from "@/components/ui/scroll-area"
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:5000';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:3000';
 
 interface Permission {
   id: string;

@@ -18,7 +18,7 @@ interface Filter {
   field: string;
   label?: string;
   type: "select" | "range" | "boolean";
-  options?: string[];
+  options?: Array<string | { name?: string; slug?: string }>;
   min?: number;
   max?: number;
   step?: number;
@@ -72,7 +72,7 @@ function StorePage() {
   const [products, setProducts] = useState<Product[]>([])
   const [filters, setFilters] = useState<Filter[]>([])
   const [loading, setLoading] = useState(false)
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 20 })
+  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 12 })
   
   // Track product click
   const handleProductClick = (productId: string, productSlug: string) => {
@@ -81,7 +81,7 @@ function StorePage() {
   }
   const [filterState, setFilterState] = useState<Record<string, any>>({})
   const [sort, setSort] = useState("newest")
-  const [limit, setLimit] = useState(20)
+  const [limit, setLimit] = useState(12)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
@@ -111,13 +111,13 @@ function StorePage() {
     })
     params.append("sort", sort)
     params.append("page", String(pagination.page))
-    params.append("limit", String(limit))
+  params.append("limit", String(limit))
 
     fetch(`${API_BASE}/api/products?${params.toString()}`)
       .then((res) => res.json())
       .then((data) => {
-        setProducts(data.products || [])
-        setPagination(data.pagination || { page: 1, pages: 1, total: 0, limit: 20 })
+  setProducts(data.products || [])
+  setPagination(data.pagination || { page: 1, pages: 1, total: 0, limit: 12 })
         setLoading(false)
       })
       .catch(() => setLoading(false))
@@ -201,9 +201,14 @@ function StorePage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All {filter.label || filter.field}s</SelectItem>
-                {filter.options?.map(option => (
-                  <SelectItem key={option} value={option}>{option}</SelectItem>
-                ))}
+                {filter.options?.map((option, idx) => {
+                  // option can be a string or an object like { name, slug }
+                  const value = typeof option === 'string' ? option : (option.slug || option.name || String(idx))
+                  const label = typeof option === 'string' ? option : (option.name || option.slug || String(option))
+                  return (
+                    <SelectItem key={value + '-' + idx} value={value}>{label}</SelectItem>
+                  )
+                })}
               </SelectContent>
             </Select>
           </div>
@@ -261,7 +266,7 @@ function StorePage() {
           <span className="text-[#1a5ca4]">Store</span>
         </div>
         <h1 className="text-3xl md:text-4xl font-bold mb-4 text-[#1a5ca4]">
-          🌍 Solar Express Store
+          Solar Express Store
         </h1>
         <p className="text-gray-600 text-lg">
           Discover our complete range of solar products from trusted brands worldwide
@@ -269,50 +274,7 @@ function StorePage() {
       </div>
 
       {/* Quick Category Links */}
-      <div className="mb-8">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <Link href="/category/inverters" className="group">
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl mb-2">🔌</div>
-                <h3 className="font-medium text-sm group-hover:text-[#1a5ca4]">Inverters</h3>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/category/solar-panels" className="group">
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl mb-2">☀️</div>
-                <h3 className="font-medium text-sm group-hover:text-[#1a5ca4]">Solar Panels</h3>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/category/batteries" className="group">
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl mb-2">🔋</div>
-                <h3 className="font-medium text-sm group-hover:text-[#1a5ca4]">Batteries</h3>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/category/tools" className="group">
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl mb-2">🛠</div>
-                <h3 className="font-medium text-sm group-hover:text-[#1a5ca4]">Tools</h3>
-              </CardContent>
-            </Card>
-          </Link>
-          <Link href="/category/accessories" className="group">
-            <Card className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl mb-2">🔧</div>
-                <h3 className="font-medium text-sm group-hover:text-[#1a5ca4]">Accessories</h3>
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-      </div>
+    
 
       <div className="flex flex-col md:flex-row gap-8">
         {/* Mobile Filter Button */}
@@ -490,7 +452,7 @@ function StorePage() {
             <>
               <div className={
                 viewMode === 'grid' 
-                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+                  ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
                   : "space-y-4"
               }>
                 {products.map((product, index) => (

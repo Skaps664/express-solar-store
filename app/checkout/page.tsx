@@ -45,7 +45,7 @@ export default function CheckoutPage() {
       email: "",
       specialNotes: "",
     },
-    paymentMethod: "WhatsApp",
+    paymentMethod: "Bank Transfer",
     orderNotes: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -140,7 +140,7 @@ export default function CheckoutPage() {
           <p>Please log in to access checkout.</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (cartLoading) {
@@ -150,7 +150,7 @@ export default function CheckoutPage() {
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       </div>
-    );
+    )
   }
 
   if (!cart || cart.length === 0) {
@@ -299,7 +299,6 @@ export default function CheckoutPage() {
                       <SelectValue placeholder="Select payment method" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="WhatsApp">WhatsApp (Recommended)</SelectItem>
                       <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
                       <SelectItem value="Cash on Delivery">Cash on Delivery</SelectItem>
                       <SelectItem value="JazzCash">JazzCash</SelectItem>
@@ -309,12 +308,70 @@ export default function CheckoutPage() {
                 </CardContent>
               </Card>
 
+              {/* Payment Info Boxes (conditional) */}
+              {formData.paymentMethod === "Cash on Delivery" && (
+                <div className="border-l-4 border-yellow-400 bg-yellow-50 p-4 rounded-md">
+                  <h3 className="font-semibold mb-2">Important: Partial Advance Required for COD</h3>
+                  <div className="whitespace-pre-line text-sm text-muted-foreground">
+  {`Dear Customer,
+  To secure and confirm your order, we kindly request a partial payment in advance.
+
+  RS 500 for order amount below RS 10,000
+
+  RS 1000 for order amount below RS 20,000
+
+  RS 5000 for order amount below RS 30,000
+
+  100% Advance payment above 50,000
+
+  ==> Full Payment for MPPTs and Inverters
+
+  This ensures a smooth processing of your order and guarantees product availability. Thank you for your understanding.
+  Best regards,
+  solarexpress.pk
+
+  Deposit your amount in the following bank account:
+  Bank: 
+  Account Title: 
+  Account Number: 
+  IBAN: 
+
+  Note: This Payment is for Order Conformation. Your Order will be processed after payment.`}
+                  </div>
+                </div>
+              )}
+
+              {(formData.paymentMethod === "Bank Transfer" || formData.paymentMethod === "JazzCash" || formData.paymentMethod === "EasyPaisa") && (
+                <div className="border-l-4 border-blue-400 bg-blue-50 p-4 rounded-md">
+                  <h3 className="font-semibold mb-2">Payment Details</h3>
+                  <p className="text-sm text-muted-foreground mb-2">Please deposit the payment using the details below and send the receipt via WhatsApp.</p>
+                  <div className="grid grid-cols-1 gap-2 text-sm">
+                    <div>
+                      <p className="font-medium">Bank:</p>
+                      <p className="text-muted-foreground">&nbsp;</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Account Title:</p>
+                      <p className="text-muted-foreground">&nbsp;</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">Account Number:</p>
+                      <p className="text-muted-foreground">&nbsp;</p>
+                    </div>
+                    <div>
+                      <p className="font-medium">IBAN:</p>
+                      <p className="text-muted-foreground">&nbsp;</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Order Notes */}
               <Card>
                 <CardHeader>
                   <CardTitle>Special Instructions</CardTitle>
                   <CardDescription>
-                    Any special requests or notes for your order?
+                    Enter any special requests or Payment transfer Details here.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -416,14 +473,14 @@ export default function CheckoutPage() {
                   ) : (
                     <>
                       <Phone className="h-4 w-4 mr-2" />
-                      Place Order via WhatsApp
+                      Place Order
                     </>
                   )}
                 </Button>
 
                 <div className="text-xs text-center text-muted-foreground">
                   By placing this order, you agree to our terms and conditions.
-                  You will be redirected to WhatsApp to complete your order.
+                  You will be redirected to Orders page and to complete your order we will contact via Whatsapp.
                 </div>
               </CardContent>
             </Card>

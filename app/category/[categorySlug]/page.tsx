@@ -131,7 +131,7 @@ function CategoryPageContent({ params }: CategoryPageProps) {
   const [filters, setFilters] = useState<Filter[]>([])
   const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({})
   const [loading, setLoading] = useState(false)
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 20 })
+  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 12 })
   const [sortBy, setSortBy] = useState("newest")
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showMobileFilters, setShowMobileFilters] = useState(false)
@@ -185,8 +185,8 @@ function CategoryPageContent({ params }: CategoryPageProps) {
         const params = new URLSearchParams()
         params.append('category', backendSlug)
         params.append('sort', sortBy)
-        params.append('page', String(pagination.page))
-        params.append('limit', String(pagination.limit))
+  params.append('page', String(pagination.page))
+  params.append('limit', String(pagination.limit))
 
         // Add applied filters
         Object.entries(appliedFilters).forEach(([key, value]) => {
@@ -204,7 +204,7 @@ function CategoryPageContent({ params }: CategoryPageProps) {
 
         if (data.success) {
           setProducts(data.products || [])
-          setPagination(data.pagination || { page: 1, pages: 1, total: 0, limit: 20 })
+          setPagination(data.pagination || { page: 1, pages: 1, total: 0, limit: 12 })
         }
       } catch (error) {
         console.error('Error fetching products:', error)
@@ -255,9 +255,11 @@ function CategoryPageContent({ params }: CategoryPageProps) {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All {filter.label}s</SelectItem>
-                {filter.options?.map(option => (
-                  <SelectItem key={option} value={option}>{option}</SelectItem>
-                ))}
+                {filter.options?.map((option) => {
+                  const value = typeof option === 'string' ? option : option.slug || option.name || String(option)
+                  const label = typeof option === 'string' ? option : option.name || option.slug || String(option)
+                  return <SelectItem key={value} value={value}>{label}</SelectItem>
+                })}
               </SelectContent>
             </Select>
           </div>

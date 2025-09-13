@@ -187,7 +187,7 @@ const cartItems = cart
                   </div>
                   <div>
                     <div className="font-medium text-gray-900">Free Shipping</div>
-                    <div className="text-sm text-gray-600">Orders over PKR 20,000</div>
+                    <div className="text-sm text-gray-600">Orders over PKR 50,000</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

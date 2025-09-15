@@ -156,75 +156,78 @@ export default function FeaturedBrandProducts() {
         </Link>
       </div>
 
-      {/* Mobile-first layout with a different structure than desktop */}
-      <div className="block lg:hidden">
-        {/* Brand promotion first on mobile */}
-        <div className="mb-6">
-  <Link
-    href={brandLink}
-    className="rounded-lg overflow-hidden relative group hover:shadow-lg transition-all block h-40 sm:h-48"
-    onClick={handleBrandClick}
-  >
-    {/* Background image covering entire card */}
-    <div className="absolute inset-0 z-0 ">
-      <Image
-        src={mobileImage}
-        alt="Brand promotion"
-        fill
-        className="object-cover group-hover:scale-105 transition-transform duration-300"
-      />
-      {/* Semi-transparent overlay for better text visibility */}
-      <div className="absolute inset-0 "></div>
-    </div>
 
-    {/* Content */}
-    <div className="p-6 h-full flex flex-col relative z-10">
-      {/* <div className="mb-2 text-sm font-semibold text-white">{homePromotion?.selectedBrand?.label || "Featured Brand"}</div> */}
-      {/* <h2 className="text-3xl font-bold text-white mb-4">
-        {homePromotion?.selectedBrand?.brand?.name || "Solar Products"}
-      </h2>
-      <button className="bg-white text-black hover:bg-gray-50 px-4 py-2 rounded-full text-sm font-medium w-fit">
-        Shop now
-      </button> */}
-    </div>
-  </Link>
-</div>
-
-        {/* Products grid for mobile - 2x2 grid */}
-        <div className="grid grid-cols-2 gap-4 auto-rows-max">
-          {products.slice(0, 4).map((product) => (
-            <div key={product.id} className="relative flex flex-col">
-              <button className="absolute top-2 right-2 z-10 text-gray-500 hover:text-red-500 bg-white rounded-full p-1">
-                <Heart size={16} />
-              </button>
-              <Link href={`/product/${product.slug}`} className="block group flex-1" onClick={() => handleProductClick(product.id, product.slug)}>
-                <div className="h-32 bg-gray-100 rounded-md flex items-center justify-center mb-2 overflow-hidden">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    width={120}
-                    height={120}
-                    className="object-contain group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                      console.error('Image failed to load:', product.image)
-                      e.currentTarget.src = '/placeholder.svg'
-                    }}
-                  />
-                </div>
-                <div className="pr-6 pb-8">
-                  <div className="text-sm font-bold">{formatPrice(product.price)}</div>
-                  <h3 className="text-xs line-clamp-2 group-hover:text-[#1a5ca4] transition-colors">
-                    {product.name}
-                  </h3>
-                </div>
-              </Link>
-              <button className="absolute bottom-0 right-0 flex items-center justify-center w-7 h-7 border border-gray-300 rounded-full hover:bg-gray-100">
-                <Plus size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
+{/* Mobile-first layout with a different structure than desktop */}
+<div className="block lg:hidden">
+  {/* Brand promotion first on mobile */}
+  <div className="mb-6">
+    <Link
+      href={brandLink}
+      className="rounded-lg overflow-hidden relative group hover:shadow-lg transition-all block h-40 sm:h-48"
+      onClick={handleBrandClick}
+    >
+      {/* Background image covering entire card */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src={mobileImage}
+          alt="Brand promotion"
+          fill
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+        {/* Semi-transparent overlay for better text visibility */}
+        <div className="absolute inset-0 "></div>
       </div>
+
+      {/* Content - UNCOMMENTED AND FIXED */}
+      {/* <div className="p-6 h-full flex flex-col justify-end relative z-10">
+        <div className="mb-2 text-sm font-semibold text-white">
+          {homePromotion?.selectedBrand?.label || "Featured Brand"}
+        </div>
+        <h2 className="text-xl font-bold text-white mb-4">
+          {homePromotion?.selectedBrand?.brand?.name || "Solar Products"}
+        </h2>
+        <button className="bg-white text-black hover:bg-gray-50 px-4 py-2 rounded-full text-sm font-medium w-fit">
+          {homePromotion?.buttonText || "Shop now"}
+        </button>
+      </div> */}
+    </Link>
+  </div>
+
+  {/* Products grid for mobile - 2x2 grid */}
+  <div className="grid grid-cols-2 gap-4 auto-rows-max">
+    {products.slice(0, 4).map((product) => (
+      <div key={product.id} className="relative flex flex-col">
+        <button className="absolute top-2 right-2 z-10 text-gray-500 hover:text-red-500 bg-white rounded-full p-1">
+          <Heart size={16} />
+        </button>
+        <Link href={`/product/${product.slug}`} className="block group flex-1" onClick={() => handleProductClick(product.id, product.slug)}>
+          <div className="h-32 bg-gray-100 rounded-md flex items-center justify-center mb-2 overflow-hidden">
+            <Image
+              src={product.image}
+              alt={product.name}
+              width={120}
+              height={120}
+              className="object-contain group-hover:scale-105 transition-transform duration-300"
+              onError={(e) => {
+                console.error('Image failed to load:', product.image)
+                e.currentTarget.src = '/placeholder.svg'
+              }}
+            />
+          </div>
+          <div className="pr-6 pb-8">
+            <div className="text-sm font-bold">{formatPrice(product.price)}</div>
+            <h3 className="text-xs line-clamp-2 group-hover:text-[#1a5ca4] transition-colors">
+              {product.name}
+            </h3>
+          </div>
+        </Link>
+        <button className="absolute bottom-0 right-0 flex items-center justify-center w-7 h-7 border border-gray-300 rounded-full hover:bg-gray-100">
+          <Plus size={14} />
+        </button>
+      </div>
+    ))}
+  </div>
+</div>
 
       {/* Original desktop layout - only visible on lg screens and up */}
       <div className="hidden lg:flex lg:flex-row gap-6">

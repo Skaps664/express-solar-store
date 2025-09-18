@@ -15,7 +15,7 @@ export default function ContactPage() {
             <Mail className="h-6 w-6 text-amber-600" />
           </div>
           <h3 className="font-bold mb-2">Email</h3>
-          <p className="text-gray-600">solarexpk@gmail.com</p>
+          <p className="text-gray-600">info@solarexpress.pk</p>
         </div>
 
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center text-center">

@@ -105,12 +105,25 @@ export default function BrandsPage() {
         console.error("Error fetching products:", err)
       })
     
-    // Fetch existing home promotion (from localStorage for now)
-    const savedPromotion = localStorage.getItem('homePromotion')
-    if (savedPromotion) {
-      const promotion = JSON.parse(savedPromotion)
-      setHomePromotion(promotion)
-    }
+    // Fetch existing home promotion from server, fallback to localStorage
+    ;(async () => {
+      try {
+        const base = (process.env.NEXT_PUBLIC_API_BASE || '')
+        const endpoint = base ? `${base.replace(/\/$/, '')}/api/home-promotion/active` : '/api/home-promotion/active'
+        const res = (await api.get(endpoint)) as any
+        const data = res.data as any
+        if (data && data.promotion) {
+          setHomePromotion(data.promotion)
+        } else {
+          const savedPromotion = localStorage.getItem('homePromotion')
+          if (savedPromotion) setHomePromotion(JSON.parse(savedPromotion))
+        }
+      } catch (err) {
+        console.error('Failed to fetch home promotion from server, falling back to localStorage', err)
+        const savedPromotion = localStorage.getItem('homePromotion')
+        if (savedPromotion) setHomePromotion(JSON.parse(savedPromotion))
+      }
+    })()
     
     setLoading(false)
   }, [])
@@ -328,13 +341,39 @@ export default function BrandsPage() {
         createdAt: new Date().toISOString()
       }
 
-      // Save to localStorage
-      localStorage.setItem('homePromotion', JSON.stringify(promotion))
-      setHomePromotion(promotion)
-      
-      setIsAddPromotionDialogOpen(false)
-      resetPromotionForm()
-      alert("Home promotion created successfully!")
+      // Persist to backend so promotion is visible to all users
+      try {
+        const payload = {
+          title: promotion.title,
+          subtitle: promotion.subtitle,
+          redirectLink: promotion.redirectLink,
+          isActive: promotion.isActive,
+          selectedBrand: JSON.stringify(promotion.selectedBrand || {}),
+          featuredProducts: JSON.stringify(promotion.featuredProducts || []),
+          images: JSON.stringify(promotion.images || {}),
+        }
+
+        const response = (await api.post('/api/home-promotion', payload)) as any
+        const respData = response.data as any
+        if (respData && respData.promotion) {
+          setHomePromotion(respData.promotion)
+        } else {
+          // fallback to localStorage if server didn't return promotion
+          localStorage.setItem('homePromotion', JSON.stringify(promotion))
+          setHomePromotion(promotion)
+        }
+
+        setIsAddPromotionDialogOpen(false)
+        resetPromotionForm()
+        alert('Home promotion created successfully!')
+      } catch (err) {
+        console.error('Failed to save home promotion to server, saving locally as fallback', err)
+        localStorage.setItem('homePromotion', JSON.stringify(promotion))
+        setHomePromotion(promotion)
+        setIsAddPromotionDialogOpen(false)
+        resetPromotionForm()
+        alert('Home promotion created locally (server error)')
+      }
       
     } catch (error) {
       console.error("Error creating home promotion:", error)
@@ -344,12 +383,32 @@ export default function BrandsPage() {
     }
   }
 
-  const handleDeleteHomePromotion = () => {
+  const handleDeleteHomePromotion = async () => {
     if (!confirm("Are you sure you want to delete this promotion?")) return
 
-    localStorage.removeItem('homePromotion')
-    setHomePromotion(null)
-    alert("Promotion deleted successfully!")
+    // Delete from server if persisted, otherwise remove localStorage
+    if (homePromotion && homePromotion._id) {
+      try {
+        const delResp = (await api.delete(`/api/home-promotion/${homePromotion._id}`)) as any
+        if (delResp && delResp.data && delResp.data.success) {
+          setHomePromotion(null)
+          alert('Promotion deleted successfully!')
+        } else {
+          localStorage.removeItem('homePromotion')
+          setHomePromotion(null)
+          alert('Promotion removed locally (server returned unexpected response)')
+        }
+      } catch (err) {
+        console.error('Failed to delete promotion from server, removing locally', err)
+        localStorage.removeItem('homePromotion')
+        setHomePromotion(null)
+        alert('Promotion removed locally (server error)')
+      }
+    } else {
+      localStorage.removeItem('homePromotion')
+      setHomePromotion(null)
+      alert('Promotion deleted successfully!')
+    }
   }
 
   const handleEditHomePromotion = () => {
@@ -419,12 +478,42 @@ export default function BrandsPage() {
         updatedAt: new Date().toISOString()
       }
 
-      localStorage.setItem('homePromotion', JSON.stringify(updatedPromotion))
-      setHomePromotion(updatedPromotion)
-      
-      setIsEditPromotionDialogOpen(false)
-      resetPromotionForm()
-      alert("Home promotion updated successfully!")
+      // Try to persist update to server: create new promotion and delete old one if exists
+      try {
+        const payload = {
+          title: updatedPromotion.title,
+          subtitle: updatedPromotion.subtitle,
+          redirectLink: updatedPromotion.redirectLink,
+          isActive: updatedPromotion.isActive,
+          selectedBrand: JSON.stringify(updatedPromotion.selectedBrand || {}),
+          featuredProducts: JSON.stringify(updatedPromotion.featuredProducts || []),
+          images: JSON.stringify(updatedPromotion.images || {}),
+        }
+        const response = (await api.post('/api/home-promotion', payload)) as any
+        const respData = response.data as any
+        if (respData && respData.promotion) {
+          // remove old promotion if it existed on server
+          if (homePromotion && homePromotion._id) {
+            try { await api.delete(`/api/home-promotion/${homePromotion._id}`) } catch (e) { console.warn('Failed to delete old promotion', e) }
+          }
+          setHomePromotion(respData.promotion)
+        } else {
+          // fallback to local update
+          localStorage.setItem('homePromotion', JSON.stringify(updatedPromotion))
+          setHomePromotion(updatedPromotion)
+        }
+
+        setIsEditPromotionDialogOpen(false)
+        resetPromotionForm()
+        alert('Home promotion updated successfully!')
+      } catch (err) {
+        console.error('Failed to update home promotion on server, saving locally', err)
+        localStorage.setItem('homePromotion', JSON.stringify(updatedPromotion))
+        setHomePromotion(updatedPromotion)
+        setIsEditPromotionDialogOpen(false)
+        resetPromotionForm()
+        alert('Home promotion updated locally (server error)')
+      }
       
     } catch (error) {
       console.error("Error updating home promotion:", error)
@@ -458,10 +547,11 @@ export default function BrandsPage() {
         },
       })
       
-      if (response.data.success) {
-        return response.data.images
+      const resp = response as any
+      if (resp.data && resp.data.success) {
+        return resp.data.images
       } else {
-        throw new Error(response.data.message || 'Upload failed')
+        throw new Error((resp.data && resp.data.message) || 'Upload failed')
       }
     } catch (error) {
       console.error('Backend upload error:', error)
@@ -534,7 +624,7 @@ export default function BrandsPage() {
                   isMulti
                   options={categories}
                   value={selectedCategories}
-                  onChange={setSelectedCategories}
+                  onChange={(value) => setSelectedCategories(value as any[])}
                   placeholder="Select categories..."
                   classNamePrefix="react-select"
                 />
@@ -771,7 +861,7 @@ export default function BrandsPage() {
                   isMulti
                   options={categories}
                   value={editSelectedCategories}
-                  onChange={setEditSelectedCategories}
+                  onChange={(value) => setEditSelectedCategories(value as any[])}
                   placeholder="Select categories..."
                   classNamePrefix="react-select"
                 />

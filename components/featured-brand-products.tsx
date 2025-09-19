@@ -55,21 +55,32 @@ export default function FeaturedBrandProducts() {
   }
 
   useEffect(() => {
-    // Fetch heading data (keep existing logic if you have Sanity for other content)
+    // Try server first, fallback to localStorage
     const fetchHeading = async () => {
       try {
-        // If you have sanity client for other content, keep this
-        // const data: HeadingData = await client.fetch(...)
-        // For now, we'll use the promotion data
+        const base = (process.env.NEXT_PUBLIC_API_BASE || '').replace(/\/$/, '')
+        const url = base ? `${base}/api/home-promotion/active` : '/api/home-promotion/active'
+        const res = await fetch(url)
+        if (res.ok) {
+          const data = await res.json()
+          if (data && data.promotion) {
+            setHomePromotion(data.promotion)
+            return
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch home promotion from server, will try localStorage', err)
+      }
+
+      try {
         const promotion = localStorage.getItem('homePromotion')
         if (promotion) {
           const promotionData = JSON.parse(promotion)
-          console.log('Home promotion data:', promotionData)
-          console.log('Featured products in promotion:', promotionData.featuredProducts)
+          console.log('Home promotion data (local):', promotionData)
           setHomePromotion(promotionData)
         }
       } catch (error) {
-        console.error("Failed to fetch data:", error)
+        console.error('Failed to parse local promotion data', error)
       }
     }
 

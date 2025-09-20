@@ -196,9 +196,9 @@ export default function RefundPolicy() {
                 <p className="text-gray-700">SolarExpress.pk (Private) Limited</p>
                 <p className="text-gray-700">Office #24, 2nd Floor, Johar Business Center</p>
                 <p className="text-gray-700">Main University Road, Karachi, Pakistan</p>
-                <p className="text-gray-700 mt-2">📞 Refund Hotline: +92 331 6801200</p>
+                <p className="text-gray-700 mt-2">📞 Refund Hotline: +92 333 0505000</p>
                 <p className="text-gray-700">✉️ refunds@solarexpress.pk</p>
-                <p className="text-gray-700">💬 WhatsApp: +92 331 6801200</p>
+                <p className="text-gray-700">💬 WhatsApp: +92 333 0505000</p>
                 <p className="text-gray-700">⏰ Support Hours: 9 AM - 6 PM (Monday to Saturday)</p>
               </div>
             </section>

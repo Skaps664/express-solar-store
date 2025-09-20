@@ -17,7 +17,7 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-start gap-2">
                 <MapPin className="h-5 w-5 mt-0.5 text-[#f26522] flex-shrink-0" />
-                <span className="text-sm md:text-base">Chowk, Safroon energy office, McDonalds HBK, Achini, Peshawar Ring Rd., near Habib Metro Politan Bank, Hayatabad, Peshawar, 25000</span>
+                <span className="text-sm md:text-base">Safroon Plaza 1st floor, Street 6 United Housing Society Opposite HBK Hypermarket Achini Chowk Ring road Hayatabad, Peshawar, Pakistan</span>
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-5 w-5 text-[#f26522] flex-shrink-0" />
@@ -137,7 +137,7 @@ export default function Footer() {
               </a>
             </div>
             <div className="space-y-2">
-              <Input type="email" placeholder="Subscribe to Newsletter" className="text-white bg-white/10 border-white/20 text-sm" />
+              <Input type="email" placeholder="Subscribe to Newsletter" className="text-white  text-sm" />
               <Button className="w-full bg-[#f26522] hover:bg-[#e55511] text-sm">Subscribe</Button>
             </div>
           </div>

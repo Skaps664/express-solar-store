@@ -213,9 +213,9 @@ export default function BlogPost() {
           {blog.title[language] || blog.title.en}
         </h1>
 
-        <p className={`text-xl text-muted-foreground mb-6 ${language === 'ur' || language === 'ps' ? 'text-right' : 'text-left'}`}>
+        {/* <p className={`text-xl text-muted-foreground mb-6 ${language === 'ur' || language === 'ps' ? 'text-right' : 'text-left'}`}>
           {blog.excerpt[language] || blog.excerpt.en}
-        </p>
+        </p> */}
 
         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6">
           <div className="flex items-center gap-1">

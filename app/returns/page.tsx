@@ -162,7 +162,7 @@ export default function ReturnRefundPolicy() {
                 <p className="text-gray-700 font-semibold mb-2">SolarExpress.pk (Private) Limited</p>
                 <p className="text-gray-700">Office #24, 2nd Floor, Johar Business Center</p>
                 <p className="text-gray-700">Main University Road, Karachi, Pakistan</p>
-                <p className="text-gray-700 mt-2">📞 +92 331 6801200 (WhatsApp)</p>
+                <p className="text-gray-700 mt-2">📞 +92 333 0505000 (WhatsApp)</p>
                 <p className="text-gray-700">✉️ support@solarexpress.pk</p>
                 <p className="text-gray-700">⏰ Customer Service Hours: 9 AM - 6 PM (Mon-Sat)</p>
               </div>

@@ -81,7 +81,7 @@ export default function ExchangePolicy() {
               <div className="bg-gray-50 p-6 rounded-lg">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">Step-by-Step Exchange Process</h3>
                 <ol className="list-decimal list-inside text-gray-700 space-y-3">
-                  <li><strong>Contact Request:</strong> WhatsApp +92 331 6801200 within 7 days</li>
+                  <li><strong>Contact Request:</strong> WhatsApp +92 333 0505000 within 7 days</li>
                   <li><strong>Product Assessment:</strong> Share photos/videos of current product condition</li>
                   <li><strong>Exchange Options:</strong> Our team will present available alternatives</li>
                   <li><strong>Price Calculation:</strong> Any price differences calculated and confirmed</li>
@@ -235,8 +235,8 @@ export default function ExchangePolicy() {
                 <p className="text-gray-700">Office #24, 2nd Floor, Johar Business Center</p>
                 <p className="text-gray-700">Main University Road, Karachi, Pakistan</p>
                 <div className="mt-4 space-y-1">
-                  <p className="text-gray-700">📞 Exchange Hotline: +92 331 6801200</p>
-                  <p className="text-gray-700">💬 WhatsApp Support: +92 331 6801200</p>
+                  <p className="text-gray-700">📞 Exchange Hotline: +92 333 0505000</p>
+                  <p className="text-gray-700">💬 WhatsApp Support: +92 333 0505000</p>
                   <p className="text-gray-700">✉️ Email: exchanges@solarexpress.pk</p>
                   <p className="text-gray-700">⏰ Support Hours: 9 AM - 6 PM (Monday to Saturday)</p>
                   <p className="text-gray-700">🎯 Average Response Time: 2-4 hours</p>

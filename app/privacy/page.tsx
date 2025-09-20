@@ -153,7 +153,7 @@ export default function PrivacyPolicy() {
                 <p className="text-gray-700 font-semibold mb-2">Solar Express (Private) Limited</p>
                 <p className="text-gray-700">Office #24, 2nd Floor, Johar Business Center</p>
                 <p className="text-gray-700">Main University Road, Karachi, Pakistan</p>
-                <p className="text-gray-700 mt-2">📞 +92 331 6801200</p>
+                <p className="text-gray-700 mt-2">📞 +92 333 0505000</p>
                 <p className="text-gray-700">✉️ privacy@solarexpress.pk</p>
               </div>
             </section>

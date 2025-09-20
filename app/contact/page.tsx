@@ -31,9 +31,9 @@ export default function ContactPage() {
             <MapPin className="h-6 w-6 text-amber-600" />
           </div>
           <h3 className="font-bold mb-2">Address</h3>
-          <p className="text-gray-600">Chowk, Safroon energy office, McDonalds HBK, Achini</p>
-          <p className="text-gray-600">Peshawar Ring Rd., near Habib Metro Politan Bank</p>
-          <p className="text-gray-600">Hayatabad, Peshawar, 25000</p>
+          <p className="text-gray-600">Safroon Plaza 1st floor, Street 6 United Housing Society Opposite HBK Hypermarket </p>
+          <p className="text-gray-600">Achini Chowk Ring road Hayatabad</p>
+          <p className="text-gray-600">Peshawar, Pakistan 25000</p>
         </div>
 
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center text-center">

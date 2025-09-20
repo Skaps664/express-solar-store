@@ -314,17 +314,40 @@ export default function BlogPage() {
           </div>
         </div>
 
-        {/* Featured Blogs */}
+        {/* Featured Blogs - compact grid (4 small clickable cards) */}
         {featuredBlogs.length > 0 && (
-          <section className="mb-12">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="h-8 w-1 bg-[#f26522] rounded-full"></div>
-              <h2 className="text-2xl font-bold text-[#1a5ca4]">Featured Articles</h2>
-              <TrendingUp className="w-6 h-6 text-[#f26522]" />
+          <section className="mb-8">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-6 w-1 bg-[#f26522] rounded-full"></div>
+              <h2 className="text-xl font-semibold text-[#1a5ca4]">Featured Articles</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredBlogs.map((blog) => (
-                <BlogCard key={blog._id} blog={blog} featured />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredBlogs.slice(0, 4).map((blog) => (
+                <Link
+                  key={blog._id}
+                  href={`/blog/${blog.slug}`}
+                  className="block h-56 rounded-lg overflow-hidden shadow-lg transform transition-all hover:scale-[1.02] hover:shadow-[0_10px_40px_rgba(10,60,120,0.12)]"
+                  aria-label={blog.title[language] || blog.title.en}
+                >
+                  <div className="h-32 w-full relative">
+                    {blog.featuredImage?.url ? (
+                      <Image
+                        src={blog.featuredImage.url}
+                        alt={blog.featuredImage.alt?.[language] || blog.title[language] || blog.title.en}
+                        fill
+                        className="object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="h-32 w-full bg-gray-100" />
+                    )}
+                  </div>
+                  <div className="h-24 bg-gradient-to-br from-[#1a5ca4] to-[#0e4a8a] p-4 text-white flex flex-col justify-center">
+                    <h3 className="text-sm md:text-base font-semibold line-clamp-2">{blog.title[language] || blog.title.en}</h3>
+                    <p className="text-xs text-white/90 mt-1 line-clamp-1">{blog.excerpt[language]?.slice(0, 80) || ''}</p>
+                  </div>
+                </Link>
               ))}
             </div>
           </section>

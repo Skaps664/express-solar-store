@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useToast } from "@/components/ui/use-toast"
+import { api } from "@/lib/services/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -26,37 +28,12 @@ export default function RoleManagementPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false)
   const [isEditPermissionsOpen, setIsEditPermissionsOpen] = useState(false)
+  const { toast } = useToast()
+  const [creating, setCreating] = useState(false)
+  const [newAdminForm, setNewAdminForm] = useState({ name: '', email: '', password: '', cnic: '', mobile: '' })
 
-  // Mock data - replace with your API calls
-  const adminUsers = [
-    {
-      id: "1",
-      name: "John Admin",
-      email: "john@admin.com",
-      role: "admin",
-      status: "active",
-      lastLogin: "2024-01-15 10:30",
-      permissions: ["all"],
-    },
-    {
-      id: "2",
-      name: "Jane Editor",
-      email: "jane@editor.com",
-      role: "editor",
-      status: "active",
-      lastLogin: "2024-01-14 15:45",
-      permissions: ["products", "blog", "orders"],
-    },
-    {
-      id: "3",
-      name: "Bob Moderator",
-      email: "bob@moderator.com",
-      role: "moderator",
-      status: "inactive",
-      lastLogin: "2024-01-10 09:15",
-      permissions: ["users", "reviews"],
-    },
-  ]
+  const [adminUsers, setAdminUsers] = useState<any[]>([])
+  const [loadingAdmins, setLoadingAdmins] = useState(false)
 
   const roles = [
     {
@@ -100,6 +77,37 @@ export default function RoleManagementPage() {
       user.role.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
+  useEffect(() => {
+    let mounted = true
+    const loadAdmins = async () => {
+      try {
+        setLoadingAdmins(true)
+        const res = await api.get('/api/user/admin/users')
+        const data: any = res.data
+        if (data?.success && mounted) {
+          // normalize returned users to expected shape
+          const users = (data?.data?.users || data?.data || []).map((u: any) => ({
+            id: u._id || u.id,
+            name: u.name,
+            email: u.email,
+            role: u.role || (u.isAdmin ? 'admin' : 'user'),
+            status: u.isBlocked ? 'inactive' : 'active',
+            lastLogin: u.updatedAt ? new Date(u.updatedAt).toLocaleString() : '',
+            permissions: u.permissions || [],
+          }))
+          setAdminUsers(users)
+        }
+      } catch (err) {
+        console.error('Failed to load admin users', err)
+      } finally {
+        setLoadingAdmins(false)
+      }
+    }
+
+    loadAdmins()
+    return () => { mounted = false }
+  }, [])
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -122,15 +130,23 @@ export default function RoleManagementPage() {
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
                 <Label htmlFor="user-name">Full Name</Label>
-                <Input id="user-name" placeholder="Enter full name" />
+                <Input id="user-name" value={newAdminForm.name} onChange={(e) => setNewAdminForm(prev => ({ ...prev, name: e.target.value }))} placeholder="Enter full name" />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="user-email">Email</Label>
-                <Input id="user-email" type="email" placeholder="Enter email address" />
+                <Input id="user-email" type="email" value={newAdminForm.email} onChange={(e) => setNewAdminForm(prev => ({ ...prev, email: e.target.value }))} placeholder="Enter email address" />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="user-password">Temporary Password</Label>
-                <Input id="user-password" type="password" placeholder="Enter temporary password" />
+                <Input id="user-password" type="password" value={newAdminForm.password} onChange={(e) => setNewAdminForm(prev => ({ ...prev, password: e.target.value }))} placeholder="Enter temporary password" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="user-mobile">Phone / Mobile</Label>
+                <Input id="user-mobile" type="text" value={newAdminForm.mobile} onChange={(e) => setNewAdminForm(prev => ({ ...prev, mobile: e.target.value }))} placeholder="Enter mobile number" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="user-cnic">CNIC (optional)</Label>
+                <Input id="user-cnic" type="text" value={newAdminForm.cnic} onChange={(e) => setNewAdminForm(prev => ({ ...prev, cnic: e.target.value }))} placeholder="Enter CNIC" />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="user-role">Role</Label>
@@ -149,7 +165,52 @@ export default function RoleManagementPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={() => setIsAddUserDialogOpen(false)}>Create User</Button>
+              <Button onClick={() => setIsAddUserDialogOpen(false)} disabled={creating}>Cancel</Button>
+              <Button onClick={async () => {
+                try {
+                  setCreating(true)
+                  const payload = {
+                    name: newAdminForm.name,
+                    email: newAdminForm.email,
+                    password: newAdminForm.password,
+                    mobile: newAdminForm.mobile,
+                    cnic: newAdminForm.cnic,
+                  }
+                  const res = await api.post('/api/user/admin/create', payload)
+                  const resData: any = res.data
+                  if (resData?.success) {
+                    toast({ title: 'Admin created', description: 'New admin user created successfully' })
+                    setIsAddUserDialogOpen(false)
+                    setNewAdminForm({ name: '', email: '', password: '', cnic: '', mobile: '' })
+                    // reload admins
+                    try {
+                      const listRes = await api.get('/api/user/admin/users')
+                      const listData: any = listRes.data
+                      if (listData?.success) {
+                        const users = (listData?.data?.users || listData?.data || []).map((u: any) => ({
+                          id: u._id || u.id,
+                          name: u.name,
+                          email: u.email,
+                          role: u.role || (u.isAdmin ? 'admin' : 'user'),
+                          status: u.isBlocked ? 'inactive' : 'active',
+                          lastLogin: u.updatedAt ? new Date(u.updatedAt).toLocaleString() : '',
+                          permissions: u.permissions || [],
+                        }))
+                        setAdminUsers(users)
+                      }
+                    } catch (e) {
+                      console.error('Failed to refresh admin list', e)
+                    }
+                  } else {
+                    throw new Error(resData?.message || 'Failed to create admin')
+                  }
+                } catch (err: any) {
+                  console.error('Create admin error', err)
+                  toast({ title: 'Error', description: err?.message || 'Failed to create admin', variant: 'destructive' })
+                } finally {
+                  setCreating(false)
+                }
+              }} disabled={creating}>Create User</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -238,67 +299,8 @@ export default function RoleManagementPage() {
           <Card>
             <CardHeader>
               <CardTitle>Roles & Permissions</CardTitle>
-              <CardDescription>Configure roles and their associated permissions.</CardDescription>
+              <CardDescription>Role management is disabled. Admins may create other admins using the "Add Admin User" button. Detailed role editing is not available.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {roles.map((role) => (
-                  <div key={role.name} className="border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h3 className="font-semibold">{role.label}</h3>
-                        <p className="text-sm text-muted-foreground">{role.description}</p>
-                      </div>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            Edit Permissions
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[600px]">
-                          <DialogHeader>
-                            <DialogTitle>Edit Permissions - {role.label}</DialogTitle>
-                            <DialogDescription>Configure what this role can access and modify.</DialogDescription>
-                          </DialogHeader>
-                          <div className="grid gap-4 py-4">
-                            {permissions.map((permission) => (
-                              <div key={permission.id} className="flex items-center space-x-2">
-                                <Checkbox
-                                  id={`${role.name}-${permission.id}`}
-                                  defaultChecked={
-                                    role.permissions.includes("all") || role.permissions.includes(permission.id)
-                                  }
-                                />
-                                <div className="grid gap-1.5 leading-none">
-                                  <Label htmlFor={`${role.name}-${permission.id}`} className="font-medium">
-                                    {permission.label}
-                                  </Label>
-                                  <p className="text-sm text-muted-foreground">{permission.description}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                          <DialogFooter>
-                            <Button>Save Permissions</Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {role.permissions.includes("all") ? (
-                        <Badge>All Permissions</Badge>
-                      ) : (
-                        role.permissions.map((perm) => (
-                          <Badge key={perm} variant="outline">
-                            {permissions.find((p) => p.id === perm)?.label || perm}
-                          </Badge>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
           </Card>
         </TabsContent>
       </Tabs>

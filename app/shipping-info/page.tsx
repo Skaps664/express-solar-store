@@ -281,7 +281,7 @@ export default function ShippingInformation() {
                 <li>• Reschedule if not available</li>
                 <li>• Photo proof of delivery</li>
                 <li>• Damage reporting within 24 hours</li>
-                <li>• Customer service: +92 300 0000 000</li>
+                <li>• Customer service: +92 3330505000</li>
               </ul>
             </div>
           </div>

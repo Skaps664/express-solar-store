@@ -229,8 +229,8 @@ export default function PaymentInformation() {
             <a href="/support" className="bg-[#f26522] hover:bg-[#e55511] text-white px-8 py-3 rounded-lg font-semibold transition-colors">
               Contact Support
             </a>
-            <a href="tel:+92300000000" className="border-2 border-white hover:bg-white hover:text-[#1a5ca4] text-white px-8 py-3 rounded-lg font-semibold transition-colors">
-              Call: +92 300 0000 000
+            <a href="tel:+923330505000" className="border-2 border-white hover:bg-white hover:text-[#1a5ca4] text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+              Call: +92 3330505000
             </a>
           </div>
         </div>

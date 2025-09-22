@@ -30,6 +30,10 @@ export default function CategoriesPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editCategory, setEditCategory] = useState<any | null>(null)
 
+  const [activeTab, setActiveTab] = useState<'overview'|'header'>('overview')
+  const [allBrands, setAllBrands] = useState<any[]>([])
+  const [headerOrder, setHeaderOrder] = useState<(string|null)[]>([null, null, null, null, null, null])
+
   // Form state for controlled inputs
   const [editName, setEditName] = useState("")
   const [editDescription, setEditDescription] = useState("")
@@ -50,6 +54,12 @@ export default function CategoriesPage() {
     setEditIsActive(category.isActive ?? true)
     setEditIsFeatured(category.isFeatured ?? false)
     setEditSortOrder(category.sortOrder ?? 0)
+    // populate header order if present
+    if (category.headerBrandOrder && Array.isArray(category.headerBrandOrder)) {
+      setHeaderOrder(category.headerBrandOrder.concat([]).slice(0,6).map((id: any) => id || null))
+    } else {
+      setHeaderOrder([null, null, null, null, null, null])
+    }
   }
 
   // Clear edit form
@@ -67,8 +77,8 @@ export default function CategoriesPage() {
   // Fetch categories
   useEffect(() => {
     setLoading(true)
-    api.get('/api/category/admin/all')
-      .then(res => {
+      api.get('/api/category/admin/all')
+        .then((res: any) => {
         // Normalize IDs for easier use
         setCategories(res.data.map((cat: any) => ({
           ...cat,
@@ -83,7 +93,20 @@ export default function CategoriesPage() {
       .catch(err => {
         console.error("Error fetching categories:", err)
       })
-      .finally(() => setLoading(false))
+      .then(() => setLoading(false))
+  }, [])
+
+  // Fetch all brands for header control selects
+  useEffect(() => {
+    api.get('/api/brands')
+      .then((res: any) => {
+        const payload = res && res.data ? res.data : res
+        setAllBrands(Array.isArray(payload) ? payload : (payload?.data || []))
+      })
+      .catch(err => {
+        console.error('Failed to fetch brands for header control', err)
+        setAllBrands([])
+      })
   }, [])
 
   const filteredCategories = categories.filter(
@@ -142,7 +165,7 @@ export default function CategoriesPage() {
       )
       setIsAddDialogOpen(false)
       form.reset()
-      const res = await api.get('/api/category/admin/all')
+      const res = await api.get('/api/category/admin/all') as any
       setCategories(res.data.map((cat: any) => ({
         ...cat,
         id: cat._id,
@@ -175,6 +198,7 @@ export default function CategoriesPage() {
         isActive: editIsActive,
         isFeatured: editIsFeatured,
         sortOrder: editSortOrder,
+        headerBrandOrder: headerOrder.filter(Boolean),
       }
 
       await api.put(
@@ -184,7 +208,7 @@ export default function CategoriesPage() {
       setIsEditDialogOpen(false)
       setEditCategory(null)
       clearEditForm()
-      const res = await api.get('/api/category/admin/all')
+      const res = await api.get('/api/category/admin/all') as any
       setCategories(res.data.map((cat: any) => ({
         ...cat,
         id: cat._id,
@@ -202,6 +226,31 @@ export default function CategoriesPage() {
     }
   }
 
+  // Save header order separately without closing the edit dialog
+  const saveHeaderOrder = async () => {
+    if (!editCategory) return
+    setLoading(true)
+    try {
+      await api.put(`/api/category/update/${editCategory.id}`, { headerBrandOrder: headerOrder.filter(Boolean) })
+      const res = await api.get('/api/category/admin/all') as any
+      setCategories(res.data.map((cat: any) => ({
+        ...cat,
+        id: cat._id,
+        status: cat.isActive ? "active" : "inactive",
+        featured: cat.isFeatured ?? false,
+        productCount: cat.productCount ?? 0,
+        sortOrder: cat.sortOrder ?? 0,
+        parentCategory: cat.parentCategory?._id || cat.parentCategory || "",
+      })))
+      alert('Header order saved successfully!')
+    } catch (err: any) {
+      console.error('Failed to save header order', err)
+      alert('Failed to save header order')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // --- DELETE CATEGORY ---
   const handleDeleteCategory = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this category? This action cannot be undone.")) {
@@ -213,7 +262,7 @@ export default function CategoriesPage() {
       await api.delete(`/api/category/delete/${id}`)
       
       // Refetch categories
-      const res = await api.get('/api/category/admin/all')
+      const res = await api.get('/api/category/admin/all') as any
       setCategories(res.data.map((cat: any) => ({
         ...cat,
         id: cat._id,
@@ -442,16 +491,76 @@ export default function CategoriesPage() {
           <CardDescription>Manage all categories and their relationships.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center space-x-2 mb-4">
-            <Search className="h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search categories..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
+          <div className="mb-4 flex space-x-2">
+            <Button variant={activeTab === 'overview' ? 'default' : 'ghost'} onClick={() => setActiveTab('overview')}>Overview</Button>
+            <Button variant={activeTab === 'header' ? 'default' : 'ghost'} onClick={() => setActiveTab('header')}>Header Control</Button>
           </div>
-          <Table>
+
+          {activeTab === 'header' ? (
+            <div>
+              <p className="text-sm text-muted-foreground mb-4">Select which brands appear in the top 6 positions for a chosen category. The rest of brands follow automatically.</p>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Choose Category</Label>
+                  <select className="border rounded p-2 w-full mb-4" onChange={(e) => {
+                    const cat = categories.find(c => c.id === e.target.value)
+                    setEditCategory(cat || null)
+                    if (cat) {
+                      // Populate header order - convert ObjectIds to strings for select matching
+                      if (cat.headerBrandOrder && Array.isArray(cat.headerBrandOrder)) {
+                        const normalizedOrder = cat.headerBrandOrder.slice(0, 6).map((id: any) => 
+                          typeof id === 'object' && id._id ? id._id : (id || null)
+                        )
+                        // Pad with nulls to ensure 6 positions
+                        while (normalizedOrder.length < 6) normalizedOrder.push(null)
+                        setHeaderOrder(normalizedOrder)
+                      } else {
+                        setHeaderOrder([null, null, null, null, null, null])
+                      }
+                    }
+                  }}>
+                    <option value="">-- Select Category --</option>
+                    {categories.filter(c => !c.parentCategory).map(c => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <Label>Top 6 Brand Positions</Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {Array.from({ length: 6 }).map((_, idx) => (
+                      <select key={idx} className="border rounded p-2" value={headerOrder[idx] ?? ""} onChange={(e) => {
+                        const v = e.target.value || null
+                        const copy = [...headerOrder]
+                        copy[idx] = v
+                        setHeaderOrder(copy)
+                      }}>
+                        <option value="">-- None --</option>
+                        {allBrands.map((b) => (
+                          <option key={b._id} value={b._id}>{b.name}</option>
+                        ))}
+                      </select>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex space-x-2">
+                    <Button onClick={saveHeaderOrder} disabled={!editCategory || loading}>Save Header Order</Button>
+                    <Button variant="ghost" onClick={() => { setHeaderOrder([null,null,null,null,null,null]); }}>Reset</Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center space-x-2 mb-4">
+                <Search className="h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search categories..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="max-w-sm"
+                />
+              </div>
+              <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Category</TableHead>
@@ -535,7 +644,9 @@ export default function CategoriesPage() {
                 )
               })}
             </TableBody>
-          </Table>
+            </Table>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

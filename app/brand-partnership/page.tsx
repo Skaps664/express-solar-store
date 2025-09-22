@@ -82,11 +82,11 @@ export default function BrandPartnership() {
           </p>
           <div className="flex flex-wrap justify-center gap-8 text-center">
             <div>
-              <div className="text-3xl font-bold">100+</div>
+              <div className="text-3xl font-bold">20+</div>
               <div className="text-blue-200">Trusted Partners</div>
             </div>
             <div>
-              <div className="text-3xl font-bold">₹500M+</div>
+              <div className="text-3xl font-bold">Rs.5M+</div>
               <div className="text-blue-200">Annual Revenue</div>
             </div>
             <div>
@@ -249,9 +249,9 @@ export default function BrandPartnership() {
             Join Pakistan's most trusted solar marketplace and take your business to the next level
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="mailto:partnerships@solarexpress.pk" className="bg-[#f26522] hover:bg-[#e55511] text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+            <button onClick={() => { const el = document.getElementById('partnership-form'); if (el) el.scrollIntoView({ behavior: 'smooth' }) }} className="bg-[#f26522] hover:bg-[#e55511] text-white px-8 py-3 rounded-lg font-semibold transition-colors">
               Apply for Partnership
-            </a>
+            </button>
             <a href="/about" className="border-2 border-white hover:bg-white hover:text-[#1a5ca4] text-white px-8 py-3 rounded-lg font-semibold transition-colors">
               Learn More About Us
             </a>
@@ -259,8 +259,74 @@ export default function BrandPartnership() {
           <div className="mt-8 text-center">
             <p className="text-blue-200">
               For partnership inquiries: <a href="mailto:partnerships@solarexpress.pk" className="underline">partnerships@solarexpress.pk</a> | 
-              <a href="tel:+92300000000" className="underline ml-2">+92 300 0000 000</a>
+              <a href="tel:+92300000000" className="underline ml-2">+92 3330505000</a>
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Partnership Form */}
+      <section id="partnership-form" className="py-16">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <h3 className="text-2xl font-semibold text-[#1a5ca4] mb-4">Apply for Partnership</h3>
+            <p className="text-gray-600 mb-6">Fill the form below and our partnerships team will reach out within 2 business days.</p>
+
+            <form id="brand-partnership-form" onSubmit={async (e) => {
+              e.preventDefault()
+              const form = e.currentTarget as HTMLFormElement
+              const formData = new FormData(form)
+              const payload = {
+                name: String(formData.get('name') || ''),
+                company: String(formData.get('company') || ''),
+                email: String(formData.get('email') || ''),
+                phone: String(formData.get('phone') || ''),
+                partnershipType: String(formData.get('type') || ''),
+                message: String(formData.get('message') || ''),
+              }
+
+              if (!payload.name || !payload.email || !payload.message) {
+                alert('Please fill name, email and message')
+                return
+              }
+
+              try {
+                const res = await fetch('/api/partnership/submit', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+                })
+                const data = await res.json()
+                if (res.ok) {
+                  alert('Application submitted — we will get back to you soon')
+                  form.reset()
+                } else {
+                  alert(data?.message || 'Submission failed')
+                }
+              } catch (err) {
+                console.error('Submit error', err)
+                alert('Failed to submit — try again later')
+              }
+            }} className="grid grid-cols-1 gap-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <input name="name" placeholder="Full Name" className="border rounded-md p-3" />
+                <input name="company" placeholder="Company" className="border rounded-md p-3" />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <input name="email" type="email" placeholder="Email" className="border rounded-md p-3" />
+                <input name="phone" placeholder="Phone" className="border rounded-md p-3" />
+              </div>
+              <select name="type" className="border rounded-md p-3">
+                <option value="Product Vendors">Product Vendors</option>
+                <option value="Installation Partners">Installation Partners</option>
+                <option value="Technology Partners">Technology Partners</option>
+                <option value="Other">Other</option>
+              </select>
+              <textarea name="message" placeholder="Tell us about your company and interest" className="border rounded-md p-3 h-28" />
+              <div className="flex justify-end">
+                <button type="submit" className="bg-[#1a5ca4] text-white px-6 py-3 rounded-md">Submit Application</button>
+              </div>
+            </form>
           </div>
         </div>
       </section>

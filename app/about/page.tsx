@@ -14,15 +14,15 @@ export default function AboutUs() {
           </p>
           <div className="flex flex-wrap justify-center gap-8 text-center">
             <div>
-              <div className="text-3xl font-bold">500+</div>
+              <div className="text-3xl font-bold">50+</div>
               <div className="text-blue-200">Projects Completed</div>
             </div>
             <div>
-              <div className="text-3xl font-bold">50+</div>
+              <div className="text-3xl font-bold">20+</div>
               <div className="text-blue-200">Cities Covered</div>
             </div>
             <div>
-              <div className="text-3xl font-bold">10,000+</div>
+              <div className="text-3xl font-bold">1,000+</div>
               <div className="text-blue-200">Happy Customers</div>
             </div>
           </div>
@@ -116,7 +116,7 @@ export default function AboutUs() {
               <div className="w-24 h-24 bg-gradient-to-r from-[#1a5ca4] to-[#f26522] rounded-full mx-auto mb-4 flex items-center justify-center">
                 <Users className="h-12 w-12 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Ahmad Hassan</h3>
+              <h3 className="text-xl font-semibold mb-2">Safdar</h3>
               <p className="text-[#f26522] font-medium mb-2">Chief Executive Officer</p>
               <p className="text-gray-600 text-sm">
                 15+ years in renewable energy sector, leading Pakistan's transition to clean energy
@@ -126,7 +126,7 @@ export default function AboutUs() {
               <div className="w-24 h-24 bg-gradient-to-r from-[#1a5ca4] to-[#f26522] rounded-full mx-auto mb-4 flex items-center justify-center">
                 <Users className="h-12 w-12 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Sarah Khan</h3>
+              <h3 className="text-xl font-semibold mb-2">Adnan Khan</h3>
               <p className="text-[#f26522] font-medium mb-2">Chief Technology Officer</p>
               <p className="text-gray-600 text-sm">
                 Technology visionary with expertise in e-commerce platforms and solar systems
@@ -136,7 +136,7 @@ export default function AboutUs() {
               <div className="w-24 h-24 bg-gradient-to-r from-[#1a5ca4] to-[#f26522] rounded-full mx-auto mb-4 flex items-center justify-center">
                 <Users className="h-12 w-12 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">Muhammad Ali</h3>
+              <h3 className="text-xl font-semibold mb-2">Haider Ali</h3>
               <p className="text-[#f26522] font-medium mb-2">Head of Operations</p>
               <p className="text-gray-600 text-sm">
                 Operations expert ensuring seamless delivery and installation across Pakistan

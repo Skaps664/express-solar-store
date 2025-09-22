@@ -4,54 +4,7 @@ import { MapPin, Clock, Users, Building, Send, Star } from "lucide-react"
 
 export default function Careers() {
   const jobs = [
-    {
-      title: "Senior Solar Engineer",
-      department: "Engineering",
-      location: "Lahore, Pakistan",
-      type: "Full-time",
-      experience: "5+ years",
-      description: "Lead solar system design and installation projects for commercial and residential clients."
-    },
-    {
-      title: "Digital Marketing Manager",
-      department: "Marketing",
-      location: "Karachi, Pakistan",
-      type: "Full-time",
-      experience: "3+ years",
-      description: "Drive digital marketing campaigns and grow our online presence across Pakistan."
-    },
-    {
-      title: "Customer Success Representative",
-      department: "Customer Service",
-      location: "Islamabad, Pakistan",
-      type: "Full-time",
-      experience: "2+ years",
-      description: "Ensure exceptional customer experience from consultation to post-installation support."
-    },
-    {
-      title: "Supply Chain Coordinator",
-      department: "Operations",
-      location: "Multiple Cities",
-      type: "Full-time",
-      experience: "3+ years",
-      description: "Manage vendor relationships and ensure timely delivery of solar equipment nationwide."
-    },
-    {
-      title: "Software Developer",
-      department: "Technology",
-      location: "Remote/Hybrid",
-      type: "Full-time",
-      experience: "2+ years",
-      description: "Develop and maintain our e-commerce platform and internal systems."
-    },
-    {
-      title: "Sales Executive",
-      department: "Sales",
-      location: "Multiple Cities",
-      type: "Full-time",
-      experience: "1+ years",
-      description: "Build relationships with customers and help them find the perfect solar solutions."
-    }
+    
   ]
 
   const benefits = [
@@ -151,7 +104,9 @@ export default function Careers() {
             <h2 className="text-3xl font-bold text-[#1a5ca4] mb-4">Open Positions</h2>
             <p className="text-gray-600">
               Explore exciting career opportunities across different departments
+              
             </p>
+            <h3>TO BE UPDATED SOON</h3>
           </div>
 
           <div className="grid gap-6">

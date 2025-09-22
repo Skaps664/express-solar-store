@@ -22,7 +22,7 @@ export default function Support() {
       icon: Phone,
       title: "Phone Support",
       description: "Speak directly with our support team",
-      details: "+92 300 0000 000",
+      details: "+92 3330505000",
       hours: "9 AM - 6 PM (Mon-Sat)",
       response: "Immediate"
     },
@@ -226,7 +226,7 @@ export default function Support() {
                   value={formData.phone}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#f26522] focus:border-transparent"
-                  placeholder="+92 300 0000 000"
+                  placeholder="+92 3330505000"
                 />
               </div>
               <div>
@@ -349,42 +349,22 @@ export default function Support() {
       <section className="bg-gray-100 py-16">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-[#1a5ca4] mb-4">Visit Our Offices</h2>
+            <h2 className="text-3xl font-bold text-[#1a5ca4] mb-4">Visit Our Office</h2>
             <p className="text-gray-600">
               Meet our team in person at any of our locations
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <div className="flex items-start gap-3 mb-4">
-                <MapPin className="h-6 w-6 text-[#f26522] mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-[#1a5ca4] mb-2">Karachi Office</h3>
-                  <p className="text-gray-600 text-sm mb-2">
-                    Plot # 123, Block A, Gulshan-e-Iqbal, Karachi
-                  </p>
-                  <div className="text-sm text-gray-600">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Clock className="h-4 w-4" />
-                      Mon-Sat: 9 AM - 6 PM
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      +92 21 1234 5678
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="grid md:grid-cols-1 gap-8">
+            
 
             <div className="bg-white rounded-lg shadow-lg p-6">
               <div className="flex items-start gap-3 mb-4">
                 <MapPin className="h-6 w-6 text-[#f26522] mt-1 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-[#1a5ca4] mb-2">Lahore Office</h3>
+                  <h3 className="font-semibold text-[#1a5ca4] mb-2">Peshawar Office</h3>
                   <p className="text-gray-600 text-sm mb-2">
-                    Office # 456, DHA Phase 5, Lahore
+                    Safroon Plaza 1st floor, Street 6 United Housing Society Opposite HBK Hypermarket Achini Chowk Ring road Hayatabad, Peshawar, Pakistan
                   </p>
                   <div className="text-sm text-gray-600">
                     <div className="flex items-center gap-2 mb-1">
@@ -393,29 +373,7 @@ export default function Support() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4" />
-                      +92 42 1234 5678
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <div className="flex items-start gap-3 mb-4">
-                <MapPin className="h-6 w-6 text-[#f26522] mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-[#1a5ca4] mb-2">Islamabad Office</h3>
-                  <p className="text-gray-600 text-sm mb-2">
-                    Suite # 789, F-10 Markaz, Islamabad
-                  </p>
-                  <div className="text-sm text-gray-600">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Clock className="h-4 w-4" />
-                      Mon-Sat: 9 AM - 6 PM
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4" />
-                      +92 51 1234 5678
+                      +92 3330505000
                     </div>
                   </div>
                 </div>

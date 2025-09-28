@@ -136,9 +136,9 @@ export default function TermsOfService() {
               <h2 className="text-2xl font-semibold text-[#1a5ca4] mb-4">12. Contact Information</h2>
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-700 font-semibold mb-2">Solar Express (Private) Limited</p>
-                <p className="text-gray-700">Office #24, 2nd Floor, Johar Business Center</p>
-                <p className="text-gray-700">Main University Road, Karachi, Pakistan</p>
-                <p className="text-gray-700 mt-2">📞 Phone: +92-331-6801200</p>
+                <p className="text-gray-700">Safroon Plaza 1st floor, Street 6 United Housing Society Opposite HBK Hypermarket</p>
+                <p className="text-gray-700">Achini Chowk Ring road Hayatabad, Peshawar, Pakistan</p>
+                <p className="text-gray-700 mt-2">📞 Phone: +92 3330505000</p>
                 <p className="text-gray-700">✉️ Email: support@solarexpress.pk</p>
               </div>
             </section>

@@ -412,21 +412,21 @@ export default function InsurancePage() {
                 <Phone className="h-8 w-8" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Call Us</h3>
-              <p className="text-blue-100">+92 300 123 4567</p>
+              <p className="text-blue-100">+92 33305050007</p>
             </div>
             <div className="text-center">
               <div className="bg-white/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <Mail className="h-8 w-8" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Email Us</h3>
-              <p className="text-blue-100">insurance@solarexpress.pk</p>
+              <p className="text-blue-100">info@solarexpress.pk</p>
             </div>
             <div className="text-center">
               <div className="bg-white/10 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
                 <MapPin className="h-8 w-8" />
               </div>
               <h3 className="text-xl font-semibold mb-2">Visit Us</h3>
-              <p className="text-blue-100">Lahore, Pakistan</p>
+              <p className="text-blue-100">Safroon Plaza 1st floor, Street 6 United Housing Society Opposite HBK Hypermarket Achini Chowk Ring road Hayatabad, Peshawar, Pakistan</p>
             </div>
           </div>
         </div>

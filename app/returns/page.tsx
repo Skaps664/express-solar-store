@@ -160,8 +160,8 @@ export default function ReturnRefundPolicy() {
               </p>
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-700 font-semibold mb-2">SolarExpress.pk (Private) Limited</p>
-                <p className="text-gray-700">Office #24, 2nd Floor, Johar Business Center</p>
-                <p className="text-gray-700">Main University Road, Karachi, Pakistan</p>
+                <p className="text-gray-700">Safroon Plaza 1st floor, Street 6 United Housing Society Opposite HBK Hypermarket</p>
+                <p className="text-gray-700">Achini Chowk Ring road Hayatabad, Peshawar, Pakistan</p>
                 <p className="text-gray-700 mt-2">📞 +92 333 0505000 (WhatsApp)</p>
                 <p className="text-gray-700">✉️ support@solarexpress.pk</p>
                 <p className="text-gray-700">⏰ Customer Service Hours: 9 AM - 6 PM (Mon-Sat)</p>

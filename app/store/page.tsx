@@ -351,11 +351,11 @@ function StorePageContent({ category, search }: { category?: string; search?: st
   return (
     <div key={category || 'store-root'} className="container mx-auto px-4 py-8">
       {/* Debug panel for troubleshooting filter issues */}
-      <div className="mb-4 p-4 bg-yellow-50 border rounded">
+      {/* <div className="mb-4 p-4 bg-yellow-50 border rounded">
         <div className="text-sm text-gray-700">API Base: <strong>{API_BASE || 'NOT SET'}</strong></div>
         <div className="text-sm text-gray-700">Current Filters: <code>{JSON.stringify(filterState)}</code></div>
         <div className="text-sm text-gray-700">Last Fetch URL: <code>{lastFetchUrl || 'none'}</code></div>
-      </div>
+      </div> */}
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex items-center gap-2 text-sm mb-4">

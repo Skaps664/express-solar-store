@@ -331,10 +331,10 @@ export default function CheckoutPage() {
   solarexpress.pk
 
   Deposit your amount in the following bank account:
-  Bank: 
-  Account Title: 
-  Account Number: 
-  IBAN: 
+  Bank: HBL
+  Account Title: Solar Express LLP
+  Account Number: 6-4-54-20311-714-130309
+  IBAN: PK24MPBL0454027140130309
 
   Note: This Payment is for Order Conformation. Your Order will be processed after payment.`}
                   </div>
@@ -347,19 +347,19 @@ export default function CheckoutPage() {
                   <p className="text-sm text-muted-foreground mb-2">Please deposit the payment using the details below and send the receipt via WhatsApp.</p>
                   <div className="grid grid-cols-1 gap-2 text-sm">
                     <div>
-                      <p className="font-medium">Bank:</p>
+                      <p className="font-medium">Bank: HBL</p>
                       <p className="text-muted-foreground">&nbsp;</p>
                     </div>
                     <div>
-                      <p className="font-medium">Account Title:</p>
+                      <p className="font-medium">Account Title: Solar Express LLP</p>
                       <p className="text-muted-foreground">&nbsp;</p>
                     </div>
                     <div>
-                      <p className="font-medium">Account Number:</p>
+                      <p className="font-medium">Account Number: 6-4-54-20311-714-130309</p>
                       <p className="text-muted-foreground">&nbsp;</p>
                     </div>
                     <div>
-                      <p className="font-medium">IBAN:</p>
+                      <p className="font-medium">IBAN: PK24MPBL0454027140130309</p>
                       <p className="text-muted-foreground">&nbsp;</p>
                     </div>
                   </div>

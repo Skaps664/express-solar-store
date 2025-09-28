@@ -57,70 +57,82 @@ const formatPrice = (price: number) => {
 export default function StorePageWrapper() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <StorePage />
+      <StorePageContent />
     </Suspense>
   )
 }
 
-function StorePage() {
-  const searchParams = useSearchParams()
-  const pathname = usePathname()
-  const key = pathname + "?" + searchParams.toString()
-
-  const category = searchParams.get("category") || ""
-  const search = searchParams.get("search") || ""
-  const [products, setProducts] = useState<Product[]>([])
-  const [filters, setFilters] = useState<Filter[]>([])
-  const [loading, setLoading] = useState(false)
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 12 })
+function StorePageContent({ category, search }: { category?: string; search?: string }) {
+  console.log('🏪 Store component mounted. API_BASE:', API_BASE, 'category:', category)
   
-  // Track product click
-  const handleProductClick = (productId: string, productSlug: string) => {
-    const analytics = AnalyticsClient.getInstance()
-    analytics.trackProductClick(productId, productSlug)
-  }
-  const [filterState, setFilterState] = useState<Record<string, any>>({})
-  const [sort, setSort] = useState("newest")
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [lastFetchUrl, setLastFetchUrl] = useState<string | null>(null)
+  const [filters, setFilters] = useState<Filter[]>([])
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pages: 1,
+    total: 0,
+    limit: 12
+  })
+  const [sort, setSort] = useState('name')
   const [limit, setLimit] = useState(12)
+  const [filterState, setFilterState] = useState<Record<string, any>>({})
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   // Fetch filters for the selected category or general filters
   useEffect(() => {
     const filterCategory = category || 'general'
+    console.log('🎯 Fetching filters for category:', filterCategory, 'API_BASE:', API_BASE)
     fetch(`${API_BASE}/api/products/filters/${filterCategory}`)
-      .then((res) => res.json())
-      .then((data) => setFilters(data.filters || []))
-      .catch(err => console.error('Error fetching filters:', err))
+      .then((res) => {
+        console.log('📊 Filters API response status:', res.status)
+        return res.json()
+      })
+      .then((data) => {
+        console.log('📊 Filters API response data:', data)
+        setFilters(data.filters || [])
+        console.log('📊 Filters state set to:', data.filters || [])
+      })
+      .catch(err => console.error('❌ Error fetching filters:', err))
   }, [category])
 
   // Fetch products when category, filters, sort, or pagination changes
   useEffect(() => {
     setLoading(true)
-    const params = new URLSearchParams()
-    if (category) params.append("category", category)
-    if (search) params.append("search", search)
-    Object.entries(filterState).forEach(([key, value]) => {
-      if (value !== undefined && value !== "" && value !== false) {
-        if (Array.isArray(value)) {
-          value.forEach(v => params.append(key, v))
-        } else {
-          params.append(key, value)
-        }
-      }
-    })
-    params.append("sort", sort)
-    params.append("page", String(pagination.page))
-  params.append("limit", String(limit))
+    // Build params using shared helper to ensure consistent encoding
+    const extras: Record<string, string | number> = {}
+    if (category) extras.category = category
+    if (search) extras.search = search
+    extras.sort = sort
+    extras.page = pagination.page
+    extras.limit = limit
 
-    fetch(`${API_BASE}/api/products?${params.toString()}`)
-      .then((res) => res.json())
-      .then((data) => {
-  setProducts(data.products || [])
-  setPagination(data.pagination || { page: 1, pages: 1, total: 0, limit: 12 })
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
+    // Use dynamic import to load the filter utility
+    import('@/lib/utils/filterUtils').then(({ buildProductQueryParams }) => {
+      const params = buildProductQueryParams(filterState, extras)
+      console.log('🔍 Fetching products with URL:', `${API_BASE}/api/products?${params.toString()}`)
+      setLastFetchUrl(`${API_BASE}/api/products?${params.toString()}`)
+      fetch(`${API_BASE}/api/products?${params.toString()}`)
+        .then((res) => {
+          console.log('🔍 Products API response status:', res.status)
+          return res.json()
+        })
+        .then((data) => {
+          console.log('🔍 Products API response data:', data)
+          setProducts(data.products || [])
+          setPagination(data.pagination || { page: 1, pages: 1, total: 0, limit: 12 })
+          setLoading(false)
+        })
+        .catch((err) => {
+          console.error('❌ Failed to fetch products:', err)
+          setLoading(false)
+        })
+    }).catch(err => {
+      console.error('❌ Failed to build query params:', err)
+      setLoading(false)
+    })
   }, [category, filterState, sort, pagination.page, limit, search])
 
   // Reset pagination on category, filter, or sort change
@@ -128,27 +140,95 @@ function StorePage() {
     setPagination((prev) => ({ ...prev, page: 1 }))
   }, [category, filterState, sort])
 
-  // Handle filter changes
+  // Handle filter changes (normalize booleans/numbers/empty)
   const handleFilterChange = (field: string, value: string | number | boolean | undefined) => {
-    setFilterState((prev) => ({ 
-      ...prev, 
-      [field]: value === "" || value === undefined ? undefined : value 
-    }))
+    console.log('🎯 Store Filter Change:', { field, value, type: typeof value })
+
+    let normalized: any = value
+    if (value === "" || value === undefined) {
+      normalized = undefined
+    } else if (value === 'true' || value === true) {
+      normalized = true
+    } else if (value === 'false' || value === false) {
+      normalized = false
+    } else if (typeof value === 'string' && /^\d+(?:\.\d+)?$/.test(value)) {
+      // numeric string -> number
+      normalized = Number(value)
+    }
+
+    setFilterState((prev) => { 
+      const newState = { ...prev, [field]: normalized }
+      console.log('🎯 New Filter State:', newState)
+      return newState
+    })
   }
 
   // Special handler for category filter change - needs to reload filters
   const handleCategoryFilterChange = (newCategory: string | undefined) => {
-    // Update the filter state
+    // Update the filter state with the selected category value
     handleFilterChange('category', newCategory)
-    
-    // Clear other filters since they might not be applicable to the new category
-    setFilterState({ category: newCategory })
-    
-    // Fetch new filters for the selected category
+
+    // Remove previous category-specific filter entries from the filter state
+    // so that old category fields (eg. inverterType, panelType_min, etc.) do not linger
+    setFilterState((prev) => {
+      const prevFields = (filters || []).map(f => f.field)
+      const newState = { ...prev, category: newCategory }
+      prevFields.forEach((f) => {
+        if (f && f !== 'category' && f !== 'brand') {
+          delete newState[f]
+          delete newState[`${f}_min`]
+          delete newState[`${f}_max`]
+        }
+      })
+      return newState
+    })
+
+    // Fetch new filters for the selected category and merge them into sidebar
     const filterCategory = newCategory || 'general'
     fetch(`${API_BASE}/api/products/filters/${filterCategory}`)
       .then((res) => res.json())
-      .then((data) => setFilters(data.filters || []))
+      .then((data) => {
+        try {
+          let newFilters: Filter[] = data.filters || []
+
+          // Helper to normalize category options to objects { name, slug }
+          const normalizeCategoryOptions = (opts: any[] = []) => {
+            return opts.map((opt) => {
+              if (opt && typeof opt === 'object' && (opt.slug || opt.name)) return opt
+              if (typeof opt === 'string') {
+                const slug = opt.toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+                return { name: opt, slug }
+              }
+              return opt
+            })
+          }
+
+          // Normalize options for category field or other object-ish options
+          newFilters = newFilters.map((f: any) => {
+            if (f.field === 'category' && Array.isArray(f.options)) {
+              return { ...f, options: normalizeCategoryOptions(f.options) }
+            }
+            // If options are strings for other fields, leave as-is but keep consistent shape
+            if (Array.isArray(f.options)) {
+              return { ...f, options: f.options }
+            }
+            return f
+          })
+
+          // Ensure we keep a top-level category selector if the previous filters included one
+          const defaultCategoryFilter = (filters || []).find(f => f.field === 'category')
+          if (defaultCategoryFilter) {
+            // remove duplicate category entries from newFilters
+            newFilters = newFilters.filter((f: any) => f.field !== 'category')
+            newFilters = [defaultCategoryFilter, ...newFilters]
+          }
+
+          setFilters(newFilters)
+        } catch (err) {
+          console.error('Error processing category filters:', err)
+          setFilters(data.filters || [])
+        }
+      })
       .catch(err => console.error('Error fetching filters:', err))
   }
 
@@ -178,6 +258,18 @@ function StorePage() {
 
   // Handle pagination
   const goToPage = (page: number) => setPagination((prev) => ({ ...prev, page }))
+
+  // Handle product click (prevents undefined error and can be extended for analytics)
+  const handleProductClick = (id: string, slug: string) => {
+    try {
+      // Example: simple navigation to product page; keep preventDefault behavior in callers
+      console.log('🧭 Product clicked:', { id, slug })
+      // If you want client-side navigation uncomment the next line
+      // window.location.href = `/product/${slug || id}`
+    } catch (err) {
+      console.error('Error handling product click:', err)
+    }
+  }
 
   // Render filter component
   const renderFilter = (filter: Filter) => {
@@ -257,7 +349,13 @@ function StorePage() {
   }
 
   return (
-    <div key={key} className="container mx-auto px-4 py-8">
+    <div key={category || 'store-root'} className="container mx-auto px-4 py-8">
+      {/* Debug panel for troubleshooting filter issues */}
+      <div className="mb-4 p-4 bg-yellow-50 border rounded">
+        <div className="text-sm text-gray-700">API Base: <strong>{API_BASE || 'NOT SET'}</strong></div>
+        <div className="text-sm text-gray-700">Current Filters: <code>{JSON.stringify(filterState)}</code></div>
+        <div className="text-sm text-gray-700">Last Fetch URL: <code>{lastFetchUrl || 'none'}</code></div>
+      </div>
       {/* Page Header */}
       <div className="mb-8">
         <div className="flex items-center gap-2 text-sm mb-4">
@@ -374,8 +472,8 @@ function StorePage() {
         {/* Products Grid */}
         <div className="w-full md:w-3/4">
           {/* Sort and View Options */}
-          <div className="flex flex-wrap justify-between items-center mb-6 p-4 border rounded-lg bg-gray-50">
-            <div className="flex items-center gap-4 mb-2 md:mb-0">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 p-4 border rounded-lg bg-gray-50 gap-3">
+            <div className="flex items-center gap-4 w-full sm:w-auto">
               <span className="text-sm text-gray-600">
                 {pagination.total} products found
               </span>
@@ -385,11 +483,12 @@ function StorePage() {
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+
+            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <span className="text-sm">Sort:</span>
                 <Select onValueChange={handleSortChange} value={sort}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Featured" />
                   </SelectTrigger>
                   <SelectContent>
@@ -401,10 +500,11 @@ function StorePage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-center gap-2">
+
+              {/* <div className="flex items-center gap-2 w-full sm:w-auto">
                 <span className="text-sm">Show:</span>
                 <Select onValueChange={handleLimitChange} value={String(limit)}>
-                  <SelectTrigger className="w-[80px]">
+                  <SelectTrigger className="w-full sm:w-[80px]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -413,8 +513,9 @@ function StorePage() {
                     <SelectItem value="50">50</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="flex gap-1">
+              </div> */}
+
+              {/* <div className="flex gap-1">
                 <Button
                   variant={viewMode === 'grid' ? 'default' : 'outline'}
                   size="sm"
@@ -429,7 +530,7 @@ function StorePage() {
                 >
                   <List className="h-4 w-4" />
                 </Button>
-              </div>
+              </div> */}
             </div>
           </div>
 

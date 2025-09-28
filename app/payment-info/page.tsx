@@ -26,6 +26,8 @@ export default function PaymentInformation() {
         "Secure encrypted transactions"
       ]
     },
+
+    // Bank details snippet for display elsewhere
     {
       icon: Smartphone,
       title: "Mobile Wallets",
@@ -86,6 +88,15 @@ export default function PaymentInformation() {
             <p className="text-gray-600 max-w-2xl mx-auto">
               Choose from multiple secure payment options that work best for you
             </p>
+          </div>
+
+          <div className="mb-8">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-md mx-auto">
+              <h3 className="text-lg font-semibold text-[#1a5ca4] mb-2">Bank Transfer Details</h3>
+              <p className="text-sm text-gray-700 mb-2">Account Title: <strong>Solar Express LLP</strong></p>
+              <p className="text-sm text-gray-700 mb-2">Account Number: <strong>6-4-54-20311-714-130309</strong></p>
+              <p className="text-sm text-gray-700">IBAN: <strong>PK24MPBL0454027140130309</strong></p>
+            </div>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8 mb-16">

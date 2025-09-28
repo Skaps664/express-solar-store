@@ -60,17 +60,20 @@ export default function BlogsPage() {
         </div>
       </div>
 
-      {/* Blog Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      {/* Blog Grid - compact on mobile (2x2 of first 4), full on md+ */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         {Array.from({ length: 6 }).map((_, index) => (
-          <div key={index} className="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
-            <div className="h-48 bg-gray-200 flex items-center justify-center">
-              <div className="text-gray-400">[Blog Image]</div>
+          <div
+            key={index}
+            className={`border-2 border-dashed border-gray-300 rounded-lg overflow-hidden ${index >= 4 ? 'hidden md:block' : ''}`}
+          >
+            <div className="h-28 sm:h-36 md:h-48 bg-gray-200 flex items-center justify-center">
+              <div className="text-gray-400 text-sm">[Blog Image]</div>
             </div>
-            <div className="p-4">
-              <div className="text-xs text-gray-500 mb-2">April {index + 15}, 2025</div>
-              <h3 className="font-bold mb-2">Solar Energy Article Title {index + 1}</h3>
-              <p className="text-sm text-gray-600 mb-3">
+            <div className="p-3 sm:p-4">
+              <div className="text-xs text-gray-500 mb-1">April {index + 15}, 2025</div>
+              <h3 className="font-bold mb-1 text-sm sm:text-base">Solar Energy Article Title {index + 1}</h3>
+              <p className="text-sm text-gray-600 mb-2 line-clamp-3">
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
                 dolore magna aliqua.
               </p>

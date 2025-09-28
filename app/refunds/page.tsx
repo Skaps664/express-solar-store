@@ -96,6 +96,13 @@ export default function RefundPolicy() {
                   <h3 className="text-lg font-semibold text-gray-800 mb-2">💰 Cash on Delivery (COD) Orders</h3>
                   <p className="text-gray-700">Bank transfer after providing account details and verification</p>
                 </div>
+
+                <div className="bg-gray-50 border rounded-lg p-4">
+                  <p className="font-semibold">Bank Details for Transfers</p>
+                  <p className="text-sm">Account Title: <strong>Solar Express LLP</strong></p>
+                  <p className="text-sm">Account Number: <strong>6-4-54-20311-714-130309</strong></p>
+                  <p className="text-sm">IBAN: <strong>PK24MPBL0454027140130309</strong></p>
+                </div>
               </div>
             </section>
 

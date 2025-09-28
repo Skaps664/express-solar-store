@@ -271,6 +271,56 @@ export default function ProductsPage() {
         setSpecifications([emptySpecGroup()]);
       }
 
+      // Fetch and initialize category filters for edit form
+      (async () => {
+        try {
+          // Robustly resolve category slug from different shapes stored in editProduct.category
+          let categorySlug = "";
+
+          if (editProduct.category) {
+            if (typeof editProduct.category === 'object') {
+              // Prefer slug when available
+              categorySlug = editProduct.category.slug || "";
+
+              // If only _id is available, try to resolve it from loaded categories
+              if (!categorySlug && editProduct.category._id) {
+                const found = categories.find(cat => String(cat._id) === String(editProduct.category._id));
+                if (found) categorySlug = found.slug;
+              }
+            } else if (typeof editProduct.category === 'string') {
+              // If it's a string, it could be an _id or a slug. Prefer matching local categories list by _id first.
+              const foundById = categories.find(cat => String(cat._id) === String(editProduct.category));
+              if (foundById) {
+                categorySlug = foundById.slug;
+              } else {
+                // Otherwise assume it's already a slug
+                categorySlug = editProduct.category;
+              }
+            }
+          }
+
+          if (categorySlug) {
+            await fetchCategoryFilters(categorySlug);
+
+            // Initialize categoryFilterValues from stored product data (if any)
+            if (editProduct.categoryFilters && typeof editProduct.categoryFilters === 'object') {
+              // Keep values as-is (booleans, numbers, strings) so inputs bind correctly
+              const initial = { ...editProduct.categoryFilters };
+              console.log('Initializing categoryFilterValues for edit form:', initial);
+              setCategoryFilterValues(initial);
+            } else {
+              // No saved filters: ensure defaults are present
+              setCategoryFilterValues({});
+            }
+          } else {
+            setCategoryFilters([]);
+            setCategoryFilterValues({});
+          }
+        } catch (err) {
+          console.warn('Failed to initialize category filters for edit form:', err);
+        }
+      })();
+
       // Handle shipping info
       const defaultShippingInfo = {
         freeShipping: false,
@@ -434,6 +484,22 @@ export default function ProductsPage() {
 
     // Add shipping info
     formData.set("shippingInfo", JSON.stringify(shippingInfo));
+
+    // Ensure category-specific filter values are included when updating
+    try {
+      formData.set("categoryFilterValues", JSON.stringify(categoryFilterValues || {}));
+    } catch (err) {
+      console.warn("Failed to attach categoryFilterValues to edit FormData:", err);
+      formData.set("categoryFilterValues", JSON.stringify({}));
+    }
+
+    // Add category filter values (if any)
+    try {
+      formData.set("categoryFilterValues", JSON.stringify(categoryFilterValues || {}));
+    } catch (err) {
+      console.warn("Failed to attach categoryFilterValues to FormData:", err);
+      formData.set("categoryFilterValues", JSON.stringify({}));
+    }
 
     // Handle documents with types - append actual files to FormData
     if (docFiles.length > 0) {
@@ -723,17 +789,43 @@ export default function ProductsPage() {
   };
 
   // Function to populate edit form
-  const populateEditForm = (product: any) => {
+  const populateEditForm = async (product: any) => {
     console.log("Populating edit form with product:", product);
-    
-    // Set the product which will trigger useEffect to populate the form
-    setEditProduct(product);
-    
-    // Open dialog after a short delay to ensure state is set
-    setTimeout(() => {
-      console.log("Opening edit dialog...");
-      setIsEditDialogOpen(true);
-    }, 200);
+
+    try {
+      // If the passed product looks partial (missing description or documents),
+      // fetch the full product from the API by slug before populating the form.
+      let fullProduct = product;
+      const looksPartial = !product.description || !product.documents;
+
+      if (looksPartial && product.slug) {
+        try {
+          const res = await api.get(`/api/products/${product.slug}`);
+          // Cast to any to avoid TS errors about unknown response shape
+          const resData: any = res?.data;
+          if (resData && resData.product) {
+            fullProduct = resData.product;
+            console.log("Fetched full product for edit:", fullProduct);
+          }
+        } catch (fetchErr) {
+          console.warn("Failed to fetch full product, falling back to provided product:", fetchErr);
+        }
+      }
+
+      // Set the product which will trigger useEffect to populate the form
+      setEditProduct(fullProduct);
+
+      // Open dialog shortly after state is set to allow useEffect to run
+      setTimeout(() => {
+        console.log("Opening edit dialog...");
+        setIsEditDialogOpen(true);
+      }, 150);
+    } catch (err) {
+      console.error("Error in populateEditForm:", err);
+      // Fallback: still set product and open dialog
+      setEditProduct(product);
+      setTimeout(() => setIsEditDialogOpen(true), 150);
+    }
   };
 
   // Function to clear edit form state

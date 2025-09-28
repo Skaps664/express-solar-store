@@ -36,9 +36,10 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     // Set default address if available
-    if (user?.adress?.length > 0) {
-      const defaultAddress = user.adress.find(addr => addr.isDefault)
-      setSelectedAddress(defaultAddress?._id || user.adress[0]._id)
+    const addresses = (user as any)?.adress as any[] | undefined
+    if (addresses && addresses.length > 0) {
+      const defaultAddress = addresses.find((addr: any) => addr.isDefault)
+      setSelectedAddress(defaultAddress?._id || addresses[0]._id)
     }
   }, [user])
 
@@ -84,8 +85,9 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true)
     try {
-      // Find the selected address object
-      const shippingAddress = user.adress.find(addr => addr._id === selectedAddress)
+  // Find the selected address object
+  const addresses = (user as any)?.adress as any[] | undefined
+  const shippingAddress = addresses?.find((addr: any) => addr._id === selectedAddress)
       
       if (!shippingAddress) {
         toast.error("Selected address not found")
@@ -152,12 +154,12 @@ export default function CheckoutPage() {
                 <CardDescription>Select where you want your order delivered</CardDescription>
               </CardHeader>
               <CardContent>
-                {user.adress && user.adress.length > 0 ? (
+                {((user as any)?.adress && (user as any).adress.length > 0) ? (
                   <RadioGroup 
                     value={selectedAddress || ""} 
                     onValueChange={setSelectedAddress}
                   >
-                    {user.adress.map((address: any) => (
+                    {((user as any).adress as any[]).map((address: any) => (
                       <div key={address._id} className="flex items-start space-x-3 p-3 border rounded-md mb-3">
                         <RadioGroupItem value={address._id} id={address._id} />
                         <div className="grid gap-1.5">
@@ -286,12 +288,12 @@ Best regards,
 solarexpress.pk
 
 Deposit your amount in the following bank account:
-Bank: 
-Account Title: 
-Account Number: 
-IBAN: 
+Bank: HBL
+Account Title: Solar Express LLP
+Account Number: 6-4-54-20311-714-130309
+IBAN: PK24MPBL0454027140130309
 
-Note: This Payment is for Order Conformation. Your Order will be processed after payment.`}
+Note: This Payment is for Order Confirmation. Your Order will be processed after payment.`}
                 </div>
               </div>
             )}
@@ -303,19 +305,19 @@ Note: This Payment is for Order Conformation. Your Order will be processed after
                 <div className="grid grid-cols-1 gap-2 text-sm">
                   <div>
                     <p className="font-medium">Bank:</p>
-                    <p className="text-muted-foreground">&nbsp;</p>
+                    <p className="text-muted-foreground">HBL</p>
                   </div>
                   <div>
                     <p className="font-medium">Account Title:</p>
-                    <p className="text-muted-foreground">&nbsp;</p>
+                    <p className="text-muted-foreground">Solar Express LLP</p>
                   </div>
                   <div>
                     <p className="font-medium">Account Number:</p>
-                    <p className="text-muted-foreground">&nbsp;</p>
+                    <p className="text-muted-foreground">6-4-54-20311-714-130309</p>
                   </div>
                   <div>
                     <p className="font-medium">IBAN:</p>
-                    <p className="text-muted-foreground">&nbsp;</p>
+                    <p className="text-muted-foreground">PK24MPBL0454027140130309</p>
                   </div>
                 </div>
               </div>

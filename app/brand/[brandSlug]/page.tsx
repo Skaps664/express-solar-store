@@ -120,28 +120,20 @@ export default function BrandPage({ params }: BrandPageProps) {
   // Fetch brand products with filters
   const fetchBrandProducts = async () => {
     try {
-      const params = new URLSearchParams()
-        // Allow an explicit brand filter (from the filters UI) to override the page brand
-        const effectiveBrand = appliedFilters?.brand ?? brandSlug
-        if (effectiveBrand) params.append('brand', effectiveBrand)
-      params.append('sort', sortBy)
-        params.append('page', String(pagination.page))
-      params.append('limit', String(pagination.limit || 12))
+      // Build params using shared helper to ensure consistent encoding
+      const extras: Record<string, string | number> = {}
+      const effectiveBrand = appliedFilters?.brand ?? brandSlug
+      if (effectiveBrand) extras.brand = effectiveBrand
+      extras.sort = sortBy
+      extras.page = pagination.page
+      extras.limit = pagination.limit || 12
 
-      // Add applied filters
-      Object.entries(appliedFilters).forEach(([key, value]) => {
-        if (value !== undefined && value !== '' && value !== false) {
-          if (Array.isArray(value)) {
-            value.forEach(v => params.append(key, v))
-          } else {
-            params.append(key, String(value))
-          }
-        }
-      })
+      const { buildProductQueryParams } = await import('@/lib/utils/filterUtils')
+      const params = buildProductQueryParams(appliedFilters, extras)
 
       console.log(`Fetching products for brand ${brandSlug} with filters:`, appliedFilters)
       console.log(`API URL: ${API_BASE}/api/products?${params.toString()}`)
-      
+
       const productsResponse = await fetch(`${API_BASE}/api/products?${params.toString()}`)
       console.log('Products response status:', productsResponse.status)
       
@@ -379,6 +371,11 @@ export default function BrandPage({ params }: BrandPageProps) {
                       </Button>
                     )}
                   </div>
+                  
+                  {/* Note about automatic filter application */}
+                  <div className="text-xs text-gray-500 mb-4 lg:hidden">
+                    Filters apply automatically as you select them
+                  </div>
 
                   {/* Dynamic filters based on configuration */}
                   <div className="space-y-6">
@@ -459,12 +456,6 @@ export default function BrandPage({ params }: BrandPageProps) {
                           )}
                         </div>
                       ))}
-                    <Button 
-                      className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-sm"
-                      onClick={() => setShowMobileFilters(false)}
-                    >
-                      Apply Filters
-                    </Button>
                   </div>
                 </div>
               </div>

@@ -31,6 +31,26 @@ export interface User {
   updatedAt: string;
 }
 
+export interface Address {
+  _id: string;
+  label?: string;
+  fullName: string;
+  phoneNumber: string;
+  street: string;
+  city: string;
+  state?: string;
+  postalCode: string;
+  country: string;
+  isDefault?: boolean;
+}
+
+// extend User with optional address and admin flags used across the frontend
+export interface UserWithAddress extends User {
+  isAdmin?: boolean;
+  mobile?: string;
+  adress?: Address[]; // note: backend uses the 'adress' field name
+}
+
 export interface Category {
   _id: string;
   name: string;

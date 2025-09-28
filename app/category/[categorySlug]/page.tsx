@@ -76,10 +76,10 @@ const formatPrice = (price: number) => {
 // Get category display info dynamically from backend
 const fetchCategoryInfo = async (slug: string) => {
   try {
-    const response = await fetch(`${buildApiUrl()}/api/category/${slug}`)
+    const response = await fetch(buildApiUrl(`/api/category/${slug}`))
     if (!response.ok) {
       // If category not found by slug, try to find by name
-      const allCategoriesResponse = await fetch(`${buildApiUrl()}/api/category`)
+      const allCategoriesResponse = await fetch(buildApiUrl(`/api/category`))
       if (allCategoriesResponse.ok) {
         const allCategories = await allCategoriesResponse.json()
         const category = allCategories.find((cat: any) => 
@@ -182,22 +182,15 @@ function CategoryPageContent({ params }: CategoryPageProps) {
     async function fetchProducts() {
       setLoading(true)
       try {
-        const params = new URLSearchParams()
-        params.append('category', backendSlug)
-        params.append('sort', sortBy)
-  params.append('page', String(pagination.page))
-  params.append('limit', String(pagination.limit))
+        // Build params using shared helper to ensure consistent encoding
+        const extras: Record<string, string | number> = {}
+        extras.category = backendSlug
+        extras.sort = sortBy
+        extras.page = pagination.page
+        extras.limit = pagination.limit
 
-        // Add applied filters
-        Object.entries(appliedFilters).forEach(([key, value]) => {
-          if (value !== undefined && value !== '' && value !== false) {
-            if (Array.isArray(value)) {
-              value.forEach(v => params.append(key, v))
-            } else {
-              params.append(key, String(value))
-            }
-          }
-        })
+        const { buildProductQueryParams } = await import('@/lib/utils/filterUtils')
+        const params = buildProductQueryParams(appliedFilters, extras)
 
         const response = await fetch(`${buildApiUrl(`/api/products`)}?${params.toString()}`)
         const data = await response.json()

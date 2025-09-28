@@ -258,7 +258,7 @@ export default function BrandPartnership() {
           </div>
           <div className="mt-8 text-center">
             <p className="text-blue-200">
-              For partnership inquiries: <a href="mailto:partnerships@solarexpress.pk" className="underline">partnerships@solarexpress.pk</a> | 
+              For partnership inquiries: <a href="mailto:info@solarexpress.pk" className="underline">info@solarexpress.pk</a> | 
               <a href="tel:+92300000000" className="underline ml-2">+92 3330505000</a>
             </p>
           </div>

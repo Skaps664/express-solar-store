@@ -211,7 +211,7 @@ export default function Careers() {
             We're always looking for talented individuals to join our team. Send us your resume and let us know how you'd like to contribute.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="mailto:careers@solarexpress.pk" className="bg-[#f26522] hover:bg-[#e55511] text-white px-8 py-3 rounded-lg font-semibold transition-colors">
+            <a href="mailto:info@solarexpress.pk" className="bg-[#f26522] hover:bg-[#e55511] text-white px-8 py-3 rounded-lg font-semibold transition-colors">
               Send Your Resume
             </a>
             <a href="/about" className="border-2 border-white hover:bg-white hover:text-[#1a5ca4] text-white px-8 py-3 rounded-lg font-semibold transition-colors">

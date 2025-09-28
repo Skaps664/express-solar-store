@@ -232,12 +232,12 @@ export default function ExchangePolicy() {
               <div className="bg-gray-50 p-6 rounded-lg">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">Dedicated Exchange Support Team</h3>
                 <p className="text-gray-700 font-semibold mb-2">SolarExpress.pk Exchange Department</p>
-                <p className="text-gray-700">Office #24, 2nd Floor, Johar Business Center</p>
-                <p className="text-gray-700">Main University Road, Karachi, Pakistan</p>
+                <p className="text-gray-700">Safroon Plaza 1st floor, Street 6 United Housing Society Opposite HBK Hypermarket</p>
+                <p className="text-gray-700">Achini Chowk Ring road Hayatabad, Peshawar, Pakistan</p>
                 <div className="mt-4 space-y-1">
                   <p className="text-gray-700">📞 Exchange Hotline: +92 333 0505000</p>
                   <p className="text-gray-700">💬 WhatsApp Support: +92 333 0505000</p>
-                  <p className="text-gray-700">✉️ Email: exchanges@solarexpress.pk</p>
+                  <p className="text-gray-700">✉️ Email: info@solarexpress.pk</p>
                   <p className="text-gray-700">⏰ Support Hours: 9 AM - 6 PM (Monday to Saturday)</p>
                   <p className="text-gray-700">🎯 Average Response Time: 2-4 hours</p>
                 </div>

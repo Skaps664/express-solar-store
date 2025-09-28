@@ -140,7 +140,7 @@ export default function PrivacyPolicy() {
                 <li>File a complaint with relevant authorities</li>
               </ul>
               <p className="text-gray-700">
-                To exercise any of these rights, email us at privacy@solarexpress.pk
+                To exercise any of these rights, email us at info@solarexpress.pk
               </p>
             </section>
 
@@ -151,10 +151,10 @@ export default function PrivacyPolicy() {
               </p>
               <div className="bg-gray-50 p-6 rounded-lg">
                 <p className="text-gray-700 font-semibold mb-2">Solar Express (Private) Limited</p>
-                <p className="text-gray-700">Office #24, 2nd Floor, Johar Business Center</p>
-                <p className="text-gray-700">Main University Road, Karachi, Pakistan</p>
+                <p className="text-gray-700">Safroon Plaza 1st floor, Street 6 United Housing Society Opposite HBK Hypermarket</p>
+                <p className="text-gray-700">Achini Chowk Ring road Hayatabad, Peshawar, Pakistan</p>
                 <p className="text-gray-700 mt-2">📞 +92 333 0505000</p>
-                <p className="text-gray-700">✉️ privacy@solarexpress.pk</p>
+                <p className="text-gray-700">✉️ info@solarexpress.pk</p>
               </div>
             </section>
           </div>

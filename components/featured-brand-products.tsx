@@ -9,7 +9,6 @@ import AnalyticsClient from "@/lib/analytics"
 type HeadingData = {
   featuredBrandsHeading: {
     title: string
-    subtext: string
   }
 }
 
@@ -126,7 +125,7 @@ export default function FeaturedBrandProducts() {
 
   // Use promotion data if available, otherwise fallback
   const displayTitle = homePromotion?.title || headingData?.featuredBrandsHeading?.title || "Power up!"
-  const displaySubtitle = homePromotion?.subtitle || headingData?.featuredBrandsHeading?.subtext || "Panels, inverters & much more."
+  const displaySubtitle = homePromotion?.subtitle || "Panels, inverters & much more."
   const brandLink = homePromotion?.redirectLink || "/brand/jinko"
   const desktopImage = homePromotion?.images?.desktop || "/q15.jpg"
   const mobileImage = homePromotion?.images?.mobile || "/eighteen.jpg"
@@ -212,15 +211,28 @@ export default function FeaturedBrandProducts() {
           <Heart size={16} />
         </button>
         <Link href={`/product/${product.slug}`} className="block group flex-1" onClick={() => handleProductClick(product.id, product.slug)}>
-          <div className="h-32 bg-gray-100 rounded-md flex items-center justify-center mb-2 overflow-hidden">
+          <div className="h-32 bg-gray-100 rounded-md flex items-center justify-center mb-2 overflow-hidden relative">
+            {/* Primary image */}
             <Image
               src={product.image}
               alt={product.name}
               width={120}
               height={120}
-              className="object-contain group-hover:scale-105 transition-transform duration-300"
+              className="object-contain transition-opacity duration-300 ease-in-out group-hover:opacity-0"
               onError={(e) => {
                 console.error('Image failed to load:', product.image)
+                e.currentTarget.src = '/placeholder.svg'
+              }}
+            />
+            {/* Secondary image (hover) - use same image with scale since no second image available */}
+            <Image
+              src={product.image}
+              alt={`${product.name} - hover`}
+              width={120}
+              height={120}
+              className="absolute inset-0 object-contain opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-110"
+              style={{ margin: 'auto' }}
+              onError={(e) => {
                 e.currentTarget.src = '/placeholder.svg'
               }}
             />
@@ -250,15 +262,28 @@ export default function FeaturedBrandProducts() {
                 <Heart size={20} />
               </button>
               <Link href={`/product/${product.slug}`} className="block group" onClick={() => handleProductClick(product.id, product.slug)}>
-                <div className="h-48 bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden">
+                <div className="h-48 bg-gray-100 rounded-md flex items-center justify-center mb-3 overflow-hidden relative">
+                  {/* Primary image */}
                   <Image
                     src={product.image}
                     alt={product.name}
                     width={180}
                     height={180}
-                    className="object-contain group-hover:scale-105 transition-transform duration-300"
+                    className="object-contain transition-opacity duration-300 ease-in-out group-hover:opacity-0"
                     onError={(e) => {
                       console.error('Image failed to load:', product.image)
+                      e.currentTarget.src = '/placeholder.svg'
+                    }}
+                  />
+                  {/* Secondary image (hover) - use same image with scale since no second image available */}
+                  <Image
+                    src={product.image}
+                    alt={`${product.name} - hover`}
+                    width={180}
+                    height={180}
+                    className="absolute inset-0 object-contain opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-110"
+                    style={{ margin: 'auto' }}
+                    onError={(e) => {
                       e.currentTarget.src = '/placeholder.svg'
                     }}
                   />

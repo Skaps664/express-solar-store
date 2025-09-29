@@ -57,16 +57,27 @@ const ProductCard = memo(({ product, priority = false }: ProductCardProps) => {
       prefetch={false} // Only prefetch on hover
     >
       <div className="aspect-square relative overflow-hidden rounded-t-lg">
+        {/* Primary image */}
         <Image
           src={imageUrl}
           alt={product.name}
           fill
-          className="object-cover group-hover:scale-105 transition-transform duration-200"
+          className="object-cover transition-opacity duration-300 ease-in-out group-hover:opacity-0"
           priority={priority}
           loading={priority ? 'eager' : 'lazy'}
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           placeholder="blur"
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+        />
+        {/* Secondary image (fallback to primary if not available) */}
+        <Image
+          src={(product.images && product.images[1]) ? product.images[1] : imageUrl}
+          alt={`${product.name} - 2`}
+          fill
+          className="absolute inset-0 object-cover opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-105"
+          priority={priority}
+          loading={priority ? 'eager' : 'lazy'}
+          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
         />
         
         {/* Discount badge */}

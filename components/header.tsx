@@ -703,7 +703,7 @@ export default function Header({ user }: HeaderProps) {
 							{authUser ? (
 								<div>
 									<span className="text-sm font-medium block">Hello, {(authUser as any)?.name?.split(" ")[0] || "User"}</span>
-									<span className="text-xs text-white/80 block">Manage your account</span>
+									<Link className="text-xs text-white/80 block" href="/account">Manage your account</Link>
 									<button
 										className="text-xs text-red-300 hover:text-red-200 mt-1 underline"
 										onClick={(e) => {
@@ -717,7 +717,6 @@ export default function Header({ user }: HeaderProps) {
 							) : (
 								<Link href={`/auth?redirect=${encodeURIComponent(pathname)}`} onClick={handleMobileNavClick}>
 									<span className="text-sm font-medium block">Sign In / Register</span>
-									<span className="text-xs text-white/80 block">Manage your account</span>
 								</Link>
 							)}
 						</div>

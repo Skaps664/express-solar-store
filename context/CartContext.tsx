@@ -230,17 +230,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
+      // Show a loading toast
+      toast.loading("Creating your order...")
+      
       const response = await api.post('/api/orders', {
         customerInfo: params?.customerInfo,
         paymentMethod: params?.paymentMethod || "WhatsApp",
         orderNotes: params?.orderNotes
       })
+      
+      // Dismiss all toasts and show success
+      toast.dismiss()
+      
       const data = response.data as any
       
       if (data.success) {
         // Clear cart after successful order
         setCart([])
         setCartTotal(0)
+        toast.success("Order created successfully!")
         return {
           success: true,
           orderId: data.order?._id,
@@ -252,7 +260,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return { success: false }
     } catch (error: any) {
       console.error('Error creating order:', error)
-      toast.error(error?.response?.data?.message || "Failed to create order")
+      
+      // Handle specific error cases
+      if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+        toast.error("Order is taking longer than expected, but may still be processing. Please check your orders page.")
+      } else if (error.response?.status >= 500) {
+        toast.error("Server error. Your order may have been created. Please check your orders page.")
+      } else {
+        toast.error(error?.response?.data?.message || "Failed to create order")
+      }
+      
       return { success: false }
     }
   }, [isAuthenticated])

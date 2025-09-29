@@ -11,6 +11,8 @@ import AnalyticsClient from "@/lib/analytics"
 import { Grid, List, SlidersHorizontal, Filter, X, ChevronRight, Star, ShoppingCart, Heart } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { useCart } from "@/context/CartContext"
+import { toast } from "react-hot-toast"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE
 
@@ -75,6 +77,7 @@ function StorePageWithParams() {
 function StorePageContent({ category, search }: { category?: string; search?: string }) {
   console.log('🏪 Store component mounted. API_BASE:', API_BASE, 'category:', category, 'search:', search)
   
+  const { addToCart, loading: cartLoading } = useCart()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [lastFetchUrl, setLastFetchUrl] = useState<string | null>(null)
@@ -281,6 +284,21 @@ function StorePageContent({ category, search }: { category?: string; search?: st
       // window.location.href = `/product/${slug || id}`
     } catch (err) {
       console.error('Error handling product click:', err)
+    }
+  }
+
+  // Handle add to cart
+  const handleAddToCart = async (e: React.MouseEvent, productId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (cartLoading) return
+    
+    try {
+      await addToCart({ productId, quantity: 1 })
+    } catch (error) {
+      console.error('Failed to add to cart:', error)
+      toast.error('Failed to add product to cart')
     }
   }
 
@@ -569,14 +587,192 @@ function StorePageContent({ category, search }: { category?: string; search?: st
                   ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
                   : "space-y-4"
               }>
-                {products.map((product, index) => (
-                  <ProductCard
-                    key={product._id || index}
-                    product={product}
-                    viewMode={viewMode}
-                    onProductClick={handleProductClick}
-                  />
-                ))}
+                {products.map((product: any) => {
+                  const discountPercentage = product.originalPrice && product.originalPrice > product.price
+                    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+                    : 0
+
+                  if (viewMode === 'list') {
+                    return (
+                      <Link key={product._id} href={`/product/${product.slug || product._id}`} onClick={() => handleProductClick(product._id, product.slug)}>
+                        <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+                          <CardContent className="p-0">
+                            <div className="flex">
+                              <div className="w-48 h-32 relative flex-shrink-0">
+                                <Image
+                                  src={product.images?.[0] || '/placeholder-product.jpg'}
+                                  alt={product.name}
+                                  fill
+                                  className="object-contain transition-opacity duration-300 ease-in-out group-hover:opacity-0"
+                                />
+                                <Image
+                                  src={product.images?.[1] || product.images?.[0] || '/placeholder-product.jpg'}
+                                  alt={`${product.name} - 2`}
+                                  fill
+                                  className="absolute inset-0 object-contain opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-105"
+                                />
+                                {product.isNewArrival && (
+                                  <Badge className="absolute top-2 left-2 bg-green-500">New</Badge>
+                                )}
+                                {product.isBestSeller && (
+                                  <Badge className="absolute top-2 right-2 bg-orange-500">Best Seller</Badge>
+                                )}
+                                {discountPercentage > 0 && (
+                                  <Badge className="absolute bottom-2 left-2 bg-red-500">
+                                    -{discountPercentage}%
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex-1 p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                  <div className="flex-1">
+                                    <p className="text-xs text-gray-500 mb-1">{product.brand?.name}</p>
+                                    <h3 className="font-medium hover:text-[#1a5ca4] line-clamp-2">
+                                      {product.name}
+                                    </h3>
+                                  </div>
+                                  <Button variant="ghost" size="sm">
+                                    <Heart className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="flex items-center">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Star
+                                        key={i}
+                                        className={`h-3 w-3 ${
+                                          i < Math.floor(product.reviews?.rating || 0)
+                                            ? 'text-yellow-400 fill-current'
+                                            : 'text-gray-300'
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
+                                  <span className="text-xs text-gray-500">
+                                    ({product.reviews?.count || 0} reviews)
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-lg font-bold text-[#1a5ca4]">
+                                      {formatPrice(product.price)}
+                                    </span>
+                                    {product.originalPrice && product.originalPrice > product.price && (
+                                      <span className="text-sm text-gray-500 line-through">
+                                        {formatPrice(product.originalPrice)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    className="bg-[#1a5ca4] hover:bg-[#0e4a8a]"
+                                    disabled={product.stock === 0 || cartLoading}
+                                    onClick={(e) => handleAddToCart(e, product._id)}
+                                  >
+                                    <ShoppingCart className="h-4 w-4 mr-1" />
+                                    {product.stock === 0 ? 'Sold Out' : cartLoading ? 'Adding...' : 'Add to Cart'}
+                                  </Button>
+                                </div>
+                                
+                                {product.stock <= 5 && product.stock > 0 && (
+                                  <p className="text-xs text-orange-600 mt-2">
+                                    Only {product.stock} left in stock!
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    )
+                  }
+
+                  return (
+                    <Link key={product._id} href={`/product/${product.slug || product._id}`} onClick={() => handleProductClick(product._id, product.slug)}>
+                      <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors group">
+                        <div className="aspect-square relative bg-gray-100 overflow-hidden">
+                          {/* Primary image */}
+                          <Image 
+                            src={product.images?.[0] || '/placeholder-product.jpg'}
+                            alt={product.name}
+                            fill
+                            style={{ objectFit: 'contain' }}
+                            className="transition-opacity duration-300 ease-in-out group-hover:opacity-0"
+                          />
+                          {/* Secondary image (hover) */}
+                          <Image 
+                            src={product.images?.[1] || product.images?.[0] || '/placeholder-product.jpg'}
+                            alt={`${product.name} - 2`}
+                            fill
+                            style={{ objectFit: 'contain' }}
+                            className="absolute inset-0 opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-105"
+                          />
+
+                          {product.isNewArrival && (
+                            <Badge className="absolute top-2 left-2 bg-green-500">New</Badge>
+                          )}
+                          {product.isBestSeller && (
+                            <Badge className="absolute top-8 left-2 bg-orange-500">Best Seller</Badge>
+                          )}
+                          {discountPercentage > 0 && (
+                            <Badge className="absolute bottom-2 left-2 bg-red-500">
+                              -{discountPercentage}%
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <div className="p-4">
+                          <p className="text-xs text-gray-500 mb-1">{product.brand?.name}</p>
+                          <h3 className="font-medium mb-2 line-clamp-2">{product.name}</h3>
+
+                          <div className="flex items-center gap-1 mb-2">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-3 w-3 ${
+                                  i < Math.floor(product.reviews?.rating || 0)
+                                    ? 'text-yellow-400 fill-current'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                            <span className="text-xs text-gray-500 ml-1">
+                              ({product.reviews?.count || 0})
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2 mb-2">
+                            {product.originalPrice && product.originalPrice > product.price ? (
+                              <>
+                                <span className="text-[#1a5ca4] font-bold text-sm">{formatPrice(product.originalPrice)}</span>
+                                <span className="text-gray-500 line-through text-xs">{formatPrice(product.price)}</span>
+                              </>
+                            ) : (
+                              <span className="text-[#1a5ca4] font-bold text-sm">{formatPrice(product.price)}</span>
+                            )}
+                          </div>
+
+                          {product.stock <= 5 && product.stock > 0 && (
+                            <p className="text-xs text-orange-600 mb-2">
+                              Only {product.stock} left!
+                            </p>
+                          )}
+                          
+                          <Button 
+                            className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-sm py-2"
+                            onClick={(e) => handleAddToCart(e, product._id)}
+                            disabled={product.stock === 0 || cartLoading}
+                          >
+                            <ShoppingCart className="h-4 w-4 mr-2" />
+                            {product.stock === 0 ? 'Sold Out' : cartLoading ? 'Adding...' : 'Add to Cart'}
+                          </Button>
+                        </div>
+                      </div>
+                    </Link>
+                  )
+                })}
               </div>
 
               {/* Pagination */}
@@ -618,213 +814,5 @@ function StorePageContent({ category, search }: { category?: string; search?: st
         </div>
       </div>
     </div>
-  )
-}
-
-// Product Card Component
-function ProductCard({ 
-  product, 
-  viewMode, 
-  onProductClick 
-}: { 
-  product: Product
-  viewMode: 'grid' | 'list'
-  onProductClick: (id: string, slug: string) => void 
-}) {
-  const discountPercentage = product.originalPrice && product.originalPrice > product.price
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0
-
-  if (viewMode === 'list') {
-    return (
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-        <CardContent className="p-0">
-          <div className="flex">
-            <div className="w-48 h-32 relative flex-shrink-0">
-              <Image
-                src={product.images?.[0] || '/placeholder-product.jpg'}
-                alt={product.name}
-                fill
-                className="object-contain"
-              />
-              {product.isNewArrival && (
-                <Badge className="absolute top-2 left-2 bg-green-500">New</Badge>
-              )}
-              {product.isBestSeller && (
-                <Badge className="absolute top-2 right-2 bg-orange-500">Best Seller</Badge>
-              )}
-              {discountPercentage > 0 && (
-                <Badge className="absolute bottom-2 left-2 bg-red-500">
-                  -{discountPercentage}%
-                </Badge>
-              )}
-            </div>
-            <div className="flex-1 p-4">
-              <div className="flex justify-between items-start mb-2">
-                <div className="flex-1">
-                  <p className="text-xs text-gray-500 mb-1">{product.brand?.name}</p>
-                  <Link
-                    href={`/product/${product.slug || product._id}`}
-                    onClick={() => onProductClick(product._id, product.slug || product._id)}
-                    className="font-medium hover:text-[#1a5ca4] line-clamp-2"
-                  >
-                    {product.name}
-                  </Link>
-                </div>
-                <Button variant="ghost" size="sm">
-                  <Heart className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              <div className="flex items-center gap-2 mb-2">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-3 w-3 ${
-                        i < Math.floor(product.reviews?.rating || 0)
-                          ? 'text-yellow-400 fill-current'
-                          : 'text-gray-300'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <span className="text-xs text-gray-500">
-                  ({product.reviews?.count || 0} reviews)
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold text-[#1a5ca4]">
-                    {formatPrice(product.price)}
-                  </span>
-                  {product.originalPrice && product.originalPrice > product.price && (
-                    <span className="text-sm text-gray-500 line-through">
-                      {formatPrice(product.originalPrice)}
-                    </span>
-                  )}
-                </div>
-                <Button
-                  size="sm"
-                  className="bg-[#1a5ca4] hover:bg-[#0e4a8a]"
-                  disabled={product.stock === 0}
-                >
-                  <ShoppingCart className="h-4 w-4 mr-1" />
-                  {product.stock === 0 ? 'Sold Out' : 'Add to Cart'}
-                </Button>
-              </div>
-              
-              {product.stock <= 5 && product.stock > 0 && (
-                <p className="text-xs text-orange-600 mt-2">
-                  Only {product.stock} left in stock!
-                </p>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow group">
-      <CardContent className="p-0">
-        <Link href={`/product/${product.slug || product._id}`} onClick={() => onProductClick(product._id, product.slug || product._id)}>
-          <div className="relative">
-            <div className="aspect-square relative bg-gray-100 overflow-hidden">
-              {/* Primary image */}
-              <Image
-                src={product.images?.[0] || '/placeholder-product.jpg'}
-                alt={product.name}
-                fill
-                className="object-contain transition-opacity duration-300 ease-in-out group-hover:opacity-0"
-              />
-              {/* Secondary image (hover) */}
-              <Image
-                src={product.images?.[1] || product.images?.[0] || '/placeholder-product.jpg'}
-                alt={`${product.name} - 2`}
-                fill
-                className="absolute inset-0 object-contain opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-105"
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => e.preventDefault()}
-              >
-                <Heart className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            {product.isNewArrival && (
-              <Badge className="absolute top-2 left-2 bg-green-500">New</Badge>
-            )}
-            {product.isBestSeller && (
-              <Badge className="absolute top-8 left-2 bg-orange-500">Best Seller</Badge>
-            )}
-            {discountPercentage > 0 && (
-              <Badge className="absolute bottom-2 left-2 bg-red-500">
-                -{discountPercentage}%
-              </Badge>
-            )}
-          </div>
-
-          <div className="p-4">
-            <p className="text-xs text-gray-500 mb-1">{product.brand?.name}</p>
-            <h3 className="font-medium hover:text-[#1a5ca4] line-clamp-2 mb-2">
-              {product.name}
-            </h3>
-
-            <div className="flex items-center gap-1 mb-2">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  className={`h-3 w-3 ${
-                    i < Math.floor(product.reviews?.rating || 0)
-                      ? 'text-yellow-400 fill-current'
-                      : 'text-gray-300'
-                  }`}
-                />
-              ))}
-              <span className="text-xs text-gray-500 ml-1">
-                ({product.reviews?.count || 0})
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg font-bold text-[#1a5ca4]">
-                {formatPrice(product.price)}
-              </span>
-              {product.originalPrice && product.originalPrice > product.price && (
-                <span className="text-sm text-gray-500 line-through">
-                  {formatPrice(product.originalPrice)}
-                </span>
-              )}
-            </div>
-
-            {product.stock <= 5 && product.stock > 0 && (
-              <p className="text-xs text-orange-600 mb-2">
-                Only {product.stock} left!
-              </p>
-            )}
-          </div>
-        </Link>
-        
-        <div className="px-4 pb-4">
-          <Button
-            className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a]"
-            disabled={product.stock === 0}
-            onClick={(e) => {
-              e.preventDefault()
-              // Add to cart logic here
-            }}
-          >
-            <ShoppingCart className="h-4 w-4 mr-2" />
-            {product.stock === 0 ? 'Sold Out' : 'Add to Cart'}
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
   )
 }

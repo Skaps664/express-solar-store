@@ -9,6 +9,8 @@ import InBrandAd from "@/components/inBrandAd"
 import { useState, useEffect } from "react"
 import { useBrandAnalytics } from "@/hooks/useAnalyticTracking"
 import AnalyticsClient from "@/lib/analytics"
+import { useCart } from "@/context/CartContext"
+import { toast } from "@/hooks/use-toast"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
@@ -34,6 +36,27 @@ export default function BrandPage({ params }: BrandPageProps) {
   const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({})
   const [sortBy, setSortBy] = useState("featured")
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 12 })
+  
+  const { addToCart, loading: cartLoading } = useCart()
+  
+  // Handle Add to Cart
+  const handleAddToCart = async (e: React.MouseEvent, productId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (cartLoading) return
+    
+    try {
+      await addToCart({ productId, quantity: 1 })
+    } catch (error) {
+      console.error('Failed to add to cart:', error)
+      toast({
+        title: "Error",
+        description: "Failed to add product to cart",
+        variant: "destructive"
+      })
+    }
+  }
   
   // Track product click
   const handleProductClick = (productId: string, productSlug: string) => {
@@ -524,7 +547,13 @@ export default function BrandPage({ params }: BrandPageProps) {
                             <span className="text-[#1a5ca4] font-bold text-xs sm:text-sm">{formatPrice(product.price)}</span>
                           )}
                         </div>
-                        <Button className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-xs sm:text-sm py-1 sm:py-2">Add to Cart</Button>
+                        <Button 
+                          className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-xs sm:text-sm py-1 sm:py-2"
+                          onClick={(e) => handleAddToCart(e, product._id)}
+                          disabled={cartLoading}
+                        >
+                          {cartLoading ? "Adding..." : "Add to Cart"}
+                        </Button>
                       </div>
                     </div>
                   </Link>
@@ -611,7 +640,13 @@ export default function BrandPage({ params }: BrandPageProps) {
                         <span className="text-[#1a5ca4] font-bold text-xs sm:text-sm">{formatPrice(product.price)}</span>
                       )}
                     </div>
-                    <Button className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-xs sm:text-sm py-1 sm:py-2">Add to Cart</Button>
+                    <Button 
+                      className="w-full bg-[#1a5ca4] hover:bg-[#0e4a8a] text-xs sm:text-sm py-1 sm:py-2"
+                      onClick={(e) => handleAddToCart(e, product._id)}
+                      disabled={cartLoading}
+                    >
+                      {cartLoading ? "Adding..." : "Add to Cart"}
+                    </Button>
                   </div>
                 </div>
               </Link>

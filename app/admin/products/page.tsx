@@ -879,7 +879,13 @@ export default function ProductsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Products</h1>
           <p className="text-muted-foreground">Manage your solar energy product inventory.</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+          // Only allow closing via explicit user action (X button), not by clicking outside
+          if (!open) {
+            setIsAddDialogOpen(false);
+          }
+          setIsAddDialogOpen(open);
+        }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -889,7 +895,9 @@ export default function ProductsPage() {
           <DialogContent 
             className="sm:max-w-[900px] max-h-[80vh] overflow-y-auto"
             onOpenAutoFocus={(e) => e.preventDefault()}
-            onCloseAutoFocus={(e) => e.preventDefault()}>
+            onCloseAutoFocus={(e) => e.preventDefault()}
+            onInteractOutside={(e) => e.preventDefault()}
+            onEscapeKeyDown={(e) => e.preventDefault()}>
             <DialogHeader>
               <DialogTitle>Add New Product</DialogTitle>
               <DialogDescription>Fill in the details below to add a new product.</DialogDescription>
@@ -1470,7 +1478,9 @@ export default function ProductsPage() {
           <DialogContent 
             className="sm:max-w-[900px] max-h-[80vh] overflow-y-auto"
             onOpenAutoFocus={(e) => e.preventDefault()}
-            onCloseAutoFocus={(e) => e.preventDefault()}>
+            onCloseAutoFocus={(e) => e.preventDefault()}
+            onInteractOutside={(e) => e.preventDefault()}
+            onEscapeKeyDown={(e) => e.preventDefault()}>
             <DialogHeader>
               <DialogTitle>Edit Product</DialogTitle>
               <DialogDescription>

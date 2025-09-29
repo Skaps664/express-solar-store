@@ -35,7 +35,7 @@ export const removeToken = () => {
 export const api = axios.create({
   baseURL,
   withCredentials: true,
-  timeout: 30000, // Increased timeout for production (30 seconds)
+  timeout: 60000, // Increased timeout for order creation (60 seconds)
   headers: {
     'Content-Type': 'application/json',
   },

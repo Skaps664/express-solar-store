@@ -268,13 +268,23 @@ export default function BestSellers() {
                   className="block bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-[#1a5ca4] hover:shadow-lg transition-all duration-300 group relative h-full"
                 >
                   <div className="relative">
-                    <div className="h-40 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-3">
+                    <div className="h-40 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-3 overflow-hidden">
+                      {/* Primary image */}
                       <Image
                         src={product.images?.[0] || "/placeholder.svg"}
                         alt={product.name}
                         width={150}
                         height={150}
-                        className="object-contain group-hover:scale-110 transition-transform duration-300"
+                        className="object-contain transition-opacity duration-300 ease-in-out group-hover:opacity-0"
+                      />
+                      {/* Secondary image (hover) */}
+                      <Image
+                        src={product.images?.[1] || product.images?.[0] || "/placeholder.svg"}
+                        alt={`${product.name} - 2`}
+                        width={150}
+                        height={150}
+                        className="absolute inset-0 object-contain opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-110"
+                        style={{ margin: 'auto' }}
                       />
                     </div>
                   </div>

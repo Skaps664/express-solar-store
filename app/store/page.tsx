@@ -57,13 +57,23 @@ const formatPrice = (price: number) => {
 export default function StorePageWrapper() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <StorePageContent />
+      <StorePageWithParams />
     </Suspense>
   )
 }
 
+function StorePageWithParams() {
+  const searchParams = useSearchParams()
+  const category = searchParams?.get('category') || undefined
+  const search = searchParams?.get('search') || undefined
+  
+  console.log('🔍 Store search params:', { category, search })
+  
+  return <StorePageContent category={category} search={search} />
+}
+
 function StorePageContent({ category, search }: { category?: string; search?: string }) {
-  console.log('🏪 Store component mounted. API_BASE:', API_BASE, 'category:', category)
+  console.log('🏪 Store component mounted. API_BASE:', API_BASE, 'category:', category, 'search:', search)
   
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -112,15 +122,18 @@ function StorePageContent({ category, search }: { category?: string; search?: st
     // Use dynamic import to load the filter utility
     import('@/lib/utils/filterUtils').then(({ buildProductQueryParams }) => {
       const params = buildProductQueryParams(filterState, extras)
-      console.log('🔍 Fetching products with URL:', `${API_BASE}/api/products?${params.toString()}`)
-      setLastFetchUrl(`${API_BASE}/api/products?${params.toString()}`)
-      fetch(`${API_BASE}/api/products?${params.toString()}`)
+      const fetchUrl = `${API_BASE}/api/products?${params.toString()}`
+      console.log('🔍 Fetching products with URL:', fetchUrl)
+      console.log('🔍 Search term being sent:', search)
+      setLastFetchUrl(fetchUrl)
+      fetch(fetchUrl)
         .then((res) => {
           console.log('🔍 Products API response status:', res.status)
           return res.json()
         })
         .then((data) => {
           console.log('🔍 Products API response data:', data)
+          console.log('🔍 Number of products returned:', data.products?.length || 0)
           setProducts(data.products || [])
           setPagination(data.pagination || { page: 1, pages: 1, total: 0, limit: 12 })
           setLoading(false)
@@ -719,12 +732,20 @@ function ProductCard({
       <CardContent className="p-0">
         <Link href={`/product/${product.slug || product._id}`} onClick={() => onProductClick(product._id, product.slug || product._id)}>
           <div className="relative">
-            <div className="aspect-square relative bg-gray-100">
+            <div className="aspect-square relative bg-gray-100 overflow-hidden">
+              {/* Primary image */}
               <Image
                 src={product.images?.[0] || '/placeholder-product.jpg'}
                 alt={product.name}
                 fill
-                className="object-contain group-hover:scale-105 transition-transform"
+                className="object-contain transition-opacity duration-300 ease-in-out group-hover:opacity-0"
+              />
+              {/* Secondary image (hover) */}
+              <Image
+                src={product.images?.[1] || product.images?.[0] || '/placeholder-product.jpg'}
+                alt={`${product.name} - 2`}
+                fill
+                className="absolute inset-0 object-contain opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-105"
               />
               <Button
                 variant="ghost"

@@ -77,14 +77,23 @@ export function ProductCard({ productId, onAddToCart }: ProductCardProps) {
     <Card className="w-full hover:shadow-lg transition-shadow duration-300">
       <CardHeader className="p-0">
         <div className="relative">
-          <Link href={`/products/${product._id}`}>
-            <Image
-              src={product.images[0] || '/placeholder-product.jpg'}
-              alt={product.name}
-              width={300}
-              height={200}
-              className="w-full h-48 object-cover rounded-t-lg"
-            />
+          <Link href={`/products/${product._id}`} className="group block">
+            <div className="relative w-full h-48 overflow-hidden rounded-t-lg">
+              <Image
+                src={product.images[0] || '/placeholder-product.jpg'}
+                alt={product.name}
+                fill
+                sizes="(max-width: 640px) 100vw, 300px"
+                className="object-cover transition-opacity duration-300 ease-in-out group-hover:opacity-0"
+              />
+              <Image
+                src={product.images[1] || product.images[0] || '/placeholder-product.jpg'}
+                alt={`${product.name} - 2`}
+                fill
+                sizes="(max-width: 640px) 100vw, 300px"
+                className="absolute inset-0 object-cover opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-105"
+              />
+            </div>
           </Link>
           <button className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white">
             <Heart className="h-4 w-4" />

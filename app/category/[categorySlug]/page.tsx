@@ -660,12 +660,20 @@ function ProductCard({
     <Card className="overflow-hidden hover:shadow-lg transition-shadow group">
       <CardContent className="p-0">
         <div className="relative">
-          <div className="aspect-square relative">
+          <div className="aspect-square relative overflow-hidden">
+            {/* Primary image */}
             <Image
               src={product.images?.[0] || '/placeholder-product.jpg'}
               alt={product.name}
               fill
-              className="object-contain group-hover:scale-105 transition-transform"
+              className="object-contain transition-opacity duration-300 ease-in-out group-hover:opacity-0"
+            />
+            {/* Secondary image (hover) */}
+            <Image
+              src={product.images?.[1] || product.images?.[0] || '/placeholder-product.jpg'}
+              alt={`${product.name} - 2`}
+              fill
+              className="absolute inset-0 object-contain opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-105"
             />
             <Button
               variant="ghost"

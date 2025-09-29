@@ -493,13 +493,23 @@ export default function BrandPage({ params }: BrandPageProps) {
               <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
                 {allProducts.map((product: any) => (
                   <Link key={product._id} href={`/product/${product.slug}`} onClick={() => handleProductClick(product._id, product.slug)}>
-                    <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors">
-                      <div className="h-32 sm:h-48 bg-gray-100 relative">
+                    <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors group">
+                      <div className="h-32 sm:h-48 bg-gray-100 relative overflow-hidden">
+                        {/* Primary image */}
                         <Image 
                           src={product.images?.[0] || '/default-product.jpg'}
                           alt={product.name}
                           fill
                           style={{ objectFit: 'contain' }}
+                          className="transition-opacity duration-300 ease-in-out group-hover:opacity-0"
+                        />
+                        {/* Secondary image (hover) */}
+                        <Image 
+                          src={product.images?.[1] || product.images?.[0] || '/default-product.jpg'}
+                          alt={`${product.name} - 2`}
+                          fill
+                          style={{ objectFit: 'contain' }}
+                          className="absolute inset-0 opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-105"
                         />
                       </div>
                       <div className="p-2 sm:p-4">
@@ -570,13 +580,23 @@ export default function BrandPage({ params }: BrandPageProps) {
             {/* Show custom featured products if available from settings, otherwise show default featured products */}
             {(brand.pageSettings?.featuredProducts?.length > 0 ? brand.pageSettings.featuredProducts : featuredProducts).map((product: any) => (
               <Link key={product._id} href={`/product/${product.slug}`} onClick={() => handleProductClick(product._id, product.slug)}>
-                <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors">
-                  <div className="h-32 sm:h-48 bg-gray-100 relative">
+                <div className="border border-gray-200 rounded-lg overflow-hidden hover:border-[#1a5ca4] hover:shadow-md transition-colors group">
+                  <div className="h-32 sm:h-48 bg-gray-100 relative overflow-hidden">
+                    {/* Primary image */}
                     <Image 
                       src={product.images?.[0] || '/default-product.jpg'}
                       alt={product.name}
                       fill
                       style={{ objectFit: 'contain' }}
+                      className="transition-opacity duration-300 ease-in-out group-hover:opacity-0"
+                    />
+                    {/* Secondary image (hover) */}
+                    <Image 
+                      src={product.images?.[1] || product.images?.[0] || '/default-product.jpg'}
+                      alt={`${product.name} - 2`}
+                      fill
+                      style={{ objectFit: 'contain' }}
+                      className="absolute inset-0 opacity-0 transition-opacity duration-300 ease-in-out group-hover:opacity-100 group-hover:scale-105"
                     />
                   </div>
                   <div className="p-2 sm:p-4">

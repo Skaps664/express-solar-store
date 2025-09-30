@@ -327,6 +327,14 @@ export default function BrandPartnership() {
               e.preventDefault()
               setIsSubmitting(true)
 
+              // Debug environment variables in production
+              console.log('=== PARTNERSHIP FORM PRODUCTION DEBUG START ===')
+              console.log('Node Environment:', process.env.NODE_ENV)
+              console.log('EmailJS Service ID:', process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID)
+              console.log('Partnership Template ID:', process.env.NEXT_PUBLIC_PARTNERSHIP_TEMPLATE_ID)
+              console.log('EmailJS Public Key:', process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ? 'Present' : 'Missing')
+              console.log('=== PARTNERSHIP FORM PRODUCTION DEBUG END ===')
+
               if (!formData.name || !formData.email || !formData.message) {
                 alert('Please fill name, email and message')
                 setIsSubmitting(false)

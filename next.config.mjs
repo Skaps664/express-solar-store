@@ -37,9 +37,10 @@ const nextConfig = {
     scrollRestoration: true,
   },
 
-  // Remove console.logs in production
+  // Remove console.logs in production (disabled for debugging)
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
+    // Temporarily disable console removal for debugging
+    // removeConsole: process.env.NODE_ENV === "production",
   },
 
   // Enable compression

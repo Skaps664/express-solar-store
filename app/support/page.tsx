@@ -83,14 +83,6 @@ export default function Support() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Debug environment variables in production
-    console.log('=== SUPPORT FORM PRODUCTION DEBUG START ===')
-    console.log('Node Environment:', process.env.NODE_ENV)
-    console.log('EmailJS Service ID:', process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID)
-    console.log('Support Template ID:', process.env.NEXT_PUBLIC_SUPPORT_TEMPLATE_ID)
-    console.log('EmailJS Public Key:', process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ? 'Present' : 'Missing')
-    console.log('=== SUPPORT FORM PRODUCTION DEBUG END ===')
-
     try {
       const templateParams = {
         form_type: 'Support Request',

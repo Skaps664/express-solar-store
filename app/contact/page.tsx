@@ -79,15 +79,6 @@ export default function ContactPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    // Debug environment variables in production
-    console.log('=== PRODUCTION DEBUG START ===')
-    console.log('Node Environment:', process.env.NODE_ENV)
-    console.log('EmailJS Service ID:', process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID)
-    console.log('Contact Template ID:', process.env.NEXT_PUBLIC_CONTACT_TEMPLATE_ID)
-    console.log('EmailJS Public Key:', process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ? 'Present' : 'Missing')
-    console.log('All Environment Variables:', Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC_')))
-    console.log('=== PRODUCTION DEBUG END ===')
-
     try {
       const templateParams = {
         form_type: 'Contact Request',

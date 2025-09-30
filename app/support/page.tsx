@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Phone, Mail, MessageCircle, Clock, MapPin, Send, CheckCircle, AlertCircle, HelpCircle } from "lucide-react"
+import emailjs from '@emailjs/browser'
 
 export default function Support() {
   const [formData, setFormData] = useState({
@@ -82,11 +83,47 @@ export default function Support() {
     e.preventDefault()
     setIsSubmitting(true)
     
-    // Simulate form submission
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    
-    setIsSubmitting(false)
-    setSubmitted(true)
+    try {
+      const templateParams = {
+        form_type: 'Support Request',
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || 'Not provided',
+        category: formData.category,
+        subject: formData.subject || 'Support Inquiry',
+        message: formData.message,
+        orderNumber: formData.orderNumber || 'Not provided',
+        // Additional parameters for better email formatting
+        to_name: 'Solar Express Support Team',
+        from_name: formData.name,
+        reply_to: formData.email,
+        // Override subject line
+        email_subject: `New Support Request - ${formData.category || formData.subject || 'General Support'}`
+      }
+
+      await emailjs.send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+        process.env.NEXT_PUBLIC_SUPPORT_TEMPLATE_ID!,
+        templateParams,
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+      )
+
+      setSubmitted(true)
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        category: "",
+        subject: "",
+        message: "",
+        orderNumber: ""
+      })
+    } catch (error) {
+      console.error('Email send failed:', error)
+      alert('Failed to send message. Please try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

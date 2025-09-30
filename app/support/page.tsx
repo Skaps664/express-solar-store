@@ -101,13 +101,21 @@ export default function Support() {
         email_subject: `New Support Request - ${formData.category || formData.subject || 'General Support'}`
       }
 
-      await emailjs.send(
+      console.log('EmailJS Config:', {
+        serviceId: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        templateId: process.env.NEXT_PUBLIC_SUPPORT_TEMPLATE_ID,
+        publicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ? 'Present' : 'Missing',
+        templateParams
+      })
+
+      const result = await emailjs.send(
         process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
         process.env.NEXT_PUBLIC_SUPPORT_TEMPLATE_ID!,
         templateParams,
         process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
       )
 
+      console.log('EmailJS Success:', result)
       setSubmitted(true)
       setFormData({
         name: "",
@@ -118,9 +126,24 @@ export default function Support() {
         message: "",
         orderNumber: ""
       })
-    } catch (error) {
-      console.error('Email send failed:', error)
-      alert('Failed to send message. Please try again.')
+    } catch (error: any) {
+      console.error('EmailJS Error Details:', {
+        error,
+        message: error?.message,
+        text: error?.text,
+        status: error?.status,
+        stack: error?.stack
+      })
+      
+      let errorMessage = 'Failed to send message. Please try again.'
+      
+      if (error?.text) {
+        errorMessage = `Error: ${error.text}`
+      } else if (error?.message) {
+        errorMessage = `Error: ${error.message}`
+      }
+      
+      alert(errorMessage)
     } finally {
       setIsSubmitting(false)
     }

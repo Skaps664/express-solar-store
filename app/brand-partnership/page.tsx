@@ -350,17 +350,40 @@ export default function BrandPartnership() {
                   email_subject: `New Partnership Application - ${formData.company || formData.name} (${formData.partnershipType})`
                 }
 
-                await emailjs.send(
+                console.log('EmailJS Config:', {
+                  serviceId: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+                  templateId: process.env.NEXT_PUBLIC_PARTNERSHIP_TEMPLATE_ID,
+                  publicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ? 'Present' : 'Missing',
+                  templateParams
+                })
+
+                const result = await emailjs.send(
                   process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
                   process.env.NEXT_PUBLIC_PARTNERSHIP_TEMPLATE_ID!,
                   templateParams,
                   process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
                 )
 
+                console.log('EmailJS Success:', result)
                 setSubmitted(true)
-              } catch (error) {
-                console.error('Email send failed:', error)
-                alert('Failed to submit application. Please try again.')
+              } catch (error: any) {
+                console.error('EmailJS Error Details:', {
+                  error,
+                  message: error?.message,
+                  text: error?.text,
+                  status: error?.status,
+                  stack: error?.stack
+                })
+                
+                let errorMessage = 'Failed to submit application. Please try again.'
+                
+                if (error?.text) {
+                  errorMessage = `Error: ${error.text}`
+                } else if (error?.message) {
+                  errorMessage = `Error: ${error.message}`
+                }
+                
+                alert(errorMessage)
               } finally {
                 setIsSubmitting(false)
               }

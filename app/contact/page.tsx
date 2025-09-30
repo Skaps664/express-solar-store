@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -16,6 +16,64 @@ export default function ContactPage() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+
+  // Load Google Maps Store Locator
+  useEffect(() => {
+    // Load the Google Maps Extended Component Library
+    const script = document.createElement('script')
+    script.type = 'module'
+    script.src = 'https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js'
+    document.head.appendChild(script)
+
+    // Configuration for the store locator
+    const configuration = {
+      "locations": [
+        {
+          "title": "Solar Express",
+          "address1": "Safroon Plaza 1st floor, Street 6 United Housing Society Opposite HBK Hypermarket",
+          "address2": "Achini Chowk Ring road Hayatabad, Peshawar, Pakistan 25000",
+          "coords": {"lat": 33.9765, "lng": 71.4735711},
+          "placeId": "ChIJgwNGrIkR2TgRP1ruOMA7mRs"
+        }
+      ],
+      "mapOptions": {
+        "center": {"lat": 33.9765, "lng": 71.4735711}, // Center on your location
+        "fullscreenControl": true,
+        "mapTypeControl": false,
+        "streetViewControl": false,
+        "zoom": 15, // Better zoom for single location
+        "zoomControl": true,
+        "maxZoom": 17,
+        "mapId": ""
+      },
+      "mapsApiKey": process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "YOUR_API_KEY_HERE",
+      "capabilities": {
+        "input": false,
+        "autocomplete": false,
+        "directions": true, // Enable directions
+        "distanceMatrix": false,
+        "details": false,
+        "actions": false
+      }
+    }
+
+    // Wait for the component to be defined and then configure it
+    script.onload = () => {
+      customElements.whenDefined('gmpx-store-locator').then(() => {
+        const locator = document.querySelector('gmpx-store-locator') as any
+        if (locator && locator.configureFromQuickBuilder) {
+          locator.configureFromQuickBuilder(configuration)
+        }
+      })
+    }
+
+    return () => {
+      // Cleanup
+      if (script.parentNode) {
+        script.parentNode.removeChild(script)
+      }
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,18 +94,41 @@ export default function ContactPage() {
         email_subject: `New Contact Request - ${formData.subject || 'General Inquiry'}`
       }
 
-      await emailjs.send(
+      console.log('EmailJS Config:', {
+        serviceId: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        templateId: process.env.NEXT_PUBLIC_CONTACT_TEMPLATE_ID,
+        publicKey: process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ? 'Present' : 'Missing',
+        templateParams
+      })
+
+      const result = await emailjs.send(
         process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
         process.env.NEXT_PUBLIC_CONTACT_TEMPLATE_ID!,
         templateParams,
         process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
       )
 
+      console.log('EmailJS Success:', result)
       setSubmitted(true)
       setFormData({ name: '', email: '', subject: '', message: '' })
-    } catch (error) {
-      console.error('Email send failed:', error)
-      alert('Failed to send message. Please try again.')
+    } catch (error: any) {
+      console.error('EmailJS Error Details:', {
+        error,
+        message: error?.message,
+        text: error?.text,
+        status: error?.status,
+        stack: error?.stack
+      })
+      
+      let errorMessage = 'Failed to send message. Please try again.'
+      
+      if (error?.text) {
+        errorMessage = `Error: ${error.text}`
+      } else if (error?.message) {
+        errorMessage = `Error: ${error.message}`
+      }
+      
+      alert(errorMessage)
     } finally {
       setIsSubmitting(false)
     }
@@ -126,9 +207,41 @@ export default function ContactPage() {
 
       {/* Map and Contact Form */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        {/* Map */}
-        <div className="border-2 border-dashed border-gray-300 rounded-lg h-96 flex items-center justify-center">
-          <div className="text-gray-400">[Map Location]</div>
+        {/* Google Maps Store Locator */}
+        <div className="border-2 border-dashed border-gray-300 rounded-lg h-96 overflow-hidden">
+          <div 
+            id="store-locator-container"
+            style={{ width: '100%', height: '100%' }}
+            dangerouslySetInnerHTML={{
+              __html: `
+                <gmpx-api-loader 
+                  key="${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_API_KEY_HERE'}" 
+                  solution-channel="GMP_QB_locatorplus_v11_c">
+                </gmpx-api-loader>
+                <gmpx-store-locator 
+                  map-id="DEMO_MAP_ID"
+                  style="
+                    width: 100%;
+                    height: 100%;
+                    --gmpx-color-surface: #fff;
+                    --gmpx-color-on-surface: #212121;
+                    --gmpx-color-on-surface-variant: #757575;
+                    --gmpx-color-primary: #1a5ca4;
+                    --gmpx-color-outline: #e0e0e0;
+                    --gmpx-fixed-panel-width-row-layout: 28.5em;
+                    --gmpx-fixed-panel-height-column-layout: 65%;
+                    --gmpx-font-family-base: 'Inter', sans-serif;
+                    --gmpx-font-family-headings: 'Inter', sans-serif;
+                    --gmpx-font-size-base: 0.875rem;
+                    --gmpx-hours-color-open: #188038;
+                    --gmpx-hours-color-closed: #d50000;
+                    --gmpx-rating-color: #ffb300;
+                    --gmpx-rating-color-empty: #e0e0e0;
+                  ">
+                </gmpx-store-locator>
+              `
+            }}
+          />
         </div>
 
         {/* Contact Form */}
@@ -248,85 +361,3 @@ export default function ContactPage() {
     </div>
   )
 }
-
-
-// <!--
-//   Copyright 2023 Google LLC
-
-//   Licensed under the Apache License, Version 2.0 (the "License");
-//   you may not use this file except in compliance with the License.
-//   You may obtain a copy of the License at
-
-//       https://www.apache.org/licenses/LICENSE-2.0
-
-//   Unless required by applicable law or agreed to in writing, software
-//   distributed under the License is distributed on an "AS IS" BASIS,
-//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-//   See the License for the specific language governing permissions and
-//   limitations under the License.
-// -->
-// <!DOCTYPE html>
-// <html>
-//   <head>
-//     <title>Locator</title>
-//     <meta charset="utf-8">
-//     <meta name="viewport" content="width=device-width,initial-scale=1">
-//     <style>
-//       html,
-//       body {
-//         height: 100%;
-//         margin: 0;
-//       }
-
-//       gmpx-store-locator {
-//         width: 100%;
-//         height: 100%;
-
-//         /* These parameters customize the appearance of Locator Plus. See the documentation at
-//            https://github.com/googlemaps/extended-component-library/blob/main/src/store_locator/README.md
-//            for more information. */
-//         --gmpx-color-surface: #fff;
-//         --gmpx-color-on-surface: #212121;
-//         --gmpx-color-on-surface-variant: #757575;
-//         --gmpx-color-primary: #1967d2;
-//         --gmpx-color-outline: #e0e0e0;
-//         --gmpx-fixed-panel-width-row-layout: 28.5em;
-//         --gmpx-fixed-panel-height-column-layout: 65%;
-//         --gmpx-font-family-base: "Roboto", sans-serif;
-//         --gmpx-font-family-headings: "Roboto", sans-serif;
-//         --gmpx-font-size-base: 0.875rem;
-//         --gmpx-hours-color-open: #188038;
-//         --gmpx-hours-color-closed: #d50000;
-//         --gmpx-rating-color: #ffb300;
-//         --gmpx-rating-color-empty: #e0e0e0;
-//       }
-//     </style>
-//     <script>
-//       const CONFIGURATION = {
-//         "locations": [
-//           {"title":"Solar Express","address1":"Safroon Plaza 1st floor, Street 6 United Housing Society Opposite HBK ","address2":"Peshawar, Pakistan","coords":{"lat":33.9765,"lng":71.4735711},"placeId":"ChIJgwNGrIkR2TgRP1ruOMA7mRs"}
-//         ],
-//         "mapOptions": {"center":{"lat":38.0,"lng":-100.0},"fullscreenControl":true,"mapTypeControl":false,"streetViewControl":false,"zoom":4,"zoomControl":true,"maxZoom":17,"mapId":""},
-//         "mapsApiKey": "YOUR_API_KEY_HERE",
-//         "capabilities": {"input":false,"autocomplete":false,"directions":false,"distanceMatrix":false,"details":false,"actions":false}
-//       };
-
-//     </script>
-//     <script type="module">
-//       document.addEventListener('DOMContentLoaded', async () => {
-//         await customElements.whenDefined('gmpx-store-locator');
-//         const locator = document.querySelector('gmpx-store-locator');
-//         locator.configureFromQuickBuilder(CONFIGURATION);
-//       });
-//     </script>
-//   </head>
-//   <body>
-//     <script type="module" src="https://ajax.googleapis.com/ajax/libs/@googlemaps/extended-component-library/0.6.11/index.min.js"></script>
-
-//     <!-- Uses components from the Extended Component Library; see
-//          https://github.com/googlemaps/extended-component-library for more information
-//          on these HTML tags and how to configure them. -->
-//     <gmpx-api-loader key="YOUR_API_KEY_HERE" solution-channel="GMP_QB_locatorplus_v11_c"></gmpx-api-loader>
-//     <gmpx-store-locator map-id="DEMO_MAP_ID"></gmpx-store-locator>
-//   </body>
-// </html>

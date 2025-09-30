@@ -1,8 +1,59 @@
 "use client"
 
-import { Handshake, Target, TrendingUp, Globe, Award, Users, CheckCircle, Star } from "lucide-react"
+import { useState } from "react"
+import { Handshake, Target, TrendingUp, Globe, Award, Users, CheckCircle, Star, Send } from "lucide-react"
+import emailjs from '@emailjs/browser'
 
 export default function BrandPartnership() {
+  const [formData, setFormData] = useState({
+    name: '',
+    company: '',
+    email: '',
+    phone: '',
+    partnershipType: 'Product Vendors',
+    message: ''
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-md mx-auto text-center p-8">
+          <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="h-10 w-10 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-[#1a5ca4] mb-4">Application Submitted Successfully!</h2>
+          <p className="text-gray-600 mb-6">
+            Thank you for your partnership application. Our partnerships team will get back to you within 2 business days.
+          </p>
+          <button 
+            onClick={() => {
+              setSubmitted(false)
+              setFormData({
+                name: '',
+                company: '',
+                email: '',
+                phone: '',
+                partnershipType: 'Product Vendors',
+                message: ''
+              })
+            }}
+            className="bg-[#1a5ca4] hover:bg-[#144a87] text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+          >
+            Submit Another Application
+          </button>
+        </div>
+      </div>
+    )
+  }
   const benefits = [
     {
       icon: TrendingUp,
@@ -274,57 +325,119 @@ export default function BrandPartnership() {
 
             <form id="brand-partnership-form" onSubmit={async (e) => {
               e.preventDefault()
-              const form = e.currentTarget as HTMLFormElement
-              const formData = new FormData(form)
-              const payload = {
-                name: String(formData.get('name') || ''),
-                company: String(formData.get('company') || ''),
-                email: String(formData.get('email') || ''),
-                phone: String(formData.get('phone') || ''),
-                partnershipType: String(formData.get('type') || ''),
-                message: String(formData.get('message') || ''),
-              }
+              setIsSubmitting(true)
 
-              if (!payload.name || !payload.email || !payload.message) {
+              if (!formData.name || !formData.email || !formData.message) {
                 alert('Please fill name, email and message')
+                setIsSubmitting(false)
                 return
               }
 
               try {
-                const res = await fetch('/api/partnership/submit', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(payload)
-                })
-                const data = await res.json()
-                if (res.ok) {
-                  alert('Application submitted — we will get back to you soon')
-                  form.reset()
-                } else {
-                  alert(data?.message || 'Submission failed')
+                const templateParams = {
+                  name: formData.name,
+                  company: formData.company || 'Not specified',
+                  email: formData.email,
+                  phone: formData.phone || 'Not provided',
+                  partnershipType: formData.partnershipType,
+                  message: formData.message,
+                  // Additional parameters for better email formatting
+                  to_name: 'Solar Express Partnership Team',
+                  from_name: formData.name,
+                  reply_to: formData.email,
+                  subject: `Partnership Application - ${formData.company || formData.name}`,
+                  // Override subject line
+                  email_subject: `New Partnership Application - ${formData.company || formData.name} (${formData.partnershipType})`
                 }
-              } catch (err) {
-                console.error('Submit error', err)
-                alert('Failed to submit — try again later')
+
+                await emailjs.send(
+                  process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!,
+                  process.env.NEXT_PUBLIC_PARTNERSHIP_TEMPLATE_ID!,
+                  templateParams,
+                  process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY!
+                )
+
+                setSubmitted(true)
+              } catch (error) {
+                console.error('Email send failed:', error)
+                alert('Failed to submit application. Please try again.')
+              } finally {
+                setIsSubmitting(false)
               }
             }} className="grid grid-cols-1 gap-4">
               <div className="grid sm:grid-cols-2 gap-4">
-                <input name="name" placeholder="Full Name" className="border rounded-md p-3" />
-                <input name="company" placeholder="Company" className="border rounded-md p-3" />
+                <input 
+                  name="name" 
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Full Name" 
+                  className="border rounded-md p-3" 
+                  required 
+                />
+                <input 
+                  name="company" 
+                  value={formData.company}
+                  onChange={handleInputChange}
+                  placeholder="Company" 
+                  className="border rounded-md p-3" 
+                  required 
+                />
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
-                <input name="email" type="email" placeholder="Email" className="border rounded-md p-3" />
-                <input name="phone" placeholder="Phone" className="border rounded-md p-3" />
+                <input 
+                  name="email" 
+                  type="email" 
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="Email" 
+                  className="border rounded-md p-3" 
+                  required 
+                />
+                <input 
+                  name="phone" 
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="Phone" 
+                  className="border rounded-md p-3" 
+                />
               </div>
-              <select name="type" className="border rounded-md p-3">
+              <select 
+                name="partnershipType" 
+                value={formData.partnershipType}
+                onChange={handleInputChange}
+                className="border rounded-md p-3"
+              >
                 <option value="Product Vendors">Product Vendors</option>
                 <option value="Installation Partners">Installation Partners</option>
                 <option value="Technology Partners">Technology Partners</option>
                 <option value="Other">Other</option>
               </select>
-              <textarea name="message" placeholder="Tell us about your company and interest" className="border rounded-md p-3 h-28" />
+              <textarea 
+                name="message" 
+                value={formData.message}
+                onChange={handleInputChange}
+                placeholder="Tell us about your company and interest" 
+                className="border rounded-md p-3 h-28" 
+                required 
+              />
               <div className="flex justify-end">
-                <button type="submit" className="bg-[#1a5ca4] text-white px-6 py-3 rounded-md">Submit Application</button>
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="bg-[#1a5ca4] hover:bg-[#144a87] disabled:bg-gray-400 text-white px-6 py-3 rounded-md flex items-center gap-2 transition-colors"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-5 w-5" />
+                      Submit Application
+                    </>
+                  )}
+                </button>
               </div>
             </form>
           </div>

@@ -38,8 +38,8 @@ const navigation = [
   { name: "Blog Categories", href: "/admin/blog/categories", icon: Tag },
   { name: "Customers", href: "/admin/customers", icon: Users },
   { name: "Role Management", href: "/admin/roles", icon: Users },
-  { name: "Website Settings", href: "/admin/website-settings", icon: Settings },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
+  // { name: "Website Settings", href: "/admin/website-settings", icon: Settings },
+  // { name: "Settings", href: "/admin/settings", icon: Settings },
 ]
 
 type AdminUser = {

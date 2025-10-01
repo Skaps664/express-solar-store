@@ -237,7 +237,7 @@ export default function BlogPost() {
         </div>
 
         {/* Featured Image */}
-        {blog.featuredImage?.url && (
+        {/* {blog.featuredImage?.url && (
           <div className="mb-8">
             <Image
               src={blog.featuredImage.url}
@@ -247,7 +247,7 @@ export default function BlogPost() {
               className="w-full h-auto rounded-lg"
             />
           </div>
-        )}
+        )} */}
       </header>
 
       {/* Blog Content */}

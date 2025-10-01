@@ -49,11 +49,15 @@ import {
   Home,
   Building,
   Save,
-  Lock
+  Lock,
+  Star,
+  MessageSquare,
+  ThumbsUp
 } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { useRouter } from "next/navigation"
 import toast from "react-hot-toast"
+import { ReviewForm } from "@/components/review-form"
 
 interface OrderItem {
   name: string
@@ -110,12 +114,52 @@ interface Address {
   isDefault: boolean
 }
 
+interface EligibleReviewItem {
+  orderItemId: string
+  orderId: string
+  orderNumber: string
+  product: {
+    _id: string
+    name: string
+    slug: string
+    image?: string
+  }
+  purchaseDate: string
+  deliveryDate: string
+  quantity: number
+  price: number
+}
+
+interface UserReview {
+  _id: string
+  product: {
+    _id: string
+    name: string
+    slug: string
+    image?: string
+  }
+  order: {
+    orderNumber: string
+  }
+  rating: number
+  title: string
+  comment: string
+  images: string[]
+  helpfulVotes: number
+  isVisible: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export default function AccountPage() {
   const { user, logout } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
   const [addresses, setAddresses] = useState<Address[]>([])
+  const [eligibleReviews, setEligibleReviews] = useState<EligibleReviewItem[]>([])
+  const [userReviews, setUserReviews] = useState<UserReview[]>([])
+  const [reviewsLoading, setReviewsLoading] = useState(true)
   const [loading, setLoading] = useState(true)
   const [ordersLoading, setOrdersLoading] = useState(true)
   const [addressesLoading, setAddressesLoading] = useState(true)
@@ -123,6 +167,8 @@ export default function AccountPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showAddressDialog, setShowAddressDialog] = useState(false)
   const [showPasswordDialog, setShowPasswordDialog] = useState(false)
+  const [showReviewDialog, setShowReviewDialog] = useState(false)
+  const [selectedReviewItem, setSelectedReviewItem] = useState<EligibleReviewItem | null>(null)
   const [editingAddress, setEditingAddress] = useState<Address | null>(null)
   
   const [formData, setFormData] = useState({
@@ -207,11 +253,46 @@ export default function AccountPage() {
     }
   }
 
+  // Fetch eligible products for review
+  const fetchEligibleReviews = async () => {
+    try {
+      const response = await api.get("/api/reviews/eligible")
+      const data = response.data as { success: boolean; data: EligibleReviewItem[] }
+      setEligibleReviews(data.data || [])
+    } catch (error) {
+      console.error("Error fetching eligible reviews:", error)
+      toast.error("Failed to load eligible products for review")
+    }
+  }
+
+  // Fetch user's existing reviews
+  const fetchUserReviews = async () => {
+    try {
+      const response = await api.get("/api/reviews/user")
+      const data = response.data as { success: boolean; data: UserReview[] }
+      setUserReviews(data.data || [])
+    } catch (error) {
+      console.error("Error fetching user reviews:", error)
+      toast.error("Failed to load your reviews")
+    }
+  }
+
+  // Fetch review data
+  const fetchReviewData = async () => {
+    try {
+      setReviewsLoading(true)
+      await Promise.all([fetchEligibleReviews(), fetchUserReviews()])
+    } finally {
+      setReviewsLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (user) {
       fetchProfile()
       fetchOrders()
       fetchAddresses()
+      fetchReviewData()
     }
   }, [user])
 
@@ -333,6 +414,35 @@ export default function AccountPage() {
       country: "Pakistan",
       isDefault: false
     })
+  }
+
+  // Open review dialog for a specific product
+  const openReviewDialog = (item: EligibleReviewItem) => {
+    setSelectedReviewItem(item)
+    setShowReviewDialog(true)
+  }
+
+  // Submit review
+  const submitReview = async (reviewData: { rating: number; title: string; comment: string; images?: string[] }) => {
+    if (!selectedReviewItem) return
+
+    try {
+      const response = await api.post("/api/reviews", {
+        orderItemId: selectedReviewItem.orderItemId,
+        ...reviewData
+      })
+      
+      if (response.data.success) {
+        toast.success("Review submitted successfully!")
+        setShowReviewDialog(false)
+        setSelectedReviewItem(null)
+        // Refresh review data
+        fetchReviewData()
+      }
+    } catch (error: any) {
+      console.error("Error submitting review:", error)
+      toast.error(error.response?.data?.message || "Failed to submit review")
+    }
   }
 
   const openEditAddress = (address: Address) => {
@@ -498,9 +608,10 @@ export default function AccountPage() {
 
       {/* Main Content Tabs */}
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
+          <TabsTrigger value="reviews">Reviews</TabsTrigger>
           <TabsTrigger value="addresses">Addresses</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
@@ -786,6 +897,147 @@ export default function AccountPage() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Reviews Tab */}
+        <TabsContent value="reviews" className="space-y-4">
+          <div className="grid gap-4">
+            {/* Eligible for Review Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5" />
+                  Products to Review
+                </CardTitle>
+                <CardDescription>Review products from your delivered orders</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {reviewsLoading ? (
+                  <div className="text-center py-8">
+                    <div className="text-lg">Loading...</div>
+                  </div>
+                ) : eligibleReviews.length > 0 ? (
+                  <div className="space-y-4">
+                    {eligibleReviews.map((item) => (
+                      <div key={item.orderItemId} className="border rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex gap-4">
+                            {item.product.image && (
+                              <img 
+                                src={item.product.image} 
+                                alt={item.product.name}
+                                className="w-16 h-16 object-cover rounded"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <h3 className="font-medium">{item.product.name}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Order #{item.orderNumber} • Delivered {new Date(item.deliveryDate).toLocaleDateString()}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                Quantity: {item.quantity} • PKR {item.price.toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
+                          <Button 
+                            onClick={() => openReviewDialog(item)}
+                            className="flex items-center gap-2"
+                          >
+                            <Star className="h-4 w-4" />
+                            Write Review
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <div className="text-lg font-medium">No products to review</div>
+                    <div className="text-muted-foreground">Products from delivered orders will appear here</div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Existing Reviews Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Your Reviews
+                </CardTitle>
+                <CardDescription>Manage your product reviews</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {reviewsLoading ? (
+                  <div className="text-center py-8">
+                    <div className="text-lg">Loading...</div>
+                  </div>
+                ) : userReviews.length > 0 ? (
+                  <div className="space-y-4">
+                    {userReviews.map((review) => (
+                      <div key={review._id} className="border rounded-lg p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex gap-4">
+                            {review.product.image && (
+                              <img 
+                                src={review.product.image} 
+                                alt={review.product.name}
+                                className="w-16 h-16 object-cover rounded"
+                              />
+                            )}
+                            <div className="flex-1">
+                              <h3 className="font-medium">{review.product.name}</h3>
+                              <p className="text-sm text-muted-foreground">
+                                Order #{review.order.orderNumber} • {new Date(review.createdAt).toLocaleDateString()}
+                              </p>
+                              <div className="flex items-center gap-1 mt-1">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <Star
+                                    key={star}
+                                    className={`h-4 w-4 ${
+                                      star <= review.rating
+                                        ? "text-yellow-400 fill-current"
+                                        : "text-gray-300"
+                                    }`}
+                                  />
+                                ))}
+                                <span className="text-sm text-muted-foreground ml-2">
+                                  {review.rating}/5
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {review.helpfulVotes > 0 && (
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <ThumbsUp className="h-4 w-4" />
+                                {review.helpfulVotes}
+                              </div>
+                            )}
+                            {!review.isVisible && (
+                              <Badge variant="secondary">Hidden</Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <h4 className="font-medium">{review.title}</h4>
+                          <p className="text-sm text-muted-foreground">{review.comment}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <div className="text-lg font-medium">No reviews yet</div>
+                    <div className="text-muted-foreground">Your product reviews will appear here</div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Addresses Tab */}
@@ -1101,6 +1353,17 @@ export default function AccountPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Review Form Dialog */}
+      <ReviewForm
+        isOpen={showReviewDialog}
+        onClose={() => {
+          setShowReviewDialog(false)
+          setSelectedReviewItem(null)
+        }}
+        item={selectedReviewItem}
+        onSubmit={submitReview}
+      />
     </div>
   )
 }

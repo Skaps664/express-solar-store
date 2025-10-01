@@ -231,7 +231,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     try {
       // Show a loading toast
-      toast.loading("Creating your order...")
+      // toast.loading("Creating your order...")
       
       const response = await api.post('/api/orders', {
         customerInfo: params?.customerInfo,

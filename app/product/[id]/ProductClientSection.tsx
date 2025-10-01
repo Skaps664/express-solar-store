@@ -31,6 +31,10 @@ export default function ProductClientSection({ id }: { id: string }) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState("specifications");
+  const [reviewStats, setReviewStats] = useState({
+    avgRating: 0,
+    totalReviews: 0
+  });
 
   // Ref hooks
   const resourcesRef = useRef<HTMLDivElement | null>(null);
@@ -222,8 +226,6 @@ export default function ProductClientSection({ id }: { id: string }) {
             features: data.product.keyFeatures,
             images: data.product.images,
             specifications: transformedSpecifications,
-            rating: data.product.reviews?.rating || 0,
-            reviewCount: data.product.reviews?.count || 0,
             relatedProducts: data.product.relatedProducts,
             relatedBlogs: Array.isArray(data.product.relatedBlogs) ? data.product.relatedBlogs.filter(blog => 
               blog && blog.status === 'published' && blog.isActive
@@ -249,6 +251,30 @@ export default function ProductClientSection({ id }: { id: string }) {
 
     fetchProduct();
   }, [id]);
+
+  // Fetch review stats separately
+  useEffect(() => {
+    const fetchReviewStats = async () => {
+      if (!product?._id) return;
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/reviews/product/${product._id}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.data?.stats) {
+            setReviewStats({
+              avgRating: data.data.stats.avgRating || 0,
+              totalReviews: data.data.stats.totalReviews || 0
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching review stats:', error);
+      }
+    };
+
+    fetchReviewStats();
+  }, [product?._id]);
 
   // State for quantity selection
   const scrollToResources = () => {
@@ -464,7 +490,7 @@ export default function ProductClientSection({ id }: { id: string }) {
           <div className="flex items-center gap-4 mb-4">
             <div className="flex items-center gap-2">
               <span className="text-yellow-500">★</span>
-              <span className="text-gray-700">{product.rating.toFixed(1)} ({product.reviewCount} reviews)</span>
+              <span className="text-gray-700">{reviewStats.avgRating.toFixed(1)} ({reviewStats.totalReviews} reviews)</span>
             </div>
             <div className="text-gray-500">By {product.brand}</div>
             <div className="text-gray-500">Category: {product.category}</div>

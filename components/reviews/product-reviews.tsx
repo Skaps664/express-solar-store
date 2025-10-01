@@ -18,17 +18,15 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 type Review = {
   _id: string;
   user: {
-    _id: string;
     name: string;
+    isVerified?: boolean;
   };
   rating: number;
   title?: string;
   comment: string;
+  images?: string[];
+  helpfulVotes: number;
   createdAt: string;
-  likes: {
-    count: number;
-    users: string[];
-  };
   verified: boolean;
 };
 
@@ -153,9 +151,9 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
       console.log("fetchReviews - Reviews data:", data);
       
       if (data && data.success) {
-        console.log(`fetchReviews - Successfully loaded ${data.reviews?.length || 0} reviews`);
-        setReviews(data.reviews || []);
-        setStats(data.stats || {
+        console.log(`fetchReviews - Successfully loaded ${data.data?.reviews?.length || 0} reviews`);
+        setReviews(data.data?.reviews || []);
+        setStats(data.data?.stats || {
           avgRating: 0,
           totalReviews: 0,
           distribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 }
@@ -322,7 +320,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
               
               <div className="flex items-center text-sm text-gray-600">
                 <ThumbsUp size={16} className="mr-1" />
-                <span>{review.likes.count} {review.likes.count === 1 ? 'person found this helpful' : 'people found this helpful'}</span>
+                <span>{review.helpfulVotes || 0} {(review.helpfulVotes || 0) === 1 ? 'person found this helpful' : 'people found this helpful'}</span>
               </div>
             </div>
           ))}

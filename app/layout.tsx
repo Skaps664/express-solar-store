@@ -16,7 +16,10 @@ import { Analytics } from '@vercel/analytics/next';
 export const metadata = {
   title: "Solar Express - Renewable Energy Products",
   description: "Your one-stop shop for solar and renewable energy products",
-  generator: 'skordl'
+  generator: 'skordl',
+  verification: {
+    google: 'googlec35bf1053eea3bc0'
+  }
 }
 
 export default function RootLayout({

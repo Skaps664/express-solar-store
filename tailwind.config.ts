@@ -19,6 +19,11 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        inter: ["Inter", "sans-serif"],
+        gulzar: ["Gulzar", "serif"],
+        urdu: ["Gulzar", "serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

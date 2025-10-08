@@ -98,3 +98,78 @@
   font-style: normal;
   font-display: swap;
 }
+
+/* Google Fonts - Gulzar for Urdu/Arabic text */
+.gulzar-regular {
+  font-family: "Gulzar", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Utility classes for Urdu text */
+.font-urdu {
+  font-family: "Gulzar", serif;
+  font-weight: 400;
+  font-style: normal;
+  direction: rtl;
+  text-align: right;
+}
+
+/* Auto-detect Urdu/Arabic characters and apply font */
+.urdu-content {
+  font-family: "Gulzar", serif;
+  direction: rtl;
+  text-align: right;
+  line-height: 1.8;
+}
+
+/* Prose styles for Urdu content */
+.urdu-content p,
+.urdu-content h1,
+.urdu-content h2,
+.urdu-content h3,
+.urdu-content h4,
+.urdu-content h5,
+.urdu-content h6,
+.urdu-content ul,
+.urdu-content ol,
+.urdu-content li,
+.urdu-content blockquote {
+  font-family: "Gulzar", serif;
+  direction: rtl;
+  text-align: right;
+}
+
+/* For mixed content with Urdu text */
+.mixed-content {
+  font-family: "Inter", sans-serif;
+}
+
+.mixed-content:lang(ur),
+.mixed-content:lang(ps),
+.mixed-content[dir="rtl"] {
+  font-family: "Gulzar", serif;
+  direction: rtl;
+  text-align: right;
+  line-height: 1.8;
+}
+
+/* Auto-detect Urdu/Arabic Unicode ranges */
+:lang(ur),
+:lang(ps),
+*[dir="rtl"] {
+  font-family: "Gulzar", serif;
+  direction: rtl;
+  text-align: right;
+}
+
+/* Specific character range detection for Urdu/Arabic */
+.auto-urdu {
+  font-family: "Inter", sans-serif;
+}
+
+.auto-urdu:has-text('[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]') {
+  font-family: "Gulzar", serif;
+  direction: rtl;
+  text-align: right;
+}

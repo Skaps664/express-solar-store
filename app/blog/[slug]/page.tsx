@@ -178,6 +178,7 @@ export default function BlogPost() {
             size="sm"
             onClick={() => setLanguage('en')}
             disabled={!blog.title.en}
+            className="font-inter"
           >
             English
           </Button>
@@ -186,6 +187,7 @@ export default function BlogPost() {
             size="sm"
             onClick={() => setLanguage('ur')}
             disabled={!blog.title.ur}
+            className="font-gulzar"
           >
             اردو
           </Button>
@@ -194,6 +196,7 @@ export default function BlogPost() {
             size="sm"
             onClick={() => setLanguage('ps')}
             disabled={!blog.title.ps}
+            className="font-gulzar"
           >
             پښتو
           </Button>
@@ -203,13 +206,19 @@ export default function BlogPost() {
       {/* Blog Header */}
       <header className="mb-8">
         <div className="mb-4">
-          <Badge variant="secondary" className="mb-2">
+          <Badge variant="secondary" className={`mb-2 ${
+            language === 'ur' || language === 'ps' ? 'font-gulzar' : 'font-inter'
+          }`}>
             <Tag className="w-3 h-3 mr-1" />
             {blog.category.name[language] || blog.category.name.en}
           </Badge>
         </div>
         
-        <h1 className={`text-4xl font-bold mb-4 ${language === 'ur' || language === 'ps' ? 'text-right' : 'text-left'}`}>
+        <h1 className={`text-4xl font-bold mb-4 ${
+          language === 'ur' || language === 'ps' 
+            ? 'font-gulzar text-right' 
+            : 'font-inter text-left'
+        }`}>
           {blog.title[language] || blog.title.en}
         </h1>
 
@@ -251,9 +260,15 @@ export default function BlogPost() {
       </header>
 
       {/* Blog Content */}
-      <div className={`prose prose-lg prose-slate max-w-none mb-12 ${language === 'ur' || language === 'ps' ? 'text-right' : 'text-left'}`}>
+      <div className={`prose prose-lg prose-slate max-w-none mb-12 ${
+        language === 'ur' || language === 'ps' 
+          ? 'font-gulzar text-right [&>*]:text-right [&>p]:text-right [&>h1]:text-right [&>h2]:text-right [&>h3]:text-right [&>h4]:text-right [&>h5]:text-right [&>h6]:text-right [&>ul]:text-right [&>ol]:text-right [&>blockquote]:text-right' 
+          : 'font-inter text-left'
+      }`}>
         <div 
-          className="markdown-content"
+          className={`markdown-content ${
+            language === 'ur' || language === 'ps' ? 'urdu-content' : ''
+          }`}
           dangerouslySetInnerHTML={{ 
             __html: parseMarkdown(blog.content[language] || blog.content.en) 
           }}
@@ -266,7 +281,9 @@ export default function BlogPost() {
           <h3 className="text-lg font-semibold mb-3">Tags</h3>
           <div className="flex flex-wrap gap-2">
             {blog.tags.map((tag, index) => (
-              <Badge key={index} variant="outline">
+              <Badge key={index} variant="outline" className={
+                language === 'ur' || language === 'ps' ? 'font-gulzar' : 'font-inter'
+              }>
                 {tag[language] || tag.en}
               </Badge>
             ))}

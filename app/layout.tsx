@@ -29,7 +29,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <link rel="icon" href="/favicon.ico" />
+      <head>
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Gulzar&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" 
+          rel="stylesheet" 
+        />
+      </head>
       <body className="font-inter">
         <ErrorBoundary>
           <QueryProvider>

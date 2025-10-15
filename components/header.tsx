@@ -545,7 +545,7 @@ export default function Header({ user }: HeaderProps) {
 									</div>
 								) : (
 									<>
-										<div className="w-1/4 bg-gray-50 border-r border-gray-200">
+										<div className="w-1/4 bg-gray-50 border-r border-gray-200 overflow-y-auto" style={{ maxHeight: '500px' }}>
 											{categoryData.map((category, index) => (
 												<div
 													key={index}
@@ -555,7 +555,7 @@ export default function Header({ user }: HeaderProps) {
 													onMouseEnter={() => handleCategoryHover(index)}
 												>
 													<div className="flex items-center justify-between">
-														<span>{category.name}</span>
+														<span className="text-sm">{category.name}</span>
 														<ChevronRight className="h-4 w-4" />
 													</div>
 												</div>
@@ -563,21 +563,21 @@ export default function Header({ user }: HeaderProps) {
 										</div>
 
 										{activeCategory !== null && categoryData[activeCategory] && (
-											<div className="w-1/4 bg-white border-r border-gray-200">
+											<div className="w-1/4 bg-white border-r border-gray-200 overflow-y-auto" style={{ maxHeight: '500px' }}>
 												{categoryData[activeCategory].brands.length === 0 ? (
 													<div className="px-4 py-3 text-gray-500 text-sm">No brands available</div>
 												) : (
 													categoryData[activeCategory].brands.map((brand: Brand, index: number) => (
 														<div
 															key={index}
-															className={`px-4 py-3 cursor-pointer hover:bg-gray-50 ${
+															className={`px-4 py-2.5 cursor-pointer hover:bg-gray-50 ${
 																activeBrand === index ? "bg-gray-50 font-medium text-[#1a5ca4]" : "text-gray-800"
 															}`}
 															onMouseEnter={() => handleBrandHover(index)}
 															onClick={() => navigateToBrand(brand.url)}
 														>
 															<div className="flex items-center justify-between">
-																<span>{brand.name}</span>
+																<span className="text-sm">{brand.name}</span>
 																<ChevronRight className="h-4 w-4" />
 															</div>
 														</div>
@@ -817,6 +817,22 @@ export default function Header({ user }: HeaderProps) {
 				}
 				.hide-scrollbar::-webkit-scrollbar {
 					display: none;
+				}
+				
+				/* Custom scrollbar for dropdown menus */
+				.overflow-y-auto::-webkit-scrollbar {
+					width: 6px;
+				}
+				.overflow-y-auto::-webkit-scrollbar-track {
+					background: #f1f1f1;
+					border-radius: 3px;
+				}
+				.overflow-y-auto::-webkit-scrollbar-thumb {
+					background: #1a5ca4;
+					border-radius: 3px;
+				}
+				.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+					background: #0e4a8a;
 				}
 			`}</style>
 		</header>

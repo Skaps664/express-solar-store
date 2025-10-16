@@ -98,6 +98,8 @@ interface Blog {
     }
     keywords: string[]
   }
+  primaryLanguage?: 'en' | 'ur' | 'ps'
+  availableLanguages?: Array<'en' | 'ur' | 'ps'>
   viewCount: number
   readingTime: number
   publishedAt: string
@@ -107,11 +109,13 @@ interface Blog {
 
 export default function BlogPost() {
   const params = useParams()
-  const slug = params.slug as string
+  const slug = params?.slug as string
   const [blog, setBlog] = useState<Blog | null>(null)
   const [relatedBlogs, setRelatedBlogs] = useState<Blog[]>([])
   const [loading, setLoading] = useState(true)
-  const [language, setLanguage] = useState<'en' | 'ur' | 'ps'>('en')
+  
+  // Auto-detect language from blog's primaryLanguage field
+  const language = blog?.primaryLanguage || blog?.availableLanguages?.[0] || 'en'
 
   useEffect(() => {
     const fetchBlog = async () => {
@@ -170,39 +174,6 @@ export default function BlogPost() {
 
   return (
     <article className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Language Selector */}
-      <div className="mb-6">
-        <div className="flex gap-2">
-          <Button
-            variant={language === 'en' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setLanguage('en')}
-            disabled={!blog.title.en}
-            className="font-inter"
-          >
-            English
-          </Button>
-          <Button
-            variant={language === 'ur' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setLanguage('ur')}
-            disabled={!blog.title.ur}
-            className="font-gulzar"
-          >
-            اردو
-          </Button>
-          <Button
-            variant={language === 'ps' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setLanguage('ps')}
-            disabled={!blog.title.ps}
-            className="font-gulzar"
-          >
-            پښتو
-          </Button>
-        </div>
-      </div>
-
       {/* Blog Header */}
       <header className="mb-8">
         <div className="mb-4">
@@ -210,7 +181,7 @@ export default function BlogPost() {
             language === 'ur' || language === 'ps' ? 'font-gulzar' : 'font-inter'
           }`}>
             <Tag className="w-3 h-3 mr-1" />
-            {blog.category.name[language] || blog.category.name.en}
+            {blog.category.name[language as keyof typeof blog.category.name] || blog.category.name.en}
           </Badge>
         </div>
         
@@ -219,7 +190,7 @@ export default function BlogPost() {
             ? 'font-gulzar text-right' 
             : 'font-inter text-left'
         }`}>
-          {blog.title[language] || blog.title.en}
+          {blog.title[language as keyof typeof blog.title] || blog.title.en}
         </h1>
 
         {/* <p className={`text-xl text-muted-foreground mb-6 ${language === 'ur' || language === 'ps' ? 'text-right' : 'text-left'}`}>
@@ -260,17 +231,23 @@ export default function BlogPost() {
       </header>
 
       {/* Blog Content */}
-      <div className={`prose prose-lg prose-slate max-w-none mb-12 ${
-        language === 'ur' || language === 'ps' 
-          ? 'font-gulzar text-right [&>*]:text-right [&>p]:text-right [&>h1]:text-right [&>h2]:text-right [&>h3]:text-right [&>h4]:text-right [&>h5]:text-right [&>h6]:text-right [&>ul]:text-right [&>ol]:text-right [&>blockquote]:text-right' 
-          : 'font-inter text-left'
-      }`}>
+      <div 
+        className={`prose prose-lg prose-slate max-w-none mb-12 ${
+          language === 'ur' || language === 'ps' 
+            ? 'urdu-content' 
+            : 'font-inter'
+        }`}
+        dir={language === 'ur' || language === 'ps' ? 'rtl' : 'ltr'}
+        style={language === 'ur' || language === 'ps' ? {
+          fontFamily: '"Gulzar", "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", serif',
+        } : {}}
+      >
         <div 
           className={`markdown-content ${
             language === 'ur' || language === 'ps' ? 'urdu-content' : ''
           }`}
           dangerouslySetInnerHTML={{ 
-            __html: parseMarkdown(blog.content[language] || blog.content.en) 
+            __html: parseMarkdown(blog.content[language as keyof typeof blog.content] || blog.content.en) 
           }}
         />
       </div>
@@ -284,7 +261,7 @@ export default function BlogPost() {
               <Badge key={index} variant="outline" className={
                 language === 'ur' || language === 'ps' ? 'font-gulzar' : 'font-inter'
               }>
-                {tag[language] || tag.en}
+                {tag[language as keyof typeof tag] || tag.en}
               </Badge>
             ))}
           </div>
@@ -450,26 +427,32 @@ export default function BlogPost() {
         <div>
           <h3 className="text-lg font-semibold mb-4">Related Articles</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {relatedBlogs.map((relatedBlog) => (
+            {relatedBlogs.map((relatedBlog) => {
+              const relatedLang = relatedBlog.primaryLanguage || relatedBlog.availableLanguages?.[0] || 'en'
+              return (
               <Card key={relatedBlog._id}>
                 {relatedBlog.featuredImage?.url && (
                   <div className="aspect-video relative overflow-hidden rounded-t-lg">
                     <Image
                       src={relatedBlog.featuredImage.url}
-                      alt={relatedBlog.featuredImage.alt?.[language] || relatedBlog.title[language] || relatedBlog.title.en}
+                      alt={relatedBlog.featuredImage.alt?.[relatedLang as keyof typeof relatedBlog.featuredImage.alt] || relatedBlog.title[relatedLang as keyof typeof relatedBlog.title] || relatedBlog.title.en}
                       fill
                       className="object-cover"
                     />
                   </div>
                 )}
                 <CardHeader>
-                  <CardTitle className="line-clamp-2">
+                  <CardTitle className={`line-clamp-2 ${
+                    relatedLang === 'ur' || relatedLang === 'ps' ? 'font-gulzar text-right' : ''
+                  }`}>
                     <Link href={`/blog/${relatedBlog.slug}`} className="hover:underline">
-                      {relatedBlog.title[language] || relatedBlog.title.en}
+                      {relatedBlog.title[relatedLang as keyof typeof relatedBlog.title] || relatedBlog.title.en}
                     </Link>
                   </CardTitle>
-                  <CardDescription className="line-clamp-3">
-                    {relatedBlog.excerpt[language] || relatedBlog.excerpt.en}
+                  <CardDescription className={`line-clamp-3 ${
+                    relatedLang === 'ur' || relatedLang === 'ps' ? 'font-gulzar text-right' : ''
+                  }`}>
+                    {relatedBlog.excerpt[relatedLang as keyof typeof relatedBlog.excerpt] || relatedBlog.excerpt.en}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -482,7 +465,7 @@ export default function BlogPost() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )})}
           </div>
         </div>
       )}

@@ -44,6 +44,8 @@ interface Blog {
       ps: string
     }
   }
+  primaryLanguage?: 'en' | 'ur' | 'ps'
+  availableLanguages?: Array<'en' | 'ur' | 'ps'>
   isFeatured: boolean
   isSticky: boolean
   viewCount: number
@@ -71,7 +73,6 @@ export default function BlogPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
-  const [language, setLanguage] = useState<'en' | 'ur' | 'ps'>('en')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const blogsPerPage = 9
@@ -82,7 +83,7 @@ export default function BlogPage() {
         setLoading(true)
         
   // Fetch featured blogs
-  const featuredResponse = await fetch(`${API_BASE}/api/blogs/featured?limit=3`)
+  const featuredResponse = await fetch(`${API_BASE}/api/blogs/featured?limit=4`)
         if (featuredResponse.ok) {
           const featuredData = await featuredResponse.json()
           setFeaturedBlogs(featuredData.blogs || [])
@@ -141,13 +142,15 @@ export default function BlogPage() {
     })
   }
 
-  const BlogCard = ({ blog, featured = false }: { blog: Blog; featured?: boolean }) => (
+  const BlogCard = ({ blog, featured = false }: { blog: Blog; featured?: boolean }) => {
+    const blogLang = blog.primaryLanguage || blog.availableLanguages?.[0] || 'en'
+    return (
     <Card className={`group h-full overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 ${featured ? 'bg-gradient-to-br from-[#1a5ca4] to-[#0e4a8a] text-white' : 'bg-white hover:bg-gray-50'}`}>
       {blog.featuredImage?.url && (
         <div className={`${featured ? 'aspect-[16/10]' : 'aspect-[4/3]'} relative overflow-hidden`}>
           <Image
             src={blog.featuredImage.url}
-            alt={blog.featuredImage.alt?.[language] || blog.title[language] || blog.title.en}
+            alt={blog.featuredImage.alt?.[blogLang as keyof typeof blog.featuredImage.alt] || blog.title[blogLang as keyof typeof blog.title] || blog.title.en}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
@@ -169,23 +172,23 @@ export default function BlogPage() {
         <div className="flex items-center gap-2 mb-3">
           <Badge variant="outline" className={`text-xs border-[#1a5ca4] ${featured ? 'text-white border-white/30 bg-white/10' : 'text-[#1a5ca4] bg-[#1a5ca4]/5'}`}>
             <Tag className="w-3 h-3 mr-1" />
-            {blog.category.name[language] || blog.category.name.en}
+            {blog.category.name[blogLang as keyof typeof blog.category.name] || blog.category.name.en}
           </Badge>
           <div className={`flex items-center gap-1 text-xs ${featured ? 'text-white/80' : 'text-gray-500'}`}>
             <Eye className="w-3 h-3" />
             <span>{blog.viewCount}</span>
           </div>
         </div>
-        <CardTitle className={`${featured ? 'text-xl text-white' : 'text-lg text-gray-900'} line-clamp-2 group-hover:text-[#f26522] transition-colors ${language === 'ur' || language === 'ps' ? 'text-right' : 'text-left'}`}>
+        <CardTitle className={`${featured ? 'text-xl text-white' : 'text-lg text-gray-900'} line-clamp-2 group-hover:text-[#f26522] transition-colors ${blogLang === 'ur' || blogLang === 'ps' ? 'font-gulzar text-right' : 'text-left'}`}>
           <Link 
             href={`/blog/${blog.slug}`} 
             className="hover:underline decoration-2 underline-offset-2"
           >
-            {blog.title[language] || blog.title.en}
+            {blog.title[blogLang as keyof typeof blog.title] || blog.title.en}
           </Link>
         </CardTitle>
-        <CardDescription className={`line-clamp-3 ${featured ? 'text-white/90' : 'text-gray-600'} ${language === 'ur' || language === 'ps' ? 'text-right' : 'text-left'}`}>
-          {blog.excerpt[language] || blog.excerpt.en}
+        <CardDescription className={`line-clamp-3 ${featured ? 'text-white/90' : 'text-gray-600'} ${blogLang === 'ur' || blogLang === 'ps' ? 'font-gulzar text-right' : 'text-left'}`}>
+          {blog.excerpt[blogLang as keyof typeof blog.excerpt] || blog.excerpt.en}
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-0">
@@ -214,7 +217,7 @@ export default function BlogPage() {
         </div>
       </CardContent>
     </Card>
-  )
+  )}
 
   if (loading) {
     return (
@@ -284,36 +287,6 @@ export default function BlogPage() {
           </div>
         </div>
 
-        {/* Language Selector */}
-        <div className="mb-8 flex justify-center">
-          <div className="flex gap-2 p-1 bg-white rounded-lg shadow-md border">
-            <Button
-              variant={language === 'en' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setLanguage('en')}
-              className={language === 'en' ? 'bg-[#1a5ca4] text-white' : 'text-[#1a5ca4] hover:bg-[#1a5ca4]/10'}
-            >
-              English
-            </Button>
-            <Button
-              variant={language === 'ur' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setLanguage('ur')}
-              className={language === 'ur' ? 'bg-[#1a5ca4] text-white' : 'text-[#1a5ca4] hover:bg-[#1a5ca4]/10'}
-            >
-              اردو
-            </Button>
-            <Button
-              variant={language === 'ps' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setLanguage('ps')}
-              className={language === 'ps' ? 'bg-[#1a5ca4] text-white' : 'text-[#1a5ca4] hover:bg-[#1a5ca4]/10'}
-            >
-              پښتو
-            </Button>
-          </div>
-        </div>
-
         {/* Featured Blogs - compact grid (4 small clickable cards) */}
         {featuredBlogs.length > 0 && (
           <section className="mb-8">
@@ -323,18 +296,20 @@ export default function BlogPage() {
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {featuredBlogs.slice(0, 4).map((blog) => (
+              {featuredBlogs.slice(0, 4).map((blog) => {
+                const blogLang = blog.primaryLanguage || blog.availableLanguages?.[0] || 'en'
+                return (
                 <Link
                   key={blog._id}
                   href={`/blog/${blog.slug}`}
                   className="block rounded-lg overflow-hidden shadow-lg transform transition-all hover:scale-[1.02] hover:shadow-[0_10px_40px_rgba(10,60,120,0.12)] h-40 sm:h-56"
-                  aria-label={blog.title[language] || blog.title.en}
+                  aria-label={blog.title[blogLang as keyof typeof blog.title] || blog.title.en}
                 >
                   <div className="h-20 sm:h-32 w-full relative">
                     {blog.featuredImage?.url ? (
                       <Image
                         src={blog.featuredImage.url}
-                        alt={blog.featuredImage.alt?.[language] || blog.title[language] || blog.title.en}
+                        alt={blog.featuredImage.alt?.[blogLang as keyof typeof blog.featuredImage.alt] || blog.title[blogLang as keyof typeof blog.title] || blog.title.en}
                         fill
                         className="object-cover"
                         loading="lazy"
@@ -344,11 +319,19 @@ export default function BlogPage() {
                     )}
                   </div>
                   <div className="h-20 sm:h-24 bg-gradient-to-br from-[#1a5ca4] to-[#0e4a8a] p-3 sm:p-4 text-white flex flex-col justify-center">
-                    <h3 className="text-sm font-semibold line-clamp-2">{blog.title[language] || blog.title.en}</h3>
-                    <p className="text-[11px] text-white/90 mt-1 line-clamp-1">{blog.excerpt[language]?.slice(0, 80) || ''}</p>
+                    <h3 className={`text-sm font-semibold line-clamp-2 ${
+                      blogLang === 'ur' || blogLang === 'ps' ? 'font-gulzar text-right' : ''
+                    }`}>
+                      {blog.title[blogLang as keyof typeof blog.title] || blog.title.en}
+                    </h3>
+                    <p className={`text-[11px] text-white/90 mt-1 line-clamp-1 ${
+                      blogLang === 'ur' || blogLang === 'ps' ? 'font-gulzar text-right' : ''
+                    }`}>
+                      {blog.excerpt[blogLang as keyof typeof blog.excerpt]?.slice(0, 80) || ''}
+                    </p>
                   </div>
                 </Link>
-              ))}
+              )})}
             </div>
           </section>
         )}
@@ -372,7 +355,7 @@ export default function BlogPage() {
               <SelectItem value="all">All Categories</SelectItem>
               {categories.filter(category => category._id && category._id.trim() !== '').map((category) => (
                 <SelectItem key={category._id} value={category._id}>
-                  {category.name[language] || category.name.en} ({category.blogCount})
+                  {category.name.en} ({category.blogCount})
                 </SelectItem>
               ))}
             </SelectContent>

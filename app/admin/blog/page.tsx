@@ -127,7 +127,7 @@ export default function BlogPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false)
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null)
-  const [activeLanguage, setActiveLanguage] = useState<'en' | 'ur' | 'ps'>('en')
+  const [selectedLanguage, setSelectedLanguage] = useState<'en' | 'ur' | 'ps'>('en')
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [categories, setCategories] = useState<BlogCategory[]>([])
   const [products, setProducts] = useState<Product[]>([])
@@ -208,23 +208,45 @@ export default function BlogPage() {
       .replace(/(^-|-$)/g, '')
   }
 
+  // Generate a transliterated slug for non-English titles
+  const generateNonEnglishSlug = (title: string, lang: 'ur' | 'ps') => {
+    // For Urdu/Pashto, create a slug with timestamp and language prefix
+    const timestamp = Date.now()
+    const langPrefix = lang === 'ur' ? 'urdu' : 'pashto'
+    // Take first few characters (if any ASCII chars exist) or use generic
+    const cleaned = title.replace(/[^\w\s-]/g, '').trim()
+    const shortTitle = cleaned.substring(0, 20).toLowerCase().replace(/\s+/g, '-') || 'blog'
+    return `${langPrefix}-${shortTitle}-${timestamp}`
+  }
+
   // Handle title change and auto-generate slug
-  const handleTitleChange = (value: string, lang: 'en' | 'ur' | 'ps') => {
-    setFormData(prev => ({
+  const handleTitleChange = (value: string) => {
+    let newSlug = formData.slug
+    
+    // Auto-generate slug based on language
+    if (selectedLanguage === 'en') {
+      newSlug = generateSlug(value)
+    } else if (value.trim() && !formData.slug) {
+      // For Urdu/Pashto, generate slug on first title entry
+      newSlug = generateNonEnglishSlug(value, selectedLanguage)
+    }
+    
+    setFormData((prev: any) => ({
       ...prev,
       title: {
         ...prev.title!,
-        [lang]: value
+        [selectedLanguage]: value
       },
-      slug: lang === 'en' ? generateSlug(value) : prev.slug
+      slug: newSlug
     }))
   }
 
   // Save blog
   const handleSaveBlog = async () => {
     try {
-      if (!formData.title?.en.trim()) {
-        toast.error('Please enter a title in English')
+      if (!formData.title?.[selectedLanguage].trim()) {
+        const langName = selectedLanguage === 'en' ? 'English' : selectedLanguage === 'ur' ? 'Urdu' : 'Pashto'
+        toast.error(`Please enter a title in ${langName}`)
         return
       }
 
@@ -234,8 +256,28 @@ export default function BlogPage() {
       }
 
       // Prepare payload: convert empty strings to null for primary fields
+      // Set primaryLanguage and availableLanguages
+      // For non-English blogs, copy Urdu/Pashto content to English fields (backend requirement)
       const blogData = {
         ...formData,
+        title: {
+          en: selectedLanguage === 'en' ? formData.title.en : formData.title[selectedLanguage], // Fallback for backend validation
+          ur: formData.title.ur,
+          ps: formData.title.ps
+        },
+        excerpt: {
+          en: selectedLanguage === 'en' ? formData.excerpt.en : formData.excerpt[selectedLanguage], // Fallback for backend validation
+          ur: formData.excerpt.ur,
+          ps: formData.excerpt.ps
+        },
+        content: {
+          en: selectedLanguage === 'en' ? formData.content.en : formData.content[selectedLanguage], // Fallback for backend validation
+          ur: formData.content.ur,
+          ps: formData.content.ps
+        },
+        slug: formData.slug || generateNonEnglishSlug(formData.title[selectedLanguage], selectedLanguage as 'ur' | 'ps'),
+        primaryLanguage: selectedLanguage,
+        availableLanguages: [selectedLanguage],
         primaryProduct: formData.primaryProduct === '' ? null : formData.primaryProduct,
         primaryBrand: formData.primaryBrand === '' ? null : formData.primaryBrand,
         relatedProducts: formData.relatedProducts || []
@@ -296,6 +338,7 @@ export default function BlogPage() {
   const handleCloseDialog = () => {
     setIsAddDialogOpen(false);
     setSelectedBlog(null);
+    setSelectedLanguage('en'); // Reset language selection
     // Reset form data to default state
     setFormData({
       title: { en: '', ur: '', ps: '' },
@@ -360,6 +403,7 @@ export default function BlogPage() {
 
   const handleCreateNewBlog = () => {
     setSelectedBlog(null)
+    setSelectedLanguage('en') // Reset to English by default
     setFormData({
       title: { en: '', ur: '', ps: '' },
       slug: '',
@@ -390,6 +434,10 @@ export default function BlogPage() {
   const handleEditBlog = (blog: Blog) => {
     console.log('🔍 Editing blog:', blog)
     setSelectedBlog(blog)
+    
+    // Detect which language this blog is in (check which fields are populated)
+    const detectedLanguage = blog.title.ur ? 'ur' : blog.title.ps ? 'ps' : 'en'
+    setSelectedLanguage(detectedLanguage)
     
     // Ensure all required fields are properly populated
     const populatedFormData = {
@@ -463,10 +511,10 @@ export default function BlogPage() {
       ...prev,
       content: {
         ...prev.content,
-        [activeLanguage]: value
+        [selectedLanguage]: value
       }
     }))
-  }, [activeLanguage])
+  }, [selectedLanguage])
 
   // Handle thumbnail upload
   const handleThumbnailUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -551,13 +599,13 @@ export default function BlogPage() {
       if (response.data.success) {
         // Insert the markdown image syntax at the current cursor position
         const imageMarkdown = response.data.image.markdown
-        const currentContent = formData.content?.[activeLanguage] || ''
+        const currentContent = formData.content?.[selectedLanguage] || ''
         
         setFormData(prev => ({
           ...prev,
           content: {
             ...prev.content,
-            [activeLanguage]: currentContent + '\n\n' + imageMarkdown + '\n\n'
+            [selectedLanguage]: currentContent + '\n\n' + imageMarkdown + '\n\n'
           }
         }))
         
@@ -649,9 +697,56 @@ export default function BlogPage() {
               <DialogHeader>
                 <DialogTitle>{selectedBlog ? 'Edit Blog Post' : 'Create New Blog Post'}</DialogTitle>
                 <DialogDescription>
-                  Create multilingual blog content with SEO optimization and product/brand associations.
+                  Create blog content with SEO optimization and product/brand associations.
                 </DialogDescription>
               </DialogHeader>
+              
+              {/* Language Selection - Only when creating new blog */}
+              {!selectedBlog && (
+                <div className="border-b pb-4 mb-4">
+                  
+                  <div className="grid grid-cols-3 gap-3">
+                    <Button
+                      type="button"
+                      variant={selectedLanguage === 'en' ? 'default' : 'outline'}
+                      onClick={() => setSelectedLanguage('en')}
+                      className="h-20 flex flex-col items-center justify-center gap-2"
+                    >
+                      <Globe className="h-5 w-5" />
+                      <span className="font-medium">English</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={selectedLanguage === 'ur' ? 'default' : 'outline'}
+                      onClick={() => setSelectedLanguage('ur')}
+                      className="h-20 flex flex-col items-center justify-center gap-2 font-urdu"
+                    >
+                      <Globe className="h-5 w-5" />
+                      <span className="font-medium">اردو</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={selectedLanguage === 'ps' ? 'default' : 'outline'}
+                      onClick={() => setSelectedLanguage('ps')}
+                      className="h-20 flex flex-col items-center justify-center gap-2 font-urdu"
+                    >
+                      <Globe className="h-5 w-5" />
+                      <span className="font-medium">پښتو</span>
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Show selected language indicator when editing */}
+              {selectedBlog && (
+                <div className="border-b pb-4 mb-4">
+                  <Label className="text-base font-semibold mb-2 block">Blog Language</Label>
+                  <Badge variant="secondary" className="text-sm px-3 py-1">
+                    {selectedLanguage === 'en' ? '🌐 English' : selectedLanguage === 'ur' ? '🇵🇰 اردو (Urdu)' : '🇦🇫 پښتو (Pashto)'}
+                  </Badge>
+                </div>
+              )}
+              
               <Tabs defaultValue="content" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="content">Content</TabsTrigger>
@@ -661,42 +756,37 @@ export default function BlogPage() {
                 </TabsList>
 
                 <TabsContent value="content" className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Label>Language:</Label>
-                    <Select value={activeLanguage} onValueChange={(value: 'en' | 'ur' | 'ps') => setActiveLanguage(value)}>
-                      <SelectTrigger className="w-[150px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="ur">Urdu</SelectItem>
-                        <SelectItem value="ps">Pashto</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                    <div className="grid gap-4">
+                  <div className="grid gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="title">Title ({activeLanguage.toUpperCase()})</Label>
+                      <Label htmlFor="title">
+                        Title {selectedLanguage === 'en' ? '' : `(${selectedLanguage === 'ur' ? 'اردو' : 'پښتو'})`}
+                      </Label>
                       <Input
                         id="title"
-                        value={formData.title?.[activeLanguage] || ''}
-                        onChange={(e) => handleTitleChange(e.target.value, activeLanguage)}
-                        placeholder={`Enter title in ${activeLanguage === 'en' ? 'English' : activeLanguage === 'ur' ? 'Urdu' : 'Pashto'}`}
+                        value={formData.title?.[selectedLanguage] || ''}
+                        onChange={(e) => handleTitleChange(e.target.value)}
+                        placeholder={selectedLanguage === 'en' ? 'Enter blog title in English' : selectedLanguage === 'ur' ? 'عنوان درج کریں' : 'سرلیک دلته ولیکئ'}
+                        className={selectedLanguage !== 'en' ? 'font-urdu text-right' : ''}
+                        dir={selectedLanguage !== 'en' ? 'rtl' : 'ltr'}
                       />
                     </div>
 
-                    {activeLanguage === 'en' && (
-                      <div className="grid gap-2">
-                        <Label htmlFor="slug">Slug</Label>
-                        <Input
-                          id="slug"
-                          value={formData.slug || ''}
-                          onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                          placeholder="blog-post-url"
-                        />
-                      </div>
-                    )}
+                    <div className="grid gap-2">
+                      <Label htmlFor="slug">Slug {selectedLanguage !== 'en' && '(Auto-generated)'}</Label>
+                      <Input
+                        id="slug"
+                        value={formData.slug || ''}
+                        onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                        placeholder={selectedLanguage === 'en' ? 'blog-post-url' : 'Auto-generated from title'}
+                        readOnly={selectedLanguage !== 'en'}
+                        className={selectedLanguage !== 'en' ? 'bg-muted cursor-not-allowed' : ''}
+                      />
+                      {selectedLanguage !== 'en' && (
+                        <p className="text-xs text-muted-foreground">
+                          Slug will be automatically generated when you save the blog
+                        </p>
+                      )}
+                    </div>
 
                     {/* Thumbnail Upload Section */}
                     <div className="grid gap-2">
@@ -759,31 +849,37 @@ export default function BlogPage() {
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="excerpt">Excerpt ({activeLanguage.toUpperCase()})</Label>
+                      <Label htmlFor="excerpt">
+                        Excerpt {selectedLanguage === 'en' ? '' : `(${selectedLanguage === 'ur' ? 'اردو' : 'پښتو'})`}
+                      </Label>
                       <Textarea
                         id="excerpt"
-                        value={formData.excerpt?.[activeLanguage] || ''}
+                        value={formData.excerpt?.[selectedLanguage] || ''}
                         onChange={(e) => setFormData(prev => ({
                           ...prev,
                           excerpt: {
                             ...prev.excerpt!,
-                            [activeLanguage]: e.target.value
+                            [selectedLanguage]: e.target.value
                           }
                         }))}
-                        placeholder={`Brief description in ${activeLanguage === 'en' ? 'English' : activeLanguage === 'ur' ? 'Urdu' : 'Pashto'}`}
+                        placeholder={selectedLanguage === 'en' ? 'Brief description of your blog post' : selectedLanguage === 'ur' ? 'مختصر تفصیل' : 'لنډ تفصیل'}
+                        className={selectedLanguage !== 'en' ? 'font-urdu text-right' : ''}
+                        dir={selectedLanguage !== 'en' ? 'rtl' : 'ltr'}
                         rows={3}
                       />
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="content">Content ({activeLanguage.toUpperCase()})</Label>
+                      <Label htmlFor="content">
+                        Content {selectedLanguage === 'en' ? '' : `(${selectedLanguage === 'ur' ? 'اردو' : 'پښتو'})`}
+                      </Label>
                       <RichTextEditor
-                        value={formData.content?.[activeLanguage] || ''}
+                        value={formData.content?.[selectedLanguage] || ''}
                         onChange={handleContentChange}
-                        placeholder={`Write your blog content in ${activeLanguage === 'en' ? 'English' : activeLanguage === 'ur' ? 'Urdu' : 'Pashto'}...`}
+                        placeholder={selectedLanguage === 'en' ? 'Write your blog content...' : selectedLanguage === 'ur' ? 'اپنا مضمون یہاں لکھیں...' : 'خپل مضمون دلته ولیکئ...'}
                         contentImageUploading={contentImageUploading}
                         setContentImageUploading={setContentImageUploading}
-                        activeLanguage={activeLanguage}
+                        activeLanguage={selectedLanguage}
                       />
                     </div>
 
@@ -830,63 +926,57 @@ export default function BlogPage() {
                 </TabsContent>
 
                 <TabsContent value="seo" className="space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Label>Language:</Label>
-                    <Select value={activeLanguage} onValueChange={(value: 'en' | 'ur' | 'ps') => setActiveLanguage(value)}>
-                      <SelectTrigger className="w-[150px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">English</SelectItem>
-                        <SelectItem value="ur">Urdu</SelectItem>
-                        <SelectItem value="ps">Pashto</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   <div className="grid gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="metaTitle">Meta Title ({activeLanguage.toUpperCase()})</Label>
+                      <Label htmlFor="metaTitle">
+                        Meta Title {selectedLanguage === 'en' ? '' : `(${selectedLanguage === 'ur' ? 'اردو' : 'پښتو'})`}
+                      </Label>
                       <Input
                         id="metaTitle"
-                        value={formData.seo?.metaTitle?.[activeLanguage] || ''}
+                        value={formData.seo?.metaTitle?.[selectedLanguage] || ''}
                         onChange={(e) => setFormData(prev => ({
                           ...prev,
                           seo: {
                             ...prev.seo,
                             metaTitle: {
                               ...prev.seo?.metaTitle,
-                              [activeLanguage]: e.target.value
+                              [selectedLanguage]: e.target.value
                             }
                           }
                         }))}
-                        placeholder="SEO title (max 60 characters)"
+                        placeholder={selectedLanguage === 'en' ? 'SEO title (max 60 characters)' : 'SEO عنوان'}
+                        className={selectedLanguage !== 'en' ? 'font-urdu text-right' : ''}
+                        dir={selectedLanguage !== 'en' ? 'rtl' : 'ltr'}
                         maxLength={60}
                       />
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="metaDescription">Meta Description ({activeLanguage.toUpperCase()})</Label>
+                      <Label htmlFor="metaDescription">
+                        Meta Description {selectedLanguage === 'en' ? '' : `(${selectedLanguage === 'ur' ? 'اردو' : 'پښتو'})`}
+                      </Label>
                       <Textarea
                         id="metaDescription"
-                        value={formData.seo?.metaDescription?.[activeLanguage] || ''}
+                        value={formData.seo?.metaDescription?.[selectedLanguage] || ''}
                         onChange={(e) => setFormData(prev => ({
                           ...prev,
                           seo: {
                             ...prev.seo,
                             metaDescription: {
                               ...prev.seo?.metaDescription,
-                              [activeLanguage]: e.target.value
+                              [selectedLanguage]: e.target.value
                             }
                           }
                         }))}
-                        placeholder="SEO description (max 160 characters)"
+                        placeholder={selectedLanguage === 'en' ? 'SEO description (max 160 characters)' : 'SEO تفصیل'}
+                        className={selectedLanguage !== 'en' ? 'font-urdu text-right' : ''}
+                        dir={selectedLanguage !== 'en' ? 'rtl' : 'ltr'}
                         maxLength={160}
                         rows={3}
                       />
                     </div>
 
-                    {activeLanguage === 'en' && (
+                    {selectedLanguage === 'en' && (
                       <>
                         <div className="grid gap-2">
                           <Label htmlFor="focusKeyword">Focus Keyword</Label>
@@ -920,6 +1010,14 @@ export default function BlogPage() {
                           />
                         </div>
                       </>
+                    )}
+                    
+                    {selectedLanguage !== 'en' && (
+                      <div className="p-4 bg-muted rounded-lg">
+                        <p className="text-sm text-muted-foreground">
+                          ℹ️ Focus Keyword and Canonical URL are only available for English blogs for SEO best practices.
+                        </p>
+                      </div>
                     )}
                   </div>
                 </TabsContent>

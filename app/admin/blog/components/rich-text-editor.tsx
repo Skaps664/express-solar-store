@@ -215,13 +215,17 @@ const RichTextEditor = React.memo(({ value, onChange, placeholder, contentImageU
             ],
             content_style: `
               body {
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+                font-family: ${activeLanguage === 'ur' || activeLanguage === 'ps' 
+                  ? '"Gulzar", "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", "Urdu Typesetting", "Alvi Nastaleeq", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' 
+                  : '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'};
                 font-size: 16px;
                 padding: 24px;
                 min-height: 380px;
                 line-height: 1.7;
                 color: #1e293b;
                 background: #ffffff;
+                direction: ${activeLanguage === 'ur' || activeLanguage === 'ps' ? 'rtl' : 'ltr'};
+                text-align: ${activeLanguage === 'ur' || activeLanguage === 'ps' ? 'right' : 'left'};
               }
               h1 { 
                 font-size: 2.5em; 
@@ -229,9 +233,11 @@ const RichTextEditor = React.memo(({ value, onChange, placeholder, contentImageU
                 margin: 1.2em 0 0.6em 0; 
                 line-height: 1.2;
                 color: #0f172a;
+                ${activeLanguage === 'en' ? `
                 background: linear-gradient(135deg, #1e293b, #475569);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
+                ` : ''}
               }
               h2 { 
                 font-size: 2em; 
@@ -273,12 +279,12 @@ const RichTextEditor = React.memo(({ value, onChange, placeholder, contentImageU
                 color: #334155;
               }
               blockquote {
-                border-left: 4px solid #3b82f6;
+                border-${activeLanguage === 'ur' || activeLanguage === 'ps' ? 'right' : 'left'}: 4px solid #3b82f6;
                 margin: 1.5em 0;
-                padding: 1em 0 1em 1.5em;
+                padding: 1em ${activeLanguage === 'ur' || activeLanguage === 'ps' ? '1.5em 1em 0' : '0 0 0 1.5em'};
                 font-style: italic;
                 background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-                border-radius: 0 8px 8px 0;
+                border-radius: ${activeLanguage === 'ur' || activeLanguage === 'ps' ? '8px 0 0 8px' : '0 8px 8px 0'};
                 color: #475569;
                 font-size: 1.05em;
                 position: relative;
@@ -288,7 +294,7 @@ const RichTextEditor = React.memo(({ value, onChange, placeholder, contentImageU
                 font-size: 4em;
                 color: #3b82f6;
                 position: absolute;
-                left: 8px;
+                ${activeLanguage === 'ur' || activeLanguage === 'ps' ? 'right: 8px;' : 'left: 8px;'}
                 top: -10px;
                 font-family: serif;
                 opacity: 0.3;
@@ -304,7 +310,7 @@ const RichTextEditor = React.memo(({ value, onChange, placeholder, contentImageU
                 border-bottom-color: #2563eb;
               }
               ul, ol {
-                padding-left: 1.5em;
+                padding-${activeLanguage === 'ur' || activeLanguage === 'ps' ? 'right' : 'left'}: 1.5em;
               }
               li {
                 margin-bottom: 0.5em;

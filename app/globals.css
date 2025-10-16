@@ -134,10 +134,25 @@
 .urdu-content ul,
 .urdu-content ol,
 .urdu-content li,
-.urdu-content blockquote {
+.urdu-content blockquote,
+.urdu-content span,
+.urdu-content div,
+.urdu-content strong,
+.urdu-content em,
+.urdu-content b,
+.urdu-content i,
+.urdu-content a,
+.urdu-content table,
+.urdu-content td,
+.urdu-content th {
   font-family: "Gulzar", serif;
   direction: rtl;
   text-align: right;
+}
+
+/* Ensure all nested elements in Urdu content use Gulzar */
+.urdu-content * {
+  font-family: "Gulzar", serif !important;
 }
 
 /* For mixed content with Urdu text */

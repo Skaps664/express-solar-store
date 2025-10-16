@@ -213,10 +213,12 @@ export default function BlogPage() {
     // For Urdu/Pashto, create a slug with timestamp and language prefix
     const timestamp = Date.now()
     const langPrefix = lang === 'ur' ? 'urdu' : 'pashto'
-    // Take first few characters (if any ASCII chars exist) or use generic
-    const cleaned = title.replace(/[^\w\s-]/g, '').trim()
-    const shortTitle = cleaned.substring(0, 20).toLowerCase().replace(/\s+/g, '-') || 'blog'
-    return `${langPrefix}-${shortTitle}-${timestamp}`
+    // Remove all non-ASCII and special characters, keep only basic alphanumeric
+    const cleaned = title.replace(/[^a-zA-Z0-9\s]/g, '').trim()
+    const shortTitle = cleaned.substring(0, 20).toLowerCase().replace(/\s+/g, '-').replace(/-+$/, '')
+    // If no ASCII characters remain, just use blog
+    const titlePart = shortTitle && shortTitle.length > 0 ? shortTitle : 'blog'
+    return `${langPrefix}-${titlePart}-${timestamp}`
   }
 
   // Handle title change and auto-generate slug

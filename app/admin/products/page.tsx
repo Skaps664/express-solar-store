@@ -5,6 +5,7 @@ import { api } from "@/lib/services/api"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import ClearCacheButton from "@/components/admin/ClearCacheButton"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -2064,8 +2065,13 @@ export default function ProductsPage() {
         <TabsContent value="all" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Product Inventory</CardTitle>
-              <CardDescription>Complete product catalog with category and brand filtering.</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Product Inventory</CardTitle>
+                  <CardDescription>Complete product catalog with category and brand filtering.</CardDescription>
+                </div>
+                <ClearCacheButton />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col sm:flex-row gap-4 mb-4">

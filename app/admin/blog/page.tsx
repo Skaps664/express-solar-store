@@ -169,7 +169,8 @@ export default function BlogPage() {
         setLoading(true)
         const timestamp = Date.now()
         const [blogsRes, categoriesRes, productsRes, brandsRes] = await Promise.all([
-          api.get(`/api/blogs?status=all&_t=${timestamp}`),
+          // Request a large limit for admin to return all blogs (avoid backend default pagination)
+          api.get(`/api/blogs?status=all&limit=10000&_t=${timestamp}`),
           api.get('/api/blog-categories?includeInactive=true'),
           api.get('/api/products/admin/all?limit=1000'),
           api.get('/api/brands/admin/all')
@@ -298,9 +299,10 @@ export default function BlogPage() {
       
       // Refresh blogs list with cache busting
       // Add a small delay to ensure backend has processed the changes
-      setTimeout(async () => {
+        setTimeout(async () => {
         const timestamp = Date.now()
-        const blogsRes = await api.get(`/api/blogs?status=all&_t=${timestamp}`)
+        // Ensure admin refresh fetches all blogs (bypass pagination)
+        const blogsRes = await api.get(`/api/blogs?status=all&limit=10000&_t=${timestamp}`)
         const blogsData = blogsRes.data as any
         console.log('📄 Refreshed blogs after save:', blogsData.blogs?.length || 0, 'blogs')
         setBlogs(blogsData.blogs || [])
@@ -323,7 +325,8 @@ export default function BlogPage() {
       // Refresh blogs list with delay and cache busting
       setTimeout(async () => {
         const timestamp = Date.now()
-        const blogsRes = await api.get(`/api/blogs?status=all&_t=${timestamp}`)
+        // Ensure admin refresh fetches all blogs after deletion
+        const blogsRes = await api.get(`/api/blogs?status=all&limit=10000&_t=${timestamp}`)
         const blogsData = blogsRes.data as any
         console.log('📄 Refreshed blogs after delete:', blogsData.blogs?.length || 0, 'blogs')
         setBlogs(blogsData.blogs || [])

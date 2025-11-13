@@ -12,6 +12,7 @@ import { QueryProvider } from "@/providers/QueryProvider"
 import { ErrorBoundary } from '@/components/error-boundary'
 import { Analytics } from '@vercel/analytics/next'
 import { OrganizationSchema } from '@/components/structured-data'
+import { WebSiteSchema } from '@/components/structured-data'
 
 
 export const metadata = {
@@ -82,7 +83,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
+        {/* Preload a fallback OG image to improve social preview LCP */}
+        <link rel="preload" as="image" href="/og-image.jpg" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link 
@@ -92,6 +97,7 @@ export default function RootLayout({
       </head>
       <body className="font-inter">
         <OrganizationSchema />
+        <WebSiteSchema />
         <ErrorBoundary>
           <QueryProvider>
             <ToastProvider>

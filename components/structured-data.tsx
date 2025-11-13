@@ -203,3 +203,25 @@ export function LocalBusinessSchema({
     />
   )
 }
+
+export function WebSiteSchema({
+  url = "https://www.solarexpress.pk",
+  name = "Solar Express",
+  alternateName = "Solar Express - Solar & Renewable Energy"
+}: { url?: string, name?: string, alternateName?: string }) {
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "url": url,
+    "name": name,
+    "alternateName": alternateName
+  }
+
+  return (
+    <Script
+      id="website-schema"
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+    />
+  )
+}

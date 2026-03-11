@@ -15,8 +15,8 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
 
-  // Enable static export for Cloudflare deployment
-  output: 'export',
+  // Enable static export for Cloudflare deployment (uncomment for production builds)
+  // output: 'export',
 
   // API rewrites to proxy to backend
   async rewrites() {

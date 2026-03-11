@@ -56,14 +56,14 @@ const Button = ({ children, variant = "default", size = "default", className = "
     default: "h-10 py-2 px-4",
     sm: "h-9 px-3 text-sm"
   };
-  
+
   const classes = `${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`;
-  
+
   if (asChild && React.isValidElement(children) && children.type === 'a') {
     const anchorProps = children.props as React.AnchorHTMLAttributes<HTMLAnchorElement>;
     return <a {...anchorProps} className={classes}>{anchorProps.children}</a>;
   }
-  
+
   return <button className={classes} {...props}>{children}</button>;
 };
 
@@ -72,20 +72,20 @@ const Tabs = ({ children, defaultValue, value, onValueChange, className = "" }: 
   const [internalActiveTab, setInternalActiveTab] = useState(defaultValue);
   const activeTab = value !== undefined ? value : internalActiveTab;
   const setActiveTab = onValueChange || setInternalActiveTab;
-  
+
   return (
     <div className={className} data-active-tab={activeTab}>
       {React.Children.map(children, (child) => {
         if (!child) return null;
-        
+
         if (child.type === TabsList) {
           return React.cloneElement(child, { onTabChange: setActiveTab, activeTab });
         }
-        
+
         if (child.type === TabsContent && child.props.value === activeTab) {
           return child;
         }
-        
+
         return null;
       })}
     </div>
@@ -96,15 +96,14 @@ const TabsList = ({ children, onTabChange, activeTab }: any) => (
   <div className="inline-flex h-10 items-center justify-center rounded-md bg-gray-100 p-1 text-gray-600">
     {React.Children.map(children, (child, index) => {
       if (!child || !child.props) return null;
-      
+
       return (
         <button
           key={index}
-          className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${
-            activeTab === child.props.value 
-              ? 'bg-white text-gray-900 shadow-sm' 
+          className={`inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${activeTab === child.props.value
+              ? 'bg-white text-gray-900 shadow-sm'
               : 'text-gray-600 hover:bg-gray-200'
-          }`}
+            }`}
           onClick={() => onTabChange && onTabChange(child.props.value)}
         >
           {child.props.children}
@@ -133,7 +132,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
       views: "1B"
     },
     {
-      id: "2", 
+      id: "2",
       type: "video" as const,
       title: "Test Video 2",
       description: "Another test video",
@@ -150,7 +149,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
       fileType: "pdf"
     }
   ];
-  
+
   // Ensure resources is an array and validate each resource
   const validatedResources = Array.isArray(resources) ? resources.filter(resource => {
     if (!resource || typeof resource !== 'object') {
@@ -161,7 +160,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
       console.error('Resource missing required fields:', resource);
       return false;
     }
-    
+
     // Additional type-specific validation
     if (resource.type === 'document' && !resource.url) {
       console.error('Document resource missing URL:', resource);
@@ -198,29 +197,29 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
     }
     return true;
   }) : [];
-  
+
   // Remove duplicates based on id and type
   const finalResources = validatedResources.filter((resource, index, array) => {
     const firstIndex = array.findIndex(r => r.id === resource.id && r.type === resource.type);
     return firstIndex === index;
   });
-  
+
   const documents = finalResources.filter(resource => resource.type === 'document');
   const videos = finalResources.filter(resource => resource.type === 'video');
   const blogs = finalResources.filter(resource => resource.type === 'blog');
   const [selectedVideo, setSelectedVideo] = useState<Resource | null>(videos.length > 0 ? videos[0] : null);
   const [activeTab, setActiveTab] = useState('all');
-  
+
   // Function to handle video selection from all resources tab
   const handleVideoSelect = (video: Resource) => {
     setSelectedVideo(video);
     setActiveTab('videos');
   };
-  
+
   // Function to extract YouTube video ID
   const getVideoId = (url: string): string => {
     if (!url) return '';
-    
+
     try {
       if (url.includes('youtube.com/watch')) {
         return new URL(url).searchParams.get('v') || '';
@@ -233,7 +232,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
       return '';
     }
   };
-  
+
   // Debug logging for resource processing
   console.log('Processing resources:', {
     originalResources: resources,
@@ -251,48 +250,60 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
       </div>
     );
   }
-  
+
   // Function to get document URL through backend proxy
-  const getDocumentUrl = (cloudinaryUrl: string): string => {
-    console.log('Processing Cloudinary URL:', cloudinaryUrl);
-    
+  const getDocumentUrl = (documentUrl: string): string => {
+    console.log('Processing document URL:', documentUrl);
+
     try {
-      // Check if it's already a Cloudinary URL
-      if (!cloudinaryUrl.includes('cloudinary.com')) {
-        console.log('Not a Cloudinary URL, using as-is:', cloudinaryUrl);
-        return cloudinaryUrl;
+      // Check if it's an R2 URL — route through backend proxy for consistent download
+      const r2Domain = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || '';
+      if (r2Domain && documentUrl.includes(r2Domain.replace('https://', '').replace('http://', ''))) {
+        console.log('R2 URL detected, routing through backend proxy');
+        // Extract the key from the R2 URL (everything after the domain)
+        const r2UrlObj = new URL(documentUrl);
+        const r2Key = r2UrlObj.pathname.slice(1); // Remove leading /
+        const backendUrl = `${process.env.NEXT_PUBLIC_API_BASE}/api/products/document/${encodeURIComponent(r2Key)}`;
+        console.log('R2 Document URL through backend:', backendUrl);
+        return backendUrl;
       }
-      
+
+      // Check if it's already a Cloudinary URL
+      if (!documentUrl.includes('cloudinary.com')) {
+        console.log('Not a Cloudinary or R2 URL, using as-is:', documentUrl);
+        return documentUrl;
+      }
+
       // Extract the public ID from the Cloudinary URL
       // URL format: https://res.cloudinary.com/dcgcxw70o/raw/upload/v1754914983/products/documents/1754914982963_EP-5_EP-11_Updated.pdf
-      const urlParts = cloudinaryUrl.split('/');
+      const urlParts = documentUrl.split('/');
       const uploadIndex = urlParts.findIndex(part => part === 'upload');
-      
+
       if (uploadIndex === -1) {
-        console.error('Invalid Cloudinary URL format:', cloudinaryUrl);
-        return cloudinaryUrl; // fallback to original URL
+        console.error('Invalid Cloudinary URL format:', documentUrl);
+        return documentUrl; // fallback to original URL
       }
-      
+
       // Get everything after /upload/
       const pathAfterUpload = urlParts.slice(uploadIndex + 1).join('/');
-      
+
       // Remove version number if present (starts with 'v' followed by numbers and a slash)
       const publicId = pathAfterUpload.replace(/^v\d+\//, '');
-      
+
       console.log('Extracted public ID:', publicId);
       console.log('Path after upload:', pathAfterUpload);
-      
+
       // The backend expects the full public ID including the folder structure
       const backendUrl = `${process.env.NEXT_PUBLIC_API_BASE}/api/products/document/${encodeURIComponent(publicId)}`;
       console.log('Document URL through backend:', backendUrl);
-      
+
       return backendUrl;
     } catch (error) {
       console.error('Error processing document URL:', error);
-      return cloudinaryUrl; // fallback to original URL
+      return documentUrl; // fallback to original URL
     }
   };
-  
+
   return (
     <div>
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
@@ -302,7 +313,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
           {videos.length > 0 && <TabsTrigger value="videos">Videos ({videos.length})</TabsTrigger>}
           {blogs.length > 0 && <TabsTrigger value="blogs">Blogs ({blogs.length})</TabsTrigger>}
         </TabsList>
-        
+
         <TabsContent value="videos" className="pt-6">
           {/* Video player */}
           {selectedVideo && (
@@ -310,7 +321,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
               <div className="bg-gray-100 rounded-lg overflow-hidden max-w-2xl mx-auto lg:mx-0">
                 <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden' }}>
                   {selectedVideo.url ? (
-                    <iframe 
+                    <iframe
                       style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
                       src={`https://www.youtube.com/embed/${getVideoId(selectedVideo.url)}?rel=0&modestbranding=1`}
                       title={selectedVideo.title || "Product Video"}
@@ -325,7 +336,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
                   )}
                 </div>
               </div>
-              
+
               {/* Video info */}
               <div className="mt-4 max-w-2xl mx-auto lg:mx-0">
                 <h3 className="text-lg font-medium">{selectedVideo.title || 'Untitled Video'}</h3>
@@ -339,18 +350,17 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
               </div>
             </div>
           )}
-          
+
           {/* Video list */}
           {videos.length > 1 && (
             <>
               <h4 className="font-medium mb-3 text-lg">All Videos</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {videos.map((resource, index) => (
-                  <div 
+                  <div
                     key={index}
-                    className={`border rounded-lg p-4 hover:shadow-md cursor-pointer ${
-                      selectedVideo?.url === resource.url ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                    }`}
+                    className={`border rounded-lg p-4 hover:shadow-md cursor-pointer ${selectedVideo?.url === resource.url ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                      }`}
                     onClick={() => setSelectedVideo(resource)}
                   >
                     <div className="flex items-start">
@@ -370,43 +380,43 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
             </>
           )}
         </TabsContent>
-        
+
         <TabsContent value="documents" className="pt-6">
           {console.log('Rendering documents tab, documents:', documents)}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {documents.map((resource: Resource, index: number) => (
-                <div key={resource.id || `doc-${index}`} className="border rounded-lg p-4 hover:shadow-md">
-                  <div className="flex items-start">
-                    <div className="rounded-full p-2 bg-blue-100 text-blue-600 mr-3">
-                      <FileText size={20} />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium mb-1">{resource.name || 'Untitled Document'}</h4>
-                      {resource.description && (
-                        <p className="text-sm text-gray-600 mb-2">{resource.description}</p>
-                      )}
-                      {resource.fileType && (
-                        <span className="bg-gray-100 px-2 py-1 rounded mr-2 text-xs">
-                          {resource.fileType.toUpperCase()}
-                        </span>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full mt-3 flex items-center justify-center"
-                        asChild
-                      >
-                        <a href={getDocumentUrl(resource.url || '')} target="_blank" rel="noopener noreferrer">
-                          Download <ExternalLink size={16} className="ml-1" />
-                        </a>
-                      </Button>
-                    </div>
+              <div key={resource.id || `doc-${index}`} className="border rounded-lg p-4 hover:shadow-md">
+                <div className="flex items-start">
+                  <div className="rounded-full p-2 bg-blue-100 text-blue-600 mr-3">
+                    <FileText size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium mb-1">{resource.name || 'Untitled Document'}</h4>
+                    {resource.description && (
+                      <p className="text-sm text-gray-600 mb-2">{resource.description}</p>
+                    )}
+                    {resource.fileType && (
+                      <span className="bg-gray-100 px-2 py-1 rounded mr-2 text-xs">
+                        {resource.fileType.toUpperCase()}
+                      </span>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-3 flex items-center justify-center"
+                      asChild
+                    >
+                      <a href={getDocumentUrl(resource.url || '')} target="_blank" rel="noopener noreferrer">
+                        Download <ExternalLink size={16} className="ml-1" />
+                      </a>
+                    </Button>
                   </div>
                 </div>
+              </div>
             ))}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="blogs" className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {blogs.map((resource: Resource, index: number) => (
@@ -434,9 +444,9 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
                   </div>
                   {resource.featuredImage?.url && (
                     <div className="mt-3">
-                      <img 
-                        src={resource.featuredImage.url} 
-                        alt={resource.featuredImage.alt?.en || resource.title || 'Blog featured image'} 
+                      <img
+                        src={resource.featuredImage.url}
+                        alt={resource.featuredImage.alt?.en || resource.title || 'Blog featured image'}
                         className="w-full h-32 object-cover rounded-md"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
@@ -449,7 +459,7 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
             ))}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="all" className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {finalResources.map((resource: Resource, index: number) => {
@@ -463,15 +473,15 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
                         </div>
                         <div className="flex-1">
                           <h4 className="font-medium mb-1 line-clamp-2">
-                            {typeof resource.title === 'string' 
-                              ? resource.title 
+                            {typeof resource.title === 'string'
+                              ? resource.title
                               : (resource.title as any)?.en || (resource.title as any)?.ur || (resource.title as any)?.ps || 'Untitled Blog'
                             }
                           </h4>
                           {(resource.excerpt || resource.description) && (
                             <p className="text-sm text-gray-600 mb-2 line-clamp-3">
-                              {typeof resource.excerpt === 'string' 
-                                ? resource.excerpt 
+                              {typeof resource.excerpt === 'string'
+                                ? resource.excerpt
                                 : (resource.excerpt as any)?.en || (resource.excerpt as any)?.ur || (resource.excerpt as any)?.ps || resource.description || ''
                               }
                             </p>
@@ -493,11 +503,10 @@ export default function ProductResources({ resources = [] }: ProductResourcesPro
               }
 
               return (
-                <div 
+                <div
                   key={`all-${resource.id}`}
-                  className={`border rounded-lg p-4 hover:shadow-md ${
-                    resource.type === 'video' ? 'cursor-pointer' : ''
-                  }`}
+                  className={`border rounded-lg p-4 hover:shadow-md ${resource.type === 'video' ? 'cursor-pointer' : ''
+                    }`}
                   onClick={() => resource.type === 'video' ? handleVideoSelect(resource) : null}
                 >
                   <div className="flex items-start">

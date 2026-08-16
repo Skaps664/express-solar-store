@@ -14,6 +14,9 @@ import { ErrorBoundary } from '@/components/error-boundary'
 import { OrganizationSchema } from '@/components/structured-data'
 import { WebSiteSchema } from '@/components/structured-data'
 import { Inter } from 'next/font/google'
+import Script from 'next/script'
+
+const ADSENSE_CLIENT_ID = 'ca-pub-4813295430978922'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -73,6 +76,9 @@ export const metadata = {
       'max-snippet': -1,
     },
   },
+  other: {
+    'google-adsense-account': ADSENSE_CLIENT_ID,
+  },
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
@@ -102,6 +108,12 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
+        <Script
+          id="google-adsense"
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
         <OrganizationSchema />
         <WebSiteSchema />
         <ErrorBoundary>

@@ -449,7 +449,7 @@ export default function Header({ user }: HeaderProps) {
 								<Input
 									type="text"
 									placeholder="Search here"
-									className="w-full py-2 pl-4 pr-10 rounded-full border-0 shadow-sm"
+									className="w-full h-9 md:h-10 py-2 pl-4 pr-10 rounded-full border-0 shadow-sm"
 									value={searchTerm}
 									onChange={(e) => setSearchTerm(e.target.value)}
 								/>
@@ -464,7 +464,7 @@ export default function Header({ user }: HeaderProps) {
 						</form>
 					</div>
 
-					<div className="flex items-center gap-1 md:gap-4">
+					<div className="flex items-center gap-2 md:gap-4">
 						<div className="relative" ref={dropdownRef}>
 							{authUser ? (
 								<button
@@ -512,9 +512,8 @@ export default function Header({ user }: HeaderProps) {
 						</div>
 
 						<Button
-							variant="ghost"
-							size="mobileMenu"
-							className="md:hidden text-white"
+							variant="outline"
+							className="md:hidden h-9 w-9 p-0 [&_svg]:size-5"
 							onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
 						>
 							{isMobileMenuOpen ? <X /> : <Menu />}
@@ -684,18 +683,15 @@ export default function Header({ user }: HeaderProps) {
 				}`}
 				style={{ maxWidth: "320px" }}
 			>
-				<div className="flex items-center justify-between p-4 bg-[#1a5ca4] text-white">
-					<div className="flex items-center gap-2">
-						<div className="w-12 h-6 rounded-full flex items-center justify-center">
-							{/* Use mobile logo here (mobile menu only) */}
-							<img
-								src="/logo-new.png"
-								alt="Solar Express Logo"
-								className="w-full h-full object-cover"
-							/>
-						</div>
-						<span className="text-xl font-bold ml-6"></span>
-					</div>
+				<div className="flex items-center justify-between px-4 py-3 bg-[#1a5ca4] text-white">
+					<Link href="/" onClick={handleMobileNavClick} className="flex items-center">
+						{/* White wordmark sits cleanly on the blue bar without cropping */}
+						<img
+							src="/logo-crop.PNG"
+							alt="Solar Express Logo"
+							className="h-10 w-auto object-contain"
+						/>
+					</Link>
 					<Button variant="ghost" size="icon" className="text-white" onClick={() => setIsMobileMenuOpen(false)}>
 						<X className="h-6 w-6" />
 					</Button>
@@ -731,20 +727,23 @@ export default function Header({ user }: HeaderProps) {
 				</div>
 
 				<div className="py-3 px-2 border-b border-gray-200 bg-gray-50">
-					<h3 className="text-lg font-medium px-2 mb-2 text-[#1a5ca4]">Categories</h3>
-					<div className="flex overflow-x-auto pb-2 hide-scrollbar">
+					<div className="flex items-baseline justify-between px-2 mb-2">
+						<h3 className="text-lg font-medium text-[#1a5ca4]">Shop by Category</h3>
+						<span className="text-[10px] text-gray-400">Swipe for more →</span>
+					</div>
+					<div className="flex overflow-x-auto pb-2 hide-scrollbar snap-x snap-mandatory">
 						{categoryData.map((category, index) => (
 							<Link
 								key={index}
 								href={category.route}
-								className="flex-shrink-0 mr-2 w-24"
+								className="flex-shrink-0 mr-2 w-[72px] snap-start"
 								onClick={handleMobileNavClick}
 							>
-								<div className="rounded-lg bg-white border border-gray-200 p-2 flex flex-col items-center justify-center h-24 shadow-sm hover:border-[#f26522] hover:shadow-md transition-all">
-									<div className="h-12 w-12 rounded-full bg-[#1a5ca4]/10 flex items-center justify-center mb-1">
-										<category.icon className={`h-8 w-8 ${category.iconColor}`} />
+								<div className="rounded-lg bg-white border border-gray-200 p-1.5 flex flex-col items-center justify-center h-[72px] shadow-sm hover:border-[#f26522] hover:shadow-md transition-all">
+									<div className="h-8 w-8 rounded-full bg-[#1a5ca4]/10 flex items-center justify-center mb-1">
+										<category.icon className={`h-4 w-4 ${category.iconColor}`} />
 									</div>
-									<span className="text-xs text-center font-medium">{category.name}</span>
+									<span className="text-[10px] leading-tight text-center font-medium line-clamp-2">{category.name}</span>
 								</div>
 							</Link>
 						))}
@@ -753,7 +752,8 @@ export default function Header({ user }: HeaderProps) {
 
 				{/* --- Fixing Brands Mobile Navigation JSX --- */}
 				<nav className="p-4">
-					<h3 className="text-lg font-medium mb-3 text-[#1a5ca4]">Brands</h3>
+					<h3 className="text-lg font-medium text-[#1a5ca4]">Shop by Brand</h3>
+					<p className="text-[10px] text-gray-400 mb-2">Tap a category to see its brands</p>
 					{categoryData.map((category, index) => (
 						<div key={index} className="mb-2">
 							<div

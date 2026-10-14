@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Clock, Eye, Search, Tag, ArrowRight, TrendingUp, BookOpen, Users } from "lucide-react"
+import { PagePagination } from "@/components/page-pagination"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -75,7 +76,10 @@ export default function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [totalBlogs, setTotalBlogs] = useState(0)
   const blogsPerPage = 9
+  const articlesRef = useRef<HTMLDivElement>(null)
+  const latestRequest = useRef(0)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -96,8 +100,6 @@ export default function BlogPage() {
           setCategories(categoriesData.categories || [])
         }
 
-        // Fetch regular blogs
-        await fetchBlogs()
       } catch (error) {
         console.error('Error fetching data:', error)
       } finally {
@@ -109,6 +111,7 @@ export default function BlogPage() {
   }, [])
 
   const fetchBlogs = async () => {
+    const requestId = ++latestRequest.current
     try {
       const params = new URLSearchParams({
         page: currentPage.toString(),
@@ -122,8 +125,11 @@ export default function BlogPage() {
   const response = await fetch(`${API_BASE}/api/blogs?${params}`)
       if (response.ok) {
         const data = await response.json()
+        // Ignore responses that arrive after a newer request (fast clicks / typing)
+        if (requestId !== latestRequest.current) return
         setBlogs(data.blogs || [])
         setTotalPages(data.pagination?.pages || 1)
+        setTotalBlogs(data.pagination?.total || 0)
       }
     } catch (error) {
       console.error('Error fetching blogs:', error)
@@ -133,6 +139,11 @@ export default function BlogPage() {
   useEffect(() => {
     fetchBlogs()
   }, [currentPage, searchTerm, selectedCategory])
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page)
+    articlesRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -281,7 +292,7 @@ export default function BlogPage() {
               </div>
               <div className="flex items-center gap-2 text-white/80">
                 <BookOpen className="w-4 h-4" />
-                <span className="text-sm">{blogs.length}+ Articles</span>
+                <span className="text-sm">{totalBlogs || blogs.length}+ Articles</span>
               </div>
             </div>
           </div>
@@ -343,11 +354,11 @@ export default function BlogPage() {
             <Input
               placeholder="Search articles, topics, guides..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1) }}
               className="pl-10 border-[#1a5ca4]/20 focus:border-[#1a5ca4] focus:ring-[#1a5ca4]"
             />
           </div>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <Select value={selectedCategory} onValueChange={(value) => { setSelectedCategory(value); setCurrentPage(1) }}>
             <SelectTrigger className="w-full sm:w-[200px] border-[#1a5ca4]/20 focus:border-[#1a5ca4] focus:ring-[#1a5ca4]">
               <SelectValue placeholder="All Categories" />
             </SelectTrigger>
@@ -363,7 +374,7 @@ export default function BlogPage() {
         </div>
 
         {/* Blog Grid */}
-        <div className="mb-8">
+        <div ref={articlesRef} className="mb-8 scroll-mt-24">
           <div className="flex items-center gap-3 mb-8">
             <div className="h-8 w-1 bg-[#1a5ca4] rounded-full"></div>
             <h2 className="text-2xl font-bold text-[#1a5ca4]">Latest Articles</h2>
@@ -403,38 +414,13 @@ export default function BlogPage() {
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center gap-2 mt-12">
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="border-[#1a5ca4] text-[#1a5ca4] hover:bg-[#1a5ca4] hover:text-white"
-            >
-              Previous
-            </Button>
-            
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                variant={currentPage === page ? "default" : "outline"}
-                onClick={() => setCurrentPage(page)}
-                className={`w-10 ${currentPage === page ? 'bg-[#1a5ca4] text-white' : 'border-[#1a5ca4] text-[#1a5ca4] hover:bg-[#1a5ca4] hover:text-white'}`}
-              >
-                {page}
-              </Button>
-            ))}
-            
-            <Button
-              variant="outline"
-              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-              className="border-[#1a5ca4] text-[#1a5ca4] hover:bg-[#1a5ca4] hover:text-white"
-            >
-              Next
-            </Button>
-          </div>
-        )}
+        <PagePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={goToPage}
+          label="Blog pagination"
+          className="mt-12"
+        />
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, Suspense } from "react"
+import React, { useState, useEffect, useRef, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,11 +10,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Slider } from "@/components/ui/slider"
 import AnalyticsClient from "@/lib/analytics"
-import { Grid, List, SlidersHorizontal, Filter, X, ChevronRight, Star, ShoppingCart, Heart } from "lucide-react"
+import { SlidersHorizontal, Filter, X, ChevronRight, Star, ShoppingCart, Heart } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useCart } from "@/context/CartContext"
 import { toast } from "react-hot-toast"
+import { PagePagination } from "@/components/page-pagination"
+import { ProductToolbar } from "@/components/product-toolbar"
 
 // Runtime-safe API URL builder - evaluates environment at call time
 const buildApiUrl = (path: string) => {
@@ -128,8 +130,9 @@ function CategoryClientComponent({ params }: CategoryPageProps) {
   const [appliedFilters, setAppliedFilters] = useState<Record<string, any>>({})
   const [loading, setLoading] = useState(false)
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0, limit: 12 })
+  const productsRef = useRef<HTMLDivElement>(null)
   const [sortBy, setSortBy] = useState("newest")
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const viewMode = 'grid' as 'grid' | 'list' // grid only; view switcher removed
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [categoryInfo, setCategoryInfo] = useState<any>(null)
   const [categoryError, setCategoryError] = useState<string | null>(null)
@@ -437,55 +440,14 @@ function CategoryClientComponent({ params }: CategoryPageProps) {
         </div>
 
         {/* Products Section */}
-        <div className="flex-1">
+        <div ref={productsRef} className="flex-1 scroll-mt-24">
           {/* Toolbar */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 p-4 border rounded-lg bg-gray-50">
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">
-                {pagination.total} products found
-              </span>
-              {activeFilterCount > 0 && (
-                <Badge variant="outline" className="text-xs">
-                  {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} applied
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">Sort:</span>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest</SelectItem>
-                    <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                    <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                    <SelectItem value="popularity">Most Popular</SelectItem>
-                    <SelectItem value="top_selling">Best Selling</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center gap-1">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
+          <ProductToolbar
+            total={pagination.total}
+            activeFilterCount={activeFilterCount}
+            sort={sortBy}
+            onSortChange={setSortBy}
+          />
 
           {/* Products Grid/List */}
           {loading ? (
@@ -506,7 +468,7 @@ function CategoryClientComponent({ params }: CategoryPageProps) {
             <>
               <div className={
                 viewMode === 'grid' 
-                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                  ? "grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
                   : "space-y-4"
               }>
                 {products.map((product: any) => {
@@ -698,39 +660,16 @@ function CategoryClientComponent({ params }: CategoryPageProps) {
               </div>
 
               {/* Pagination */}
-              {pagination.pages > 1 && (
-                <div className="flex justify-center mt-8">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      disabled={pagination.page === 1}
-                      onClick={() => setPagination(prev => ({ ...prev, page: prev.page - 1 }))}
-                    >
-                      Previous
-                    </Button>
-                    {Array.from({ length: Math.min(pagination.pages, 5) }, (_, i) => {
-                      const page = i + 1
-                      return (
-                        <Button
-                          key={page}
-                          variant={pagination.page === page ? "default" : "outline"}
-                          onClick={() => setPagination(prev => ({ ...prev, page }))}
-                          className={pagination.page === page ? "bg-[#1a5ca4]" : ""}
-                        >
-                          {page}
-                        </Button>
-                      )
-                    })}
-                    <Button
-                      variant="outline"
-                      disabled={pagination.page === pagination.pages}
-                      onClick={() => setPagination(prev => ({ ...prev, page: prev.page + 1 }))}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
+              <PagePagination
+                currentPage={pagination.page}
+                totalPages={pagination.pages}
+                onPageChange={(page) => {
+                  setPagination(prev => ({ ...prev, page }))
+                  productsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+                }}
+                label="Product pagination"
+                className="mt-8"
+              />
             </>
           )}
         </div>

@@ -6,7 +6,7 @@ export default function PrivacyPolicy() {
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-3xl font-bold text-[#1a5ca4] mb-6">Privacy Policy</h1>
-          <p className="text-gray-600 mb-8">Last Updated: July 25, 2025</p>
+          <p className="text-gray-600 mb-8">Last Updated: October 14, 2026</p>
           
           <div className="prose prose-lg max-w-none">
             <p className="text-gray-700 mb-6">
@@ -56,6 +56,46 @@ export default function PrivacyPolicy() {
               </ul>
               <p className="text-gray-700">
                 You can disable cookies in your browser settings, but doing so may affect site performance.
+              </p>
+
+              <h3 className="text-xl font-semibold text-gray-800 mb-3 mt-6">Advertising</h3>
+              <p className="text-gray-700 mb-4">
+                We use Google AdSense to show ads on our website. Third-party vendors, including Google, use cookies
+                to serve ads based on your prior visits to this website and other websites.
+              </p>
+              <p className="text-gray-700 mb-4">
+                Google&apos;s use of advertising cookies enables it and its partners to serve ads to you based on your
+                visits to our site and/or other sites on the Internet.
+              </p>
+              <p className="text-gray-700">
+                You may opt out of personalized advertising by visiting{" "}
+                <a
+                  href="https://adssettings.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#1a5ca4] underline"
+                >
+                  Google Ads Settings
+                </a>
+                , or opt out of third-party vendors&apos; use of cookies for personalized advertising at{" "}
+                <a
+                  href="https://www.aboutads.info/choices"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#1a5ca4] underline"
+                >
+                  www.aboutads.info
+                </a>
+                . To learn more, see{" "}
+                <a
+                  href="https://policies.google.com/technologies/ads"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#1a5ca4] underline"
+                >
+                  how Google uses information from sites that use its services
+                </a>
+                .
               </p>
             </section>
 

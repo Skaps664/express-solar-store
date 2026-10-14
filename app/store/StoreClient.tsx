@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, Suspense } from "react"
+import { useState, useEffect, useRef, Suspense } from "react"
 import { useSearchParams, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,6 +13,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { useCart } from "@/context/CartContext"
 import { toast } from "react-hot-toast"
+import { PagePagination } from "@/components/page-pagination"
+import { ProductToolbar } from "@/components/product-toolbar"
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE
 
@@ -87,7 +89,7 @@ function StorePageContent({ category, search }: { category?: string; search?: st
     total: 0,
     limit: 12
   })
-  const [sort, setSort] = useState('name')
+  const [sort, setSort] = useState('newest')
   const [limit, setLimit] = useState(12)
   const [filterState, setFilterState] = useState<Record<string, any>>({})
   const [showMobileFilters, setShowMobileFilters] = useState(false)
@@ -248,7 +250,11 @@ function StorePageContent({ category, search }: { category?: string; search?: st
 
   const handleSortChange = (value: string) => setSort(value)
   const handleLimitChange = (value: string) => setLimit(Number(value))
-  const goToPage = (page: number) => setPagination((prev) => ({ ...prev, page }))
+  const productsRef = useRef<HTMLDivElement>(null)
+  const goToPage = (page: number) => {
+    setPagination((prev) => ({ ...prev, page }))
+    productsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+  }
 
   const handleProductClick = (id: string, slug: string) => {
     try {
@@ -453,37 +459,13 @@ function StorePageContent({ category, search }: { category?: string; search?: st
           </Card>
         </div>
 
-        <div className="w-full md:w-3/4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 p-4 border rounded-lg bg-gray-50 gap-3">
-            <div className="flex items-center gap-4 w-full sm:w-auto">
-              <span className="text-sm text-gray-600">
-                {pagination.total} products found
-              </span>
-              {activeFilterCount > 0 && (
-                <Badge variant="outline" className="text-xs">
-                  {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} applied
-                </Badge>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="text-sm">Sort:</span>
-                <Select onValueChange={handleSortChange} value={sort}>
-                  <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Featured" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="newest">Newest</SelectItem>
-                    <SelectItem value="price_asc">Price: Low to High</SelectItem>
-                    <SelectItem value="price_desc">Price: High to Low</SelectItem>
-                    <SelectItem value="popularity">Popularity</SelectItem>
-                    <SelectItem value="top_selling">Top Selling</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
+        <div ref={productsRef} className="w-full md:w-3/4 scroll-mt-24">
+          <ProductToolbar
+            total={pagination.total}
+            activeFilterCount={activeFilterCount}
+            sort={sort}
+            onSortChange={handleSortChange}
+          />
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
@@ -688,39 +670,13 @@ function StorePageContent({ category, search }: { category?: string; search?: st
                 })}
               </div>
 
-              {pagination.pages > 1 && (
-                <div className="flex justify-center mt-8">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={pagination.page === 1}
-                      onClick={() => goToPage(pagination.page - 1)}
-                    >
-                      Previous
-                    </Button>
-                    {Array.from({ length: Math.min(pagination.pages, 5) }, (_, i) => (
-                      <Button
-                        key={i}
-                        variant="outline"
-                        size="sm"
-                        className={pagination.page === i + 1 ? "bg-[#1a5ca4] text-white" : ""}
-                        onClick={() => goToPage(i + 1)}
-                      >
-                        {i + 1}
-                      </Button>
-                    ))}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={pagination.page === pagination.pages}
-                      onClick={() => goToPage(pagination.page + 1)}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
+              <PagePagination
+                currentPage={pagination.page}
+                totalPages={pagination.pages}
+                onPageChange={goToPage}
+                label="Product pagination"
+                className="mt-8"
+              />
             </>
           )}
         </div>

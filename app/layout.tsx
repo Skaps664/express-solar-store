@@ -14,7 +14,6 @@ import { ErrorBoundary } from '@/components/error-boundary'
 import { OrganizationSchema } from '@/components/structured-data'
 import { WebSiteSchema } from '@/components/structured-data'
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
 
 const ADSENSE_CLIENT_ID = 'ca-pub-4813295430978922'
 
@@ -97,6 +96,12 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        {/* AdSense: plain tag so it is present in the server HTML for site verification */}
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
+          crossOrigin="anonymous"
+        />
         <link rel="icon" href="/favicon.ico" />
         {/* Preload a fallback OG image to improve social preview LCP */}
         <link rel="preload" as="image" href="/og-image.jpg" />
@@ -108,12 +113,6 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <Script
-          id="google-adsense"
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT_ID}`}
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
         <OrganizationSchema />
         <WebSiteSchema />
         <ErrorBoundary>
